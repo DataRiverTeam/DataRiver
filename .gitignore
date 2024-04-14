@@ -1,1 +1,8 @@
 dags/__pycache__
+airflow.cfg
+airflow.db
+webserver_config.py
+logs
+airflow-webserver.pid
+requirements.txt
+.env*

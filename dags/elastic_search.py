@@ -1,66 +1,30 @@
-from datetime import timedelta, datetime
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
+from airflow.providers.elasticsearch.hooks.elasticsearch import ElasticsearchPythonHook
+import os
 
-# Define your merge function
-def merge_files(**kwargs):
-    with open(kwargs['file1'], 'r') as file:
-        # Read the entire file content
-        file1_content = file.read()
-    with open(kwargs['file2'], 'r') as file:
-        # Read the entire file content
-        file2_content = file.read()
-    kwargs['ti'].xcom_push(key='data_to_pass', value=file1_content+file2_content)
-    
-
-def save_file(**kwargs):
-    data_received = kwargs['ti'].xcom_pull(key='data_to_pass', task_ids='merge_files_task')
-    with open(kwargs['output_file'], 'w') as file:
-        # Read the entire file content
-        file.write(data_received)
-
-# Define default arguments for the DAG
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2024, 3, 25),
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
-    'retry_delay': timedelta(minutes=5),
 }
 
-# Define the DAG
-dag = DAG(
-    'merge_files_dag',
-    default_args=default_args,
-    description='A DAG to merge two files',
-    schedule_interval=None,
-)
+def fetch_data_from_elasticsearch():
+    es_hook = ElasticsearchPythonHook(
+        hosts=["https://28e65033710b4d2e89093b2756a29c8b.us-central1.gcp.cloud.es.io"],
+        es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
+        )
+    query = {"query": {"term": {"ride_id": "65506F830C2B492D"}}}
+    result = es_hook.search(query=query, index="tripdata")
+    print(result)
+    return True
+     
+with DAG('elasticsearch_example', default_args=default_args) as dag:
+    fetch_data_task = PythonOperator(
+        task_id='fetch_data',
+        python_callable=fetch_data_from_elasticsearch
+    )
 
-# Define tasks
-merge_files_task = PythonOperator(
-    task_id='merge_files_task',
-    python_callable=merge_files,
-    op_kwargs={
-        'file1': '/mnt/c/Users/szymo/Desktop/Studia/AirflowProjects/example/ipsum.txt', 
-        'file2': '/mnt/c/Users/szymo/Desktop/Studia/AirflowProjects/example/lorem.txt', 
-        },
-    dag=dag,
-)
-
-# Define tasks
-save_task = PythonOperator(
-    task_id='save_task',
-    python_callable=save_file,
-    op_kwargs={
-        'output_file': '/mnt/c/Users/szymo/Desktop/Studia/AirflowProjects/example/lorem_ipsum2.txt'
-        },
-    dag=dag,
-)
-
-# Set task dependencies
-merge_files_task >> save_task
-
-if __name__ == "__main__":
-    dag.cli()
+fetch_data_task
