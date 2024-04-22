@@ -13,13 +13,29 @@ default_args = {
 
 def fetch_data_from_elasticsearch():
     es_hook = ElasticsearchPythonHook(
-        hosts=["https://172.18.0.2:9200/"],
+        hosts=[os.environ["ELASTIC_HOST"]],
         es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
         )
-    query = {"query": {"term": {"ride_id": "65506F830C2B492D"}}}
-    result = es_hook.search(query=query, index="tripdata")
-    print(result)
-    return True
+    query = { "query": {"match_all": {}}, "_source": ["content", "id"] }
+    result = es_hook.search(query=query, index="articles")
+    data_dir = "data"
+    try:
+        os.mkdir(data_dir)
+    except FileExistsError:
+        pass
+    # Extract content from the search result
+    for doc in scan(es_hook.get_conn(), query=query, index='your_index_name'):
+        # Process each document as needed
+        print(doc['_source'])
+        
+    for hit in result["hits"]:
+        content = hit["_source"]["content"]
+        doc_id = hit["_source"]["id"]
+        
+        # Write content to a file with the document ID as the filename
+        file_name = os.path.join(data_dir, f"{doc_id}.txt")
+        with open(file_name, "w") as file:
+            file.write(content)
      
 with DAG('elasticsearch_example', default_args=default_args, schedule_interval=None) as dag:
     fetch_data_task = PythonOperator(
