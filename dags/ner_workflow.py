@@ -6,6 +6,7 @@ import os
 from typing import Dict
 
 def fetch_data_from_elasticsearch(ti):
+    print(os.environ["ELASTIC_API_KEY"])
     es_hook = ElasticsearchPythonHook(
         hosts=[os.environ["ELASTIC_HOST"]],
         es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
@@ -21,9 +22,9 @@ def fetch_data_from_elasticsearch(ti):
     for hit in scan(es_hook.get_conn, query=query, index='articles'):
         content = hit["_source"]["content"]
         doc_id = hit["_source"]["id"] 
-        file_name = os.path.join(data_dir, f"{doc_id}.txt")
-        files.append(file_name)
-        with open(file_name, "w") as file:
+        file_path = os.path.join(data_dir, f"{doc_id}.txt")
+        files.append(file_path)
+        with open(file_path, "w") as file:
             file.write(content)
     ti.xcom_push(key="files", value=files)
 
@@ -35,49 +36,87 @@ def detect_language(ti):
     files = ti.xcom_pull(key="files", task_ids="fetch_data")
     langs = {}
     print(files)
-    for file_name in files:
+    for file_path in files:
         try:
-            with open(file_name, "r") as f:
+            with open(file_path, "r") as f:
                 text = f.read()
                 lang = langdetect.detect(text) 
                 if lang not in langs:
                     langs[lang] = []
-                langs[lang].append(file_name)
+                langs[lang].append(file_path)
         except IOError:
-            print("There was an error when processing file: " + file_name)
+            print("There was an error when processing file: " + file_path)
             # TODO handle error
-            pass
     ti.xcom_push(key="langs", value=langs)
     return langs
+
+
+
+MAX_FRAGMENT_LENGTH = 500
 
 
 # Task translates text files, based on received dict from "detect_languages".
 def translate(ti):
     from translate import Translator
+    from os import rename
+    import nltk
+
     langs: Dict[str, list[str]] = ti.xcom_pull(key="langs", task_ids="detect_language")
-    # download_dir = "data/"              # temporary fix for PythonVenvOperator, don't remove, unless you passed this value as param/variable!
-    #                                     # ("no variables outside of the scope may be referenced.")
+    
+    nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
+
     for lang in langs:
         if lang == "en":
             continue
-        translator= Translator(from_lang=lang, to_lang="en")
+        translator= Translator(from_lang=lang, to_lang="en")    # we should use differen't tokenizers     
         print("Translating language: " , lang)
-        for file_name in langs[lang]:
-            print(file_name)
+        for file_path in langs[lang]:
+            # Rename source text file - we mark it as being in use,
+            # so we can simultaneously read from it and put translated text to a new file.
+            # It allows reusage of the old Xcom list from "fetch_data" task.
+
+            new_path = file_path + ".old"
+            os.rename(file_path, new_path)
+
             try:
-                with open(file_name, "r+") as f:
+                with open(new_path, "r") as f, open(file_path, "a") as new_f:
+                    # We probably shouldn't read the whole text file at once - what if the file is REALLY big? 
                     text = f.read()
-                    translation = translator.translate(text)
-                    f.write(translation)        # perhaps we need to make sure that we use proper char encoding when writing
+
+                    # split text to sentences, so we can translate only a fragment instead of the whole file
+                    sentences = nltk.tokenize.sent_tokenize(text, "english")        # FIXME: we shouldn't use English tokenizer for every language!
+
+                    l = 0
+                    r = 0
+                    total_length = 0
+
+                    while r < len(sentences):
+                        if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
+                            total_length += len(sentences[r])                            
+                        else:
+                            to_translate = " ".join(sentences[l : r + 1])
+                            translation = translator.translate(to_translate)
+                            new_f.write(translation)        # perhaps we should make sure that we use proper char encoding when writing to file?
+                            l = r + 1
+                            total_length = 0
+                        r += 1
+                    else:
+                        to_translate = " ".join(sentences[l : r + 1])
+                        translation = translator.translate(to_translate)
+                        new_f.write(translation)
+
             except IOError:
-                # handle error
+                raise Exception(f"Couldn't open {file_path}!")
                 pass
 
 
 def detect_entities(ti):
     # from io import BytesIO
     # from minio import Minio
-    import spacy
+    import spacy    
+    import nltk
+
+    nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
     files = ti.xcom_pull(key="files", task_ids="fetch_data")
     # in case we want to download data from cloud storage
     # client = Minio(
@@ -92,13 +131,20 @@ def detect_entities(ti):
         nlp = spacy.load("en_core_web_md")
         try:
             with open(file, "r") as f: 
-                doc = nlp(f.read())
-                # ent - named entity detected by nlp
-                # ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
-                # ent.sent - sentence including given entity
-                for ent in doc.ents:
-                    print(ent.text + " | " + str(ent.label_) + " | " + str(ent.sent))
 
+                text = f.read()
+                sentences = nltk.tokenize.sent_tokenize(text, "english")
+                
+                for s in sentences:
+                    doc = nlp(s)
+                    # ent - named entity detected by nlp
+                    # ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
+                    # ent.sent - sentence including given entity
+                    for ent in doc.ents:
+                        # print(ent.text + " | " + str(ent.label_) + " | " + str(ent.sent))
+                        pass
+
+                    
                 # TODO:
                 # pass data from this task further, so we can store it in database
                 # suggestion:
