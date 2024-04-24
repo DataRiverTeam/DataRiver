@@ -100,7 +100,7 @@ def translate(ti):
                     # We probably shouldn't read the whole text file at once - what if the file is REALLY big? 
                     text = f.read()
                     # split text to sentences, so we can translate only a fragment instead of the whole file
-                    sentences = nltk.tokenize.sent_tokenize(text, language_names[lang])        # FIXME: we shouldn't use English tokenizer for every language!
+                    sentences = nltk.tokenize.sent_tokenize(text, language_names[lang])       
                     l = 0
                     r = 0
                     total_length = 0
