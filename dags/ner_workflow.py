@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
 from airflow.providers.elasticsearch.hooks.elasticsearch import ElasticsearchPythonHook
 from elasticsearch.helpers import scan
+from elasticsearch import Elasticsearch
 import os
 from typing import Dict
 
@@ -125,6 +126,11 @@ def detect_entities(ti):
     #     secret_key=minio_secret_key,
     #     secure=False
     # )
+    es = Elasticsearch(
+        os.environ["ELASTIC_HOST"],
+        api_key=os.environ["ELASTIC_API_KEY"]
+    )
+
     for file in files:
         # in case we download file for Airflow cluster node from MinIO
         # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
@@ -142,8 +148,13 @@ def detect_entities(ti):
                     # ent.sent - sentence including given entity
                     for ent in doc.ents:
                         # print(ent.text + " | " + str(ent.label_) + " | " + str(ent.sent))
-                        pass
-
+                        id = os.path.splitext(os.path.basename(file))[0]
+                        es.index(
+                            index="named-entities",
+                            # get basename and trim extension
+                            document={"id": id,"text": ent.text, "label": str(ent.label_), "sent": str(ent.sent)}
+                        )
+                    
                     
                 # TODO:
                 # pass data from this task further, so we can store it in database
