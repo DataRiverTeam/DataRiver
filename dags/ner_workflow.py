@@ -22,6 +22,7 @@ def fetch_data_from_elasticsearch(ti):
     # I use scan instead of search because scan returns iterator
     for hit in scan(es_hook.get_conn, query=query, index='articles'):
         content = hit["_source"]["content"]
+        content = content.replace("\\n", " ")
         doc_id = hit["_source"]["id"] 
         file_path = os.path.join(data_dir, f"{doc_id}.txt")
         files.append(file_path)
@@ -55,6 +56,27 @@ def detect_language(ti):
 
 MAX_FRAGMENT_LENGTH = 500
 
+# https://github.com/alyssaq/nltk_data/blob/master/tokenizers/punkt/README
+language_names = {
+    'cz': 'czech',
+    'da': 'danish',
+    'nl': 'dutch',
+    'en': 'english',
+    'et': 'estonian',
+    'fi': 'finnish',
+    'fr': 'french',
+    'de': 'german',
+    'el': 'greek',
+    'it': 'italian',
+    'no': 'norwegian',
+    'pl': 'polish',
+    'pt': 'portuguese',
+    'ru': 'russian',
+    'sl': 'slovene',
+    'es': 'spanish',
+    'sv': 'swedish',
+    'tr': 'turkish'
+}
 
 # Task translates text files, based on received dict from "detect_languages".
 def translate(ti):
@@ -85,7 +107,7 @@ def translate(ti):
                     text = f.read()
 
                     # split text to sentences, so we can translate only a fragment instead of the whole file
-                    sentences = nltk.tokenize.sent_tokenize(text, "english")        # FIXME: we shouldn't use English tokenizer for every language!
+                    sentences = nltk.tokenize.sent_tokenize(text, language_names[lang])        # FIXME: we shouldn't use English tokenizer for every language!
 
                     l = 0
                     r = 0
@@ -131,56 +153,56 @@ def detect_entities(ti):
         api_key=os.environ["ELASTIC_API_KEY"]
     )
 
-    for file in files:
-        # in case we download file for Airflow cluster node from MinIO
-        # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
-        nlp = spacy.load("en_core_web_md")
-        try:
-            with open(file, "r") as f: 
+    # for file in files:
+    #     # in case we download file for Airflow cluster node from MinIO
+    #     # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
+    #     nlp = spacy.load("en_core_web_md")
+    #     try:
+    #         with open(file, "r") as f: 
 
-                text = f.read()
-                sentences = nltk.tokenize.sent_tokenize(text, "english")
+    #             text = f.read()
+    #             sentences = nltk.tokenize.sent_tokenize(text, "english")
                 
-                for s in sentences:
-                    doc = nlp(s)
-                    # ent - named entity detected by nlp
-                    # ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
-                    # ent.sent - sentence including given entity
-                    for ent in doc.ents:
-                        # print(ent.text + " | " + str(ent.label_) + " | " + str(ent.sent))
-                        id = os.path.splitext(os.path.basename(file))[0]
-                        es.index(
-                            index="named-entities",
-                            # get basename and trim extension
-                            document={"id": id,"text": ent.text, "label": str(ent.label_), "sent": str(ent.sent)}
-                        )
+    #             for s in sentences:
+    #                 doc = nlp(s)
+    #                 # ent - named entity detected by nlp
+    #                 # ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
+    #                 # ent.sent - sentence including given entity
+    #                 for ent in doc.ents:
+    #                     # print(ent.text + " | " + str(ent.label_) + " | " + str(ent.sent))
+    #                     id = os.path.splitext(os.path.basename(file))[0]
+    #                     es.index(
+    #                         index="named-entities",
+    #                         # get basename and trim extension
+    #                         document={"id": id,"text": ent.text, "label": str(ent.label_), "sent": str(ent.sent)}
+    #                     )
                     
                     
-                # TODO:
-                # pass data from this task further, so we can store it in database
-                # suggestion:
-                # if we are not going to pass data to cloud storage, 
-                # we can create Python dict using structure like this:
-                # {
-                #   "filename1": {
-                #       "sentence1": [
-                #           {text: "...", "label": "..."},
-                #           {text: "...", "label": "..."},
-                #            ...
-                #       ],
-                #       "sentence2": [
-                #           {text: "...", "label": "..."},
-                #            ...
-                #       ]
-                #   },
-                #   "filename2": {
-                #       ...
-                #   }
-                # }
-                #
-                # Alternatively we can refrain from including file names as keys, depending on what we are going to store in database later
-        except IOError:
-            raise Exception("Given file doesn't exist!")
+    #             # TODO:
+    #             # pass data from this task further, so we can store it in database
+    #             # suggestion:
+    #             # if we are not going to pass data to cloud storage, 
+    #             # we can create Python dict using structure like this:
+    #             # {
+    #             #   "filename1": {
+    #             #       "sentence1": [
+    #             #           {text: "...", "label": "..."},
+    #             #           {text: "...", "label": "..."},
+    #             #            ...
+    #             #       ],
+    #             #       "sentence2": [
+    #             #           {text: "...", "label": "..."},
+    #             #            ...
+    #             #       ]
+    #             #   },
+    #             #   "filename2": {
+    #             #       ...
+    #             #   }
+    #             # }
+    #             #
+    #             # Alternatively we can refrain from including file names as keys, depending on what we are going to store in database later
+    #     except IOError:
+    #         raise Exception("Given file doesn't exist!")
     
 default_args = {
     'owner': 'airflow',
