@@ -79,12 +79,8 @@ language_names = {
 
 # Task translates text files, based on received dict from "detect_languages".
 def translate(ti):
-    from translate import Translator
-    from os import rename
     import nltk
-
     from deep_translator import GoogleTranslator
-
 
     langs: Dict[str, list[str]] = ti.xcom_pull(key="langs", task_ids="detect_language")
     
@@ -113,7 +109,6 @@ def translate(ti):
                     # split text to sentences, so we can translate only a fragment instead of the whole file
                     sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
 
-
                     l = 0
                     r = 0
                     total_length = 0
@@ -135,8 +130,7 @@ def translate(ti):
 
             except IOError:
                 raise Exception(f"Couldn't open {file_path}!")
-                pass
-
+                
 
 
 def detect_entities(ti):
@@ -162,11 +156,12 @@ def detect_entities(ti):
     # delete index named-entities change this in future
     es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
     document = {}
-
+    print(files)
     for file in files:
         # in case we download file for Airflow cluster node from MinIO
         # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
         nlp = spacy.load("en_core_web_md")
+        # get basename and trim extension
         id:str = os.path.splitext(os.path.basename(file))[0]
         document[id] = []
         try:
@@ -184,7 +179,6 @@ def detect_entities(ti):
         
     es.index(
         index="named-entities",
-        # get basename and trim extension
         document=document
     )
 
