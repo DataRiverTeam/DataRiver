@@ -1,0 +1,6 @@
+elasticsearch==8.13.0
+langdetect==1.0.9
+deep_translator==1.11.4
+nltk==3.8.1
+spacy==3.7.4
+https://github.com/explosion/spacy-models/releases/tag/en_core_web_md-3.7.1
