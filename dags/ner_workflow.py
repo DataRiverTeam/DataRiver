@@ -156,7 +156,6 @@ def detect_entities(ti):
     # delete index named-entities change this in future
     es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
     document = {}
-    print(files)
     for file in files:
         # in case we download file for Airflow cluster node from MinIO
         # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
