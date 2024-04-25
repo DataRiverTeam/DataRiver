@@ -4,7 +4,7 @@ In order to start server simply run. First run will take few minutes image have 
 docker compose up
 ```
 
-To stop container run.
+To remove container run.
 ```
 docker compose down
 ```
