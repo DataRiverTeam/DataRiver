@@ -79,6 +79,7 @@ language_names = {
 
 # Task translates text files, based on received dict from "detect_languages".
 def translate(ti):
+    from translate import Translator
     from os import rename
     import nltk
 
@@ -155,7 +156,8 @@ def detect_entities(ti):
     # )
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
-        api_key=os.environ["ELASTIC_API_KEY"]
+        api_key=os.environ["ELASTIC_API_KEY"],
+        timeout=60
     )
     # delete index named-entities change this in future
     es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
@@ -224,6 +226,7 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
     entity_detection_task = PythonOperator(
         task_id="detect_entities",
         python_callable=detect_entities,
+        retries=1
     )
 
 fetch_data_task >> detect_language_task >> translate_task >> entity_detection_task
