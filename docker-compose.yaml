@@ -60,13 +60,17 @@ x-airflow-common:
     # WARNING: Use _PIP_ADDITIONAL_REQUIREMENTS option ONLY for a quick checks
     # for other purpose (development, test and especially production usage) build/extend Airflow image.
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-}
+    ELASTIC_API_KEY: "OXY1SDNJNEJPT0JJc0VqU19qMEY6LXpURFZDSmlSQnEtRjFIRjRlbjJwQQ=="
+    ELASTIC_HOST: "https://28e65033710b4d2e89093b2756a29c8b.us-central1.gcp.cloud.es.io"
+
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
     - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/db:/opt/airflow/db
-  user: "${AIRFLOW_UID:-50000}:0"
+    - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
+  user: "0:0"
 
 services:
   airflow-webserver:
@@ -168,6 +172,7 @@ services:
       - ${AIRFLOW_PROJ_DIR:-.}/config:/opt/airflow/config
       - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
       - ${AIRFLOW_PROJ_DIR:-.}/db:/opt/airflow/db
+      - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data:rw
 
   airflow-cli:
     <<: *airflow-common
