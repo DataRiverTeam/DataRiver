@@ -79,7 +79,6 @@ language_names = {
 
 # Task translates text files, based on received dict from "detect_languages".
 def translate(ti):
-    from translate import Translator
     from os import rename
     import nltk
 
