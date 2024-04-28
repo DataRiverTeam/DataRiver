@@ -1,4 +1,9 @@
 # How to run container
+If you've built any previous version run:
+```
+docker compose build
+```
+
 In order to start server simply run. First run will take few minutes image have to be built.
 ```
 docker compose up
