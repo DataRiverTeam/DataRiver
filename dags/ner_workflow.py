@@ -150,7 +150,7 @@ def detect_entities(ti):
     # )
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
-        api_key=os.environ["ELASTIC_API_KEY"],
+        basic_auth=("elastic", os.environ["ELASTIC_PASSWORD"]),
         timeout=60
     )
     # delete index named-entities change this in future
