@@ -54,6 +54,7 @@ def detect_language(ti):
 
 
 MAX_FRAGMENT_LENGTH = 4000
+MAX_FRAGMENT_LENGTH = 4000
 
 # https://github.com/alyssaq/nltk_data/blob/master/tokenizers/punkt/README
 language_names = {
@@ -81,14 +82,20 @@ language_names = {
 def translate(ti):
     import nltk
     from deep_translator import GoogleTranslator
+    from deep_translator import GoogleTranslator
 
     langs: Dict[str, list[str]] = ti.xcom_pull(key="langs", task_ids="detect_language")
     
+    
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
+
 
     for lang in langs:
         if lang == "en":
             continue
+        
+        translator = GoogleTranslator(source=lang, target="en") 
+
         
         translator = GoogleTranslator(source=lang, target="en") 
 
@@ -98,20 +105,26 @@ def translate(ti):
             # so we can simultaneously read from it and put translated text to a new file.
             # It allows reusage of the old Xcom list from "fetch_data" task.
 
+
             new_path = file_path + ".old"
             os.rename(file_path, new_path)
+
 
             try:
                 with open(new_path, "r") as f, open(file_path, "a") as new_f:
                     # We probably shouldn't read the whole text file at once - what if the file is REALLY big? 
                     text = f.read()
 
+
                     # split text to sentences, so we can translate only a fragment instead of the whole file
+                    sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
+
                     sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
 
                     l = 0
                     r = 0
                     total_length = 0
+
 
                     while r < len(sentences):
                         if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
@@ -128,8 +141,10 @@ def translate(ti):
                         translation = translator.translate(to_translate)
                         new_f.write(translation)
 
+
             except IOError:
                 raise Exception(f"Couldn't open {file_path}!")
+                
                 
 
 
@@ -161,6 +176,7 @@ def detect_entities(ti):
         # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
         nlp = spacy.load("en_core_web_md")
         # get basename and trim extension
+        # get basename and trim extension
         id:str = os.path.splitext(os.path.basename(file))[0]
         document[id] = []
         try:
@@ -176,6 +192,10 @@ def detect_entities(ti):
         except IOError:
             raise Exception("Given file doesn't exist!")
         
+    es.index(
+        index="named-entities",
+        document=document
+    )
     es.index(
         index="named-entities",
         document=document
@@ -207,6 +227,7 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
     )
     # We can't use PythonVirtualenvOperator, because it's not possible to pass Task instance data to isolated environment.
     # Because of this, for now, we are forced to install required modules globally,
+    # Because of this, for now, we are forced to install required modules globally,
     # OR
     # Launch DAG for each file separately, and perhaps store file name retrieved from some FileSensor  
     # translate_task = PythonVirtualenvOperator(
@@ -219,6 +240,7 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
     entity_detection_task = PythonOperator(
         task_id="detect_entities",
         python_callable=detect_entities,
+        retries=1
         retries=1
     )
 
