@@ -9,6 +9,16 @@ In order to start server simply run. First run will take few minutes image have 
 docker compose up
 ```
 
+To run also elastic-search cluster run
+```
+docker compose --profile elastic up
+```
+
+To run also elastic-search cluster and kibana dashboard run
+```
+docker compose --profile elastic --profile debug up
+```
+
 To remove container run.
 ```
 docker compose down
