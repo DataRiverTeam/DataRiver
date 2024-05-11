@@ -6,36 +6,42 @@ from elasticsearch import Elasticsearch
 import os
 from typing import Dict
 
-def fetch_data_from_elasticsearch(ti):
-    print(os.environ["ELASTIC_API_KEY"])
-    es_hook = ElasticsearchPythonHook(
-        hosts=[os.environ["ELASTIC_HOST"]],
-        es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
-        )
-    query = { "query": {"match_all": {}}, "_source": ["content", "id"] }
-    data_dir = "data"
-    try:
-        os.mkdir(data_dir)
-    except FileExistsError:
-        pass
-    files: list[str] = []
-    # I use scan instead of search because scan returns iterator
-    for hit in scan(es_hook.get_conn, query=query, index='articles'):
-        content = hit["_source"]["content"]
-        content = content.replace("\\n", " ")
-        doc_id = hit["_source"]["id"] 
-        file_path = os.path.join(data_dir, f"{doc_id}.txt")
-        files.append(file_path)
-        with open(file_path, "w") as file:
-            file.write(content)
-    ti.xcom_push(key="files", value=files)
+from datetime import timedelta
+from datariver.sensors.filesystem import MultipleFilesSensor
+
+# def fetch_data_from_elasticsearch(ti):
+#     print(os.environ["ELASTIC_API_KEY"])
+#     es_hook = ElasticsearchPythonHook(
+#         hosts=[os.environ["ELASTIC_HOST"]],
+#         es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
+#         )
+#     query = { "query": {"match_all": {}}, "_source": ["content", "id"] }
+#     data_dir = "data"
+#     try:
+#         os.mkdir(data_dir)
+#     except FileExistsError:
+#         pass
+#     files: list[str] = []
+#     # I use scan instead of search because scan returns iterator
+#     for hit in scan(es_hook.get_conn, query=query, index='articles'):
+#         content = hit["_source"]["content"]
+#         content = content.replace("\\n", " ")
+#         doc_id = hit["_source"]["id"] 
+#         file_path = os.path.join(data_dir, f"{doc_id}.txt")
+#         files.append(file_path)
+#         with open(file_path, "w") as file:
+#             file.write(content)
+#     ti.xcom_push(key="files", value=files)
+
+
+
 
 # Task expects list of strings containing file names.
 # It opens every file from the list, performs language detection and groups the files based on detected language
 # def detect_language(files: list[str]):
 def detect_language(ti):
     import langdetect
-    files = ti.xcom_pull(key="files", task_ids="fetch_data")
+    files = ti.xcom_pull(key="found_files", task_ids="wait_for_files")
     langs = {}
     print(files)
     for file_path in files:
@@ -140,7 +146,7 @@ def detect_entities(ti):
     import nltk
 
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-    files = ti.xcom_pull(key="files", task_ids="fetch_data")
+    files = ti.xcom_pull(key="found_files", task_ids="wait_for_files")
     # in case we want to download data from cloud storage
     # client = Minio(
     #     minio_url,
@@ -190,11 +196,27 @@ default_args = {
     'retries': 1,
 }
 
-with DAG('elasticsearch_example', default_args=default_args, schedule_interval=None) as dag:
-    fetch_data_task = PythonOperator(
-        task_id='fetch_data',
-        python_callable=fetch_data_from_elasticsearch
+
+FS_CONN_ID = "fs_text_data"    #id of connection defined in Airflow UI
+FILE_NAME = "ner/*.txt"
+
+
+with DAG('ner_workflow', default_args=default_args, schedule_interval=None) as dag:
+
+    detect_files = MultipleFilesSensor(
+        task_id="wait_for_files",
+        fs_conn_id=FS_CONN_ID,
+        filepath=FILE_NAME,
+        poke_interval=60,
+        mode="reschedule",
+        timeout=timedelta(minutes=60),
     )
+
+    # fetch_data_task = PythonOperator(
+    #     task_id='fetch_data',
+    #     python_callable=fetch_data_from_elasticsearch
+    # )
+
     detect_language_task = PythonOperator(
         task_id='detect_language',
         python_callable=detect_language,
@@ -222,4 +244,4 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
         retries=1
     )
 
-fetch_data_task >> detect_language_task >> translate_task >> entity_detection_task
+detect_files >> detect_language_task >> translate_task >> entity_detection_task
