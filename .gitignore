@@ -8,4 +8,4 @@ requirements.txt
 resources
 .env*
 data
-dags/stubs/__pycache__/
+dags/**/__pycache__/
