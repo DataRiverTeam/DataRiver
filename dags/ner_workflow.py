@@ -9,33 +9,6 @@ from typing import Dict
 from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
 
-# def fetch_data_from_elasticsearch(ti):
-#     print(os.environ["ELASTIC_API_KEY"])
-#     es_hook = ElasticsearchPythonHook(
-#         hosts=[os.environ["ELASTIC_HOST"]],
-#         es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
-#         )
-#     query = { "query": {"match_all": {}}, "_source": ["content", "id"] }
-#     data_dir = "data"
-#     try:
-#         os.mkdir(data_dir)
-#     except FileExistsError:
-#         pass
-#     files: list[str] = []
-#     # I use scan instead of search because scan returns iterator
-#     for hit in scan(es_hook.get_conn, query=query, index='articles'):
-#         content = hit["_source"]["content"]
-#         content = content.replace("\\n", " ")
-#         doc_id = hit["_source"]["id"] 
-#         file_path = os.path.join(data_dir, f"{doc_id}.txt")
-#         files.append(file_path)
-#         with open(file_path, "w") as file:
-#             file.write(content)
-#     ti.xcom_push(key="files", value=files)
-
-
-
-
 # Task expects list of strings containing file names.
 # It opens every file from the list, performs language detection and groups the files based on detected language
 # def detect_language(files: list[str]):
@@ -140,20 +113,12 @@ def translate(ti):
 
 
 def detect_entities(ti):
-    # from io import BytesIO
-    # from minio import Minio
     import spacy    
     import nltk
 
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
     files = ti.xcom_pull(key="found_files", task_ids="wait_for_files")
-    # in case we want to download data from cloud storage
-    # client = Minio(
-    #     minio_url,
-    #     access_key=minio_access_key,
-    #     secret_key=minio_secret_key,
-    #     secure=False
-    # )
+
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
         api_key=os.environ["ELASTIC_API_KEY"],
@@ -163,8 +128,6 @@ def detect_entities(ti):
     es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
     document = {}
     for file in files:
-        # in case we download file for Airflow cluster node from MinIO
-        # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
         nlp = spacy.load("en_core_web_md")
         # get basename and trim extension
         id:str = os.path.splitext(os.path.basename(file))[0]
@@ -212,11 +175,6 @@ with DAG('ner_workflow', default_args=default_args, schedule_interval=None) as d
         timeout=timedelta(minutes=60),
     )
 
-    # fetch_data_task = PythonOperator(
-    #     task_id='fetch_data',
-    #     python_callable=fetch_data_from_elasticsearch
-    # )
-
     detect_language_task = PythonOperator(
         task_id='detect_language',
         python_callable=detect_language,
@@ -227,16 +185,6 @@ with DAG('ner_workflow', default_args=default_args, schedule_interval=None) as d
         task_id='translate',
         python_callable=translate,
     )
-    # We can't use PythonVirtualenvOperator, because it's not possible to pass Task instance data to isolated environment.
-    # Because of this, for now, we are forced to install required modules globally,
-    # OR
-    # Launch DAG for each file separately, and perhaps store file name retrieved from some FileSensor  
-    # translate_task = PythonVirtualenvOperator(
-    #     task_id='translate',
-    #     python_callable=translate,
-    #     requirements=["translate==3.6.1"],
-    #     system_site_packages=False,
-    # )
 
     entity_detection_task = PythonOperator(
         task_id="detect_entities",
