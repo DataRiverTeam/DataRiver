@@ -1,34 +1,9 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
-from airflow.providers.elasticsearch.hooks.elasticsearch import ElasticsearchPythonHook
 from elasticsearch.helpers import scan
 from elasticsearch import Elasticsearch
 import os
 from typing import Dict
-
-def fetch_data_from_elasticsearch(ti):
-    print(os.environ["ELASTIC_API_KEY"])
-    es_hook = ElasticsearchPythonHook(
-        hosts=[os.environ["ELASTIC_HOST"]],
-        es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
-        )
-    query = { "query": {"match_all": {}}, "_source": ["content", "id"] }
-    data_dir = "data"
-    try:
-        os.mkdir(data_dir)
-    except FileExistsError:
-        pass
-    files: list[str] = []
-    # I use scan instead of search because scan returns iterator
-    for hit in scan(es_hook.get_conn, query=query, index='articles'):
-        content = hit["_source"]["content"]
-        content = content.replace("\\n", " ")
-        doc_id = hit["_source"]["id"] 
-        file_path = os.path.join(data_dir, f"{doc_id}.txt")
-        files.append(file_path)
-        with open(file_path, "w") as file:
-            file.write(content)
-    ti.xcom_push(key="files", value=files)
 
 # Task expects list of strings containing file names.
 # It opens every file from the list, performs language detection and groups the files based on detected language
@@ -51,7 +26,6 @@ def detect_language(ti):
             # TODO handle error
     ti.xcom_push(key="langs", value=langs)
     return langs
-
 
 MAX_FRAGMENT_LENGTH = 4000
 
@@ -83,32 +57,24 @@ def translate(ti):
     from deep_translator import GoogleTranslator
 
     langs: Dict[str, list[str]] = ti.xcom_pull(key="langs", task_ids="detect_language")
-    
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-
     for lang in langs:
         if lang == "en":
             continue
-        
         translator = GoogleTranslator(source=lang, target="en") 
-
         print("Translating language: " , lang)
         for file_path in langs[lang]:
             # Rename source text file - we mark it as being in use,
             # so we can simultaneously read from it and put translated text to a new file.
             # It allows reusage of the old Xcom list from "fetch_data" task.
-
             new_path = file_path + ".old"
             os.rename(file_path, new_path)
-
             try:
                 with open(new_path, "r") as f, open(file_path, "a") as new_f:
                     # We probably shouldn't read the whole text file at once - what if the file is REALLY big? 
                     text = f.read()
-
                     # split text to sentences, so we can translate only a fragment instead of the whole file
                     sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
-
                     l = 0
                     r = 0
                     total_length = 0
@@ -130,7 +96,6 @@ def translate(ti):
 
             except IOError:
                 raise Exception(f"Couldn't open {file_path}!")
-                
 
 
 def detect_entities(ti):
@@ -150,7 +115,7 @@ def detect_entities(ti):
     # )
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
-        api_key=os.environ["ELASTIC_API_KEY"],
+        basic_auth=("elastic", os.environ["ELASTIC_PASSWORD"]),
         timeout=60
     )
     # delete index named-entities change this in future
@@ -191,10 +156,6 @@ default_args = {
 }
 
 with DAG('elasticsearch_example', default_args=default_args, schedule_interval=None) as dag:
-    fetch_data_task = PythonOperator(
-        task_id='fetch_data',
-        python_callable=fetch_data_from_elasticsearch
-    )
     detect_language_task = PythonOperator(
         task_id='detect_language',
         python_callable=detect_language,
@@ -222,4 +183,4 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
         retries=1
     )
 
-fetch_data_task >> detect_language_task >> translate_task >> entity_detection_task
+detect_language_task >> translate_task >> entity_detection_task
