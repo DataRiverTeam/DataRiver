@@ -49,6 +49,8 @@ class MultipleFilesSensor(BaseSensorOperator):
         self.recursive = recursive
         self.deferrable = deferrable
 
+        self.detected_files = []
+
 
 
     @cached_property
@@ -78,7 +80,8 @@ class MultipleFilesSensor(BaseSensorOperator):
         status = len(detected_files) > 0
 
         if status:
-            context["ti"].xcom_push(key='found_files', value=detected_files)
+            self.detected_files = detected_files
+            # context["ti"].xcom_push(key='found_files', value=detected_files)
 
         return status
         
@@ -97,6 +100,10 @@ class MultipleFilesSensor(BaseSensorOperator):
                 # ),
                 method_name="execute_complete",
             )
+        
+
+        # pushing files list do Xcom so next tasks can use it
+        return self.detected_files
 
     def execute_complete(self, context: Context, event: bool | None = None) -> None:
         if not event:
