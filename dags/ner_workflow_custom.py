@@ -9,28 +9,8 @@ from typing import Dict
 from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
 
-# Task expects list of strings containing file names.
-# It opens every file from the list, performs language detection and groups the files based on detected language
-# def detect_language(files: list[str]):
-def detect_language(ti):
-    import langdetect
-    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
-    langs = {}
-    print(files)
-    for file_path in files:
-        try:
-            with open(file_path, "r") as f:
-                text = f.read()
-                lang = langdetect.detect(text) 
-                if lang not in langs:
-                    langs[lang] = []
-                langs[lang].append(file_path)
-        except IOError:
-            print("There was an error when processing file: " + file_path)
-            # TODO handle error
-    ti.xcom_push(key="langs", value=langs)
-    return langs
-
+from datariver.operators.langdetect import LangdetectOperator
+from datariver.operators.translate import DeepTranslatorOperator
 
 MAX_FRAGMENT_LENGTH = 4000
 
@@ -117,7 +97,8 @@ def detect_entities(ti):
     import nltk
 
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
+    # files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
+    files = ti.xcom_pull(key="return_value", task_ids="translate")
 
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
@@ -170,7 +151,6 @@ with DAG(
     schedule_interval=None,
     render_template_as_native_obj=True      # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
 ) as dag:
-    from datariver.operators.langdetect import LangdetectOperator
 
     detect_files = MultipleFilesSensor(
         task_id="wait_for_files",
@@ -181,14 +161,22 @@ with DAG(
         timeout=timedelta(minutes=60),
     )
 
-    detect_language_task = LangdetectOperator(
-        task_id="detect_language",
-        files="{{task_instance.xcom_pull('wait_for_files')}}"
-    )
+    # detect_language_task = LangdetectOperator(
+    #     task_id="detect_language",
+    #     files="{{task_instance.xcom_pull('wait_for_files')}}"
+    # )
 
-    translate_task = PythonOperator(
-        task_id='translate',
-        python_callable=translate,
+    # translate_task = PythonOperator(
+    #     task_id='translate',
+    #     python_callable=translate,
+    # )
+
+    translate_task = DeepTranslatorOperator(
+        task_id="translate",
+        files="{{task_instance.xcom_pull('wait_for_files')}}",
+        fs_conn_id=FS_CONN_ID,
+        output_dir="ner/translated/",
+        output_language="en"
     )
 
     entity_detection_task = PythonOperator(
@@ -197,4 +185,5 @@ with DAG(
         retries=1
     )
 
-detect_files >> detect_language_task >> translate_task >> entity_detection_task
+# detect_files >> detect_language_task >> translate_task >> entity_detection_task
+detect_files >> translate_task #>> entity_detection_task
