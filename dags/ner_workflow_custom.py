@@ -11,85 +11,8 @@ from datariver.sensors.filesystem import MultipleFilesSensor
 
 from datariver.operators.langdetect import LangdetectOperator
 from datariver.operators.translate import DeepTranslatorOperator
+from datariver.operators.ner import NerOperator
 
-MAX_FRAGMENT_LENGTH = 4000
-
-# https://github.com/alyssaq/nltk_data/blob/master/tokenizers/punkt/README
-language_names = {
-    'cz': 'czech',
-    'da': 'danish',
-    'nl': 'dutch',
-    'en': 'english',
-    'et': 'estonian',
-    'fi': 'finnish',
-    'fr': 'french',
-    'de': 'german',
-    'el': 'greek',
-    'it': 'italian',
-    'no': 'norwegian',
-    'pl': 'polish',
-    'pt': 'portuguese',
-    'ru': 'russian',
-    'sl': 'slovene',
-    'es': 'spanish',
-    'sv': 'swedish',
-    'tr': 'turkish'
-}
-
-# Task translates text files, based on received dict from "detect_languages".
-def translate(ti):
-    import nltk
-    from deep_translator import GoogleTranslator
-
-    langs: Dict[str, list[str]] = ti.xcom_pull(key="return_value", task_ids="detect_language")
-    
-    nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-
-    for lang in langs:
-        if lang == "en":
-            continue
-        
-        translator = GoogleTranslator(source=lang, target="en") 
-
-        print("Translating language: " , lang)
-        for file_path in langs[lang]:
-            # Rename source text file - we mark it as being in use,
-            # so we can simultaneously read from it and put translated text to a new file.
-            # It allows reusage of the old Xcom list from "fetch_data" task.
-
-            new_path = file_path + ".old"
-            os.rename(file_path, new_path)
-
-            try:
-                with open(new_path, "r") as f, open(file_path, "a") as new_f:
-                    # We probably shouldn't read the whole text file at once - what if the file is REALLY big? 
-                    text = f.read()
-
-                    # split text to sentences, so we can translate only a fragment instead of the whole file
-                    sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
-
-                    l = 0
-                    r = 0
-                    total_length = 0
-
-                    while r < len(sentences):
-                        if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
-                            total_length += len(sentences[r])                            
-                        else:
-                            to_translate = " ".join(sentences[l : r + 1])
-                            translation = translator.translate(to_translate)
-                            new_f.write(translation)        # perhaps we should make sure that we use proper char encoding when writing to file?
-                            l = r + 1
-                            total_length = 0
-                        r += 1
-                    else:
-                        to_translate = " ".join(sentences[l : r + 1])
-                        translation = translator.translate(to_translate)
-                        new_f.write(translation)
-
-            except IOError:
-                raise Exception(f"Couldn't open {file_path}!")
-                
 
 
 def detect_entities(ti):
@@ -108,8 +31,8 @@ def detect_entities(ti):
     # delete index named-entities; TODO: change this in future
     es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
     document = {}
+    nlp = spacy.load("en_core_web_md")
     for file in files:
-        nlp = spacy.load("en_core_web_md")
         # get basename and trim extension
         id:str = os.path.splitext(os.path.basename(file))[0]
         document[id] = []
@@ -179,11 +102,18 @@ with DAG(
         output_language="en"
     )
 
-    entity_detection_task = PythonOperator(
+    ner_task = NerOperator.partial(
         task_id="detect_entities",
-        python_callable=detect_entities,
-        retries=1
-    )
+        model="en_core_web_md"
+    ).expand(path=detect_files.output)      # .output lets us fetch the return_value of previously executed Operator
+
+    # entity_detection_task = PythonOperator(
+    #     task_id="detect_entities",
+    #     python_callable=detect_entities,
+    #     retries=1
+    # )
 
 # detect_files >> detect_language_task >> translate_task >> entity_detection_task
-detect_files >> translate_task #>> entity_detection_task
+
+
+detect_files >> translate_task >> ner_task

@@ -52,8 +52,8 @@ class DeepTranslatorOperator(BaseOperator):
         for file_path in self.files:
             full_path = os.path.join(basepath, file_path)
             # create not existing directories or open will throw an error
-            os.makedirs(os.path.dirname(new_path), exist_ok=True)
             new_path = os.path.join(basepath, self.output_dir, os.path.basename(file_path)) 
+            os.makedirs(os.path.dirname(new_path), exist_ok=True)
             try:
                 text = ""
                 with open(full_path, "r") as f:
