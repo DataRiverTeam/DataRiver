@@ -12,6 +12,7 @@ from datariver.sensors.filesystem import MultipleFilesSensor
 from datariver.operators.langdetect import LangdetectOperator
 from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
+from datariver.operators.elasticsearch import EntitydetectOperator
 
 
 
@@ -107,13 +108,13 @@ with DAG(
         model="en_core_web_md"
     ).expand(path=detect_files.output)      # .output lets us fetch the return_value of previously executed Operator
 
-    # entity_detection_task = PythonOperator(
-    #     task_id="detect_entities",
-    #     python_callable=detect_entities,
-    #     retries=1
-    # )
+    entity_detection_task = EntitydetectOperator(
+         task_id="detect_entities",
+         files="{{task_instance.xcom_pull('wait_for_files')}}",
+         fs_conn_id=FS_CONN_ID,
+     )
 
-# detect_files >> detect_language_task >> translate_task >> entity_detection_task
+detect_files >> detect_language_task >> translate_task >> entity_detection_task
 
 
-detect_files >> translate_task >> ner_task
+#detect_files >> translate_task >> ner_task
