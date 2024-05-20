@@ -4,12 +4,8 @@ airflow.db
 webserver_config.py
 logs
 airflow-webserver.pid
+requirements.txt
 resources
 .env*
 data
-dags/stubs/__pycache__/
-dags
-venv
-docker-compose.yaml
-Dockerfile
-.idea
+dags/**/__pycache__/

@@ -1,16 +1,20 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
+from airflow.providers.elasticsearch.hooks.elasticsearch import ElasticsearchPythonHook
 from elasticsearch.helpers import scan
 from elasticsearch import Elasticsearch
 import os
 from typing import Dict
+
+from datetime import timedelta
+from datariver.sensors.filesystem import MultipleFilesSensor
 
 # Task expects list of strings containing file names.
 # It opens every file from the list, performs language detection and groups the files based on detected language
 # def detect_language(files: list[str]):
 def detect_language(ti):
     import langdetect
-    files = ti.xcom_pull(key="files", task_ids="fetch_data")
+    files = ti.xcom_pull(key="found_files", task_ids="wait_for_files")
     langs = {}
     print(files)
     for file_path in files:
@@ -26,6 +30,7 @@ def detect_language(ti):
             # TODO handle error
     ti.xcom_push(key="langs", value=langs)
     return langs
+
 
 MAX_FRAGMENT_LENGTH = 4000
 
@@ -57,24 +62,32 @@ def translate(ti):
     from deep_translator import GoogleTranslator
 
     langs: Dict[str, list[str]] = ti.xcom_pull(key="langs", task_ids="detect_language")
+    
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
+
     for lang in langs:
         if lang == "en":
             continue
+        
         translator = GoogleTranslator(source=lang, target="en") 
+
         print("Translating language: " , lang)
         for file_path in langs[lang]:
             # Rename source text file - we mark it as being in use,
             # so we can simultaneously read from it and put translated text to a new file.
             # It allows reusage of the old Xcom list from "fetch_data" task.
+
             new_path = file_path + ".old"
             os.rename(file_path, new_path)
+
             try:
                 with open(new_path, "r") as f, open(file_path, "a") as new_f:
                     # We probably shouldn't read the whole text file at once - what if the file is REALLY big? 
                     text = f.read()
+
                     # split text to sentences, so we can translate only a fragment instead of the whole file
                     sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
+
                     l = 0
                     r = 0
                     total_length = 0
@@ -96,34 +109,25 @@ def translate(ti):
 
             except IOError:
                 raise Exception(f"Couldn't open {file_path}!")
+                
 
 
 def detect_entities(ti):
-    # from io import BytesIO
-    # from minio import Minio
     import spacy    
     import nltk
 
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-    files = ti.xcom_pull(key="files", task_ids="fetch_data")
-    # in case we want to download data from cloud storage
-    # client = Minio(
-    #     minio_url,
-    #     access_key=minio_access_key,
-    #     secret_key=minio_secret_key,
-    #     secure=False
-    # )
+    files = ti.xcom_pull(key="found_files", task_ids="wait_for_files")
+
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
-        basic_auth=("elastic", os.environ["ELASTIC_PASSWORD"]),
+        api_key=os.environ["ELASTIC_API_KEY"],
         timeout=60
     )
     # delete index named-entities change this in future
     es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
     document = {}
     for file in files:
-        # in case we download file for Airflow cluster node from MinIO
-        # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
         nlp = spacy.load("en_core_web_md")
         # get basename and trim extension
         id:str = os.path.splitext(os.path.basename(file))[0]
@@ -155,7 +159,22 @@ default_args = {
     'retries': 1,
 }
 
-with DAG('elasticsearch_example', default_args=default_args, schedule_interval=None) as dag:
+
+FS_CONN_ID = "fs_text_data"    #id of connection defined in Airflow UI
+FILE_NAME = "ner/*.txt"
+
+
+with DAG('ner_workflow', default_args=default_args, schedule_interval=None) as dag:
+
+    detect_files = MultipleFilesSensor(
+        task_id="wait_for_files",
+        fs_conn_id=FS_CONN_ID,
+        filepath=FILE_NAME,
+        poke_interval=60,
+        mode="reschedule",
+        timeout=timedelta(minutes=60),
+    )
+
     detect_language_task = PythonOperator(
         task_id='detect_language',
         python_callable=detect_language,
@@ -166,16 +185,6 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
         task_id='translate',
         python_callable=translate,
     )
-    # We can't use PythonVirtualenvOperator, because it's not possible to pass Task instance data to isolated environment.
-    # Because of this, for now, we are forced to install required modules globally,
-    # OR
-    # Launch DAG for each file separately, and perhaps store file name retrieved from some FileSensor  
-    # translate_task = PythonVirtualenvOperator(
-    #     task_id='translate',
-    #     python_callable=translate,
-    #     requirements=["translate==3.6.1"],
-    #     system_site_packages=False,
-    # )
 
     entity_detection_task = PythonOperator(
         task_id="detect_entities",
@@ -183,4 +192,4 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
         retries=1
     )
 
-detect_language_task >> translate_task >> entity_detection_task
+detect_files >> detect_language_task >> translate_task >> entity_detection_task
