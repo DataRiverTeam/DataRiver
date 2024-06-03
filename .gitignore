@@ -4,7 +4,6 @@ airflow.db
 webserver_config.py
 logs
 airflow-webserver.pid
-requirements.txt
 resources
 .env*
 data
