@@ -70,6 +70,7 @@ x-airflow-common:
     - ${AIRFLOW_PROJ_DIR:-.}/plugins:/opt/airflow/plugins
     - ${AIRFLOW_PROJ_DIR:-.}/db:/opt/airflow/db
     - ${AIRFLOW_PROJ_DIR:-.}/data:/opt/airflow/data
+    - certs:/usr/share/elasticsearch/config/certs
   user: "0:0"
   # user: "${AIRFLOW_UID:-50000}:0"
 
@@ -217,13 +218,13 @@ services:
           "      - es01\n"\
           "      - localhost\n"\
           "    ip:\n"\
-          "      - 127.0.0.1\n"\
+          "      - ${ELASTIC_IP}\n"\
           "  - name: kibana\n"\
           "    dns:\n"\
           "      - kibana\n"\
           "      - localhost\n"\
           "    ip:\n"\
-          "      - 127.0.0.1\n"\
+          "      - ${ELASTIC_IP}\n"\
           > config/certs/instances.yml;
           bin/elasticsearch-certutil cert --silent --pem -out config/certs/certs.zip --in config/certs/instances.yml --ca-cert config/certs/ca/ca.crt --ca-key config/certs/ca/ca.key;
           unzip config/certs/certs.zip -d config/certs;
@@ -283,7 +284,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt https://localhost:9200 | grep -q 'missing authentication credentials'",
+          "curl -s --cacert config/certs/ca/ca.crt ${ELASTIC_HOST} | grep -q 'missing authentication credentials'",
         ]
       interval: 10s
       timeout: 10s
