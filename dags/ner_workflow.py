@@ -5,12 +5,9 @@ from elasticsearch import Elasticsearch
 import os
 from typing import Dict
 
-<<<<<<< HEAD
 from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
 
-=======
->>>>>>> master
 # Task expects list of strings containing file names.
 # It opens every file from the list, performs language detection and groups the files based on detected language
 # def detect_language(files: list[str]):
@@ -184,8 +181,4 @@ with DAG('ner_workflow', default_args=default_args, schedule_interval=None) as d
         retries=1
     )
 
-<<<<<<< HEAD
 detect_files >> detect_language_task >> translate_task >> entity_detection_task
-=======
-detect_language_task >> translate_task >> entity_detection_task
->>>>>>> master
