@@ -13,7 +13,7 @@ from datariver.sensors.filesystem import MultipleFilesSensor
 # def detect_language(files: list[str]):
 def detect_language(ti):
     import langdetect
-    files = ti.xcom_pull(key="found_files", task_ids="wait_for_files")
+    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
     langs = {}
     print(files)
     for file_path in files:
@@ -106,7 +106,7 @@ def detect_entities(ti):
     import nltk
 
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-    files = ti.xcom_pull(key="found_files", task_ids="wait_for_files")
+    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
 
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
