@@ -5,12 +5,15 @@ from elasticsearch import Elasticsearch
 import os
 from typing import Dict
 
+from datetime import timedelta
+from datariver.sensors.filesystem import MultipleFilesSensor
+
 # Task expects list of strings containing file names.
 # It opens every file from the list, performs language detection and groups the files based on detected language
 # def detect_language(files: list[str]):
 def detect_language(ti):
     import langdetect
-    files = ti.xcom_pull(key="files", task_ids="fetch_data")
+    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
     langs = {}
     print(files)
     for file_path in files:
@@ -99,20 +102,12 @@ def translate(ti):
 
 
 def detect_entities(ti):
-    # from io import BytesIO
-    # from minio import Minio
     import spacy    
     import nltk
 
     nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-    files = ti.xcom_pull(key="files", task_ids="fetch_data")
-    # in case we want to download data from cloud storage
-    # client = Minio(
-    #     minio_url,
-    #     access_key=minio_access_key,
-    #     secret_key=minio_secret_key,
-    #     secure=False
-    # )
+    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
+
     es = Elasticsearch(
         os.environ["ELASTIC_HOST"],
         basic_auth=("elastic", os.environ["ELASTIC_PASSWORD"]),
@@ -122,8 +117,6 @@ def detect_entities(ti):
     es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
     document = {}
     for file in files:
-        # in case we download file for Airflow cluster node from MinIO
-        # response = client.fget_object("airflow-bucket", download_dir + file, download_path)
         nlp = spacy.load("en_core_web_md")
         # get basename and trim extension
         id:str = os.path.splitext(os.path.basename(file))[0]
@@ -155,7 +148,22 @@ default_args = {
     'retries': 1,
 }
 
-with DAG('elasticsearch_example', default_args=default_args, schedule_interval=None) as dag:
+
+FS_CONN_ID = "fs_text_data"    #id of connection defined in Airflow UI
+FILE_NAME = "ner/*.txt"
+
+
+with DAG('ner_workflow', default_args=default_args, schedule_interval=None) as dag:
+
+    detect_files = MultipleFilesSensor(
+        task_id="wait_for_files",
+        fs_conn_id=FS_CONN_ID,
+        filepath=FILE_NAME,
+        poke_interval=60,
+        mode="reschedule",
+        timeout=timedelta(minutes=60),
+    )
+
     detect_language_task = PythonOperator(
         task_id='detect_language',
         python_callable=detect_language,
@@ -166,16 +174,6 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
         task_id='translate',
         python_callable=translate,
     )
-    # We can't use PythonVirtualenvOperator, because it's not possible to pass Task instance data to isolated environment.
-    # Because of this, for now, we are forced to install required modules globally,
-    # OR
-    # Launch DAG for each file separately, and perhaps store file name retrieved from some FileSensor  
-    # translate_task = PythonVirtualenvOperator(
-    #     task_id='translate',
-    #     python_callable=translate,
-    #     requirements=["translate==3.6.1"],
-    #     system_site_packages=False,
-    # )
 
     entity_detection_task = PythonOperator(
         task_id="detect_entities",
@@ -183,4 +181,4 @@ with DAG('elasticsearch_example', default_args=default_args, schedule_interval=N
         retries=1
     )
 
-detect_language_task >> translate_task >> entity_detection_task
+detect_files >> detect_language_task >> translate_task >> entity_detection_task
