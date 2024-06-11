@@ -18,11 +18,10 @@ if TYPE_CHECKING:
 
 
 
-
 class MultipleFilesSensor(BaseSensorOperator):
     """
     Detects all files present in the base directory, matching the expression.
-    If at list one file was detected, the list of all detected files is then sent with Xcom as key "found_files".
+    If at list one file was detected, the list of all detected files is then sent with Xcom as key "return_value".
 
     :param fs_conn_id: reference to the File (path)
         connection id
@@ -51,8 +50,6 @@ class MultipleFilesSensor(BaseSensorOperator):
 
         self.detected_files = []
 
-
-
     @cached_property
     def path(self) -> str:
         hook = FSHook(self.fs_conn_id)
@@ -63,15 +60,12 @@ class MultipleFilesSensor(BaseSensorOperator):
     def poke(self, context: Context) -> bool:
         self.log.info("Poking for file %s", self.path)
 
-        
         detected_files = []
         for path in glob(self.path, recursive=self.recursive):
             if os.path.isfile(path):
                 mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y%m%d%H%M%S")
                 self.log.info("Found File %s last modified: %s", path, mod_time)
-                
                 detected_files.append(path)
-
 
             for _, _, files in os.walk(path):
                 if files:
@@ -100,7 +94,6 @@ class MultipleFilesSensor(BaseSensorOperator):
                 # ),
                 method_name="execute_complete",
             )
-        
 
         # pushing files list do Xcom so next tasks can use it
         return self.detected_files

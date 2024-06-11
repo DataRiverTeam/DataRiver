@@ -29,7 +29,7 @@ def load_file(ti):
     # sleep(5)
     # print("File loaded: " + os.path.join(hook.get_path(), FILE_NAME))
 
-    print(ti.xcom_pull(key="found_files", task_ids="wait_for_files"))
+    print(ti.xcom_pull(key="return_value", task_ids="wait_for_files"))
 
 
 with DAG('multi_file_sensor_test', default_args=default_args, schedule_interval=None) as dag:
