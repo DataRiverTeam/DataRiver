@@ -7,6 +7,7 @@ import os
 from typing import Dict
 
 def fetch_data_from_elasticsearch(ti):
+    print(os.environ["ELASTIC_API_KEY"])
     es_hook = ElasticsearchPythonHook(
         hosts=[os.environ["ELASTIC_HOST"]],
         es_conn_args = {"api_key":  os.environ["ELASTIC_API_KEY"]}
