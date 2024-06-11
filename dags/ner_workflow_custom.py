@@ -53,7 +53,7 @@ with DAG(
         task_id="detect_entities",
         model="en_core_web_md",
         fs_conn_id=FS_CONN_ID
-    ).expand(detect_files.output.map(get_translated_path))      # .output lets us fetch the return_value of previously executed Operator
+    ).expand(path=detect_files.output.map(get_translated_path))      # .output lets us fetch the return_value of previously executed Operator
 
 
 detect_files >> translate_task >> ner_task
