@@ -204,11 +204,6 @@ services:
           echo "Set the KIBANA_PASSWORD environment variable in the .env file";
           exit 1;
         fi;
-        if [ ! -f config/kibana.yml ]; then
-          echo -ne \
-          "enterpriseSearch.host: ${ELASTIC_HOST}"\
-          > config/kibana.yml;
-        fi;
         if [ ! -f config/certs/ca.zip ]; then
           echo "Creating CA";
           bin/elasticsearch-certutil ca --silent --pem -out config/certs/ca.zip;
