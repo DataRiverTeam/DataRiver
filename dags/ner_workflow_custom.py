@@ -5,6 +5,7 @@ from datariver.sensors.filesystem import MultipleFilesSensor
 
 from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
+from datariver.operators.stats import StatisticsOperator
 
     
 default_args = {
@@ -56,4 +57,10 @@ with DAG(
     ).expand(path=detect_files.output.map(get_translated_path))      # .output lets us fetch the return_value of previously executed Operator
 
 
-detect_files >> translate_task >> ner_task
+    stats_task = StatisticsOperator(
+        task_id="generate_stats",
+        json_data = "{{task_instance.xcom_pull('detect_entities')}}"
+    )
+
+
+detect_files >> translate_task >> ner_task >> stats_task
