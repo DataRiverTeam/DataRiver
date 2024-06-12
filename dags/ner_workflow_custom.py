@@ -1,11 +1,11 @@
 from airflow import DAG
-
 from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
-
 from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
-
+from datariver.operators.elastic_push import ElasticPushOperator
+from datariver.operators.elastic_get import ElasticSearchOperator
+import os
     
 default_args = {
     'owner': 'airflow',
@@ -23,7 +23,12 @@ def get_translated_path(path):
 
 FS_CONN_ID = "fs_text_data"    #id of connection defined in Airflow UI
 FILE_NAME = "ner/*.txt"
-
+ES_CONN_ARGS = {
+    "hosts": os.environ["ELASTIC_HOST"],
+    "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",
+    "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
+    "verify_certs": True,
+}
 
 with DAG(
     'ner_workflow_custom',
@@ -55,5 +60,21 @@ with DAG(
         fs_conn_id=FS_CONN_ID
     ).expand(path=detect_files.output.map(get_translated_path))      # .output lets us fetch the return_value of previously executed Operator
 
+    es_push_task = ElasticPushOperator(
+        task_id="elastic_push",
+        fs_conn_id=FS_CONN_ID,
+        index="ner",
+        document={},
+        es_conn_args=ES_CONN_ARGS,
+        pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
+    )
 
-detect_files >> translate_task >> ner_task
+    es_search_task = ElasticSearchOperator(
+        task_id="elastic_get",
+        fs_conn_id=FS_CONN_ID,
+        index="ner",
+        query={"match_all": {}},
+        es_conn_args=ES_CONN_ARGS,
+    )
+
+detect_files >> translate_task >> ner_task >> es_push_task >> es_search_task
