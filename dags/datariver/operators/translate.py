@@ -8,7 +8,7 @@ import shutil
 # Perhaps we should make the operator more universal?
 MAX_FRAGMENT_LENGTH = 4000
 language_names = {
-    'cz': 'czech',
+    'cs': 'czech',
     'da': 'danish',
     'nl': 'dutch',
     'en': 'english',
