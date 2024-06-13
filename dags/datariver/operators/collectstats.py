@@ -35,7 +35,7 @@ class SummaryStatsOperator(BaseOperator):
         if "en" in lang_count:
             en_lang_count = lang_count["en"]
         try:
-            with open(full_path, "a") as file:
+            with open(full_path, "w") as file:
                 file.write("Summary statistics of dag run:\n")
                 file.write("==============================\n\n")
                 file.write("Correctly translated files:" + str(translated_count['successfully']) + " of " + str(
