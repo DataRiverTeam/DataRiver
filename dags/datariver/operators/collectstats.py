@@ -31,12 +31,15 @@ class SummaryStatsOperator(BaseOperator):
         ne_counter = self.ner_counters[1]
         lang_count = self.translate_stats["lang_count"]
         translated_count = self.translate_stats["translated_count"]
+        en_lang_count = 0
+        if "en" in lang_count:
+            en_lang_count = lang_count["en"]
         try:
             with open(full_path, "a") as file:
                 file.write("Summary statistics of dag run:\n")
                 file.write("==============================\n\n")
                 file.write("Correctly translated files:" + str(translated_count['successfully']) + " of " + str(
-                    translated_count['unsuccessfully'] + translated_count['successfully']) + "\n")
+                    translated_count['unsuccessfully'] + translated_count['successfully'] - en_lang_count) + "\n")
                 file.write("\nNumber of files by language:\n")
                 write_dict_to_file(lang_count, file)
                 file.write("\nNumber of named entites by occurence:\n")

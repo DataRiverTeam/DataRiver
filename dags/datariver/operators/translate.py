@@ -1,6 +1,7 @@
 from airflow.models.baseoperator import BaseOperator
 from deep_translator import GoogleTranslator
 from airflow.hooks.filesystem import FSHook
+from airflow.utils.log.logging_mixin import LoggingMixin
 import os
 import shutil
 
@@ -29,7 +30,7 @@ language_names = {
 }
 
 
-class DeepTranslatorOperator(BaseOperator):
+class DeepTranslatorOperator(BaseOperator, LoggingMixin):
     template_fields = ("files", "output_language")  # needed to be able to use Jinja templating for 'files' variable
 
     def __init__(self, *, files, output_language, output_dir=".", fs_conn_id="fs_default", **kwargs):
@@ -114,7 +115,7 @@ class DeepTranslatorOperator(BaseOperator):
                     successfully_translated += 1
 
             except IOError as e:
-                raise Exception(f"Couldn't open {file_path} ({str(e)})!")
+                self.log.error(f"Couldn't open {file_path} ({str(e)})!")
 
         translated_count = {}
         translated_count["successfully"] = successfully_translated
