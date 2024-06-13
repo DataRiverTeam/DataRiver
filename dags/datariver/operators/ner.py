@@ -1,8 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 import os
-import spacy    
-import nltk
 
 
 class NerOperator(BaseOperator):    

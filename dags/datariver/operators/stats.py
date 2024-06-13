@@ -1,5 +1,4 @@
 from airflow.models.baseoperator import BaseOperator
-import os
 import ast
 import json
 
@@ -35,4 +34,4 @@ class NerStatisticsOperator(BaseOperator):
                         entity_counter[entity] = 1
 
         returned_tuple = (label_counter, entity_counter)
-        return returned_tuple
+        context["ti"].xcom_push(key="stats", value=returned_tuple)

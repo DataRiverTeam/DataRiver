@@ -87,8 +87,8 @@ with DAG(
 
     summary_task = SummaryStatsOperator(
         task_id="summary",
-        ner_counters="{{task_instance.xcom_pull('generate_stats')}}",
-        translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'translate_stats')}}",
+        ner_counters="{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}",
+        translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}",
         summary_filename="summary.out",
         output_dir="ner/summary/",
         fs_conn_id=FS_CONN_ID

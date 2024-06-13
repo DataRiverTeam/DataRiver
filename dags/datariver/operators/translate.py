@@ -123,4 +123,4 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
         translate_stats = {}
         translate_stats["lang_count"] = lang_count
         translate_stats["translated_count"] = translated_count
-        context["ti"].xcom_push(key="translate_stats", value=translate_stats)
+        context["ti"].xcom_push(key="stats", value=translate_stats)
