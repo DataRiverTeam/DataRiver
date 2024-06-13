@@ -1,12 +1,13 @@
 from airflow import DAG
-
 from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
-
 from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
+from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerStatisticsOperator
 from datariver.operators.collectstats import SummaryStatsOperator
+
+import os
 
 default_args = {
     'owner': 'airflow',
@@ -15,7 +16,6 @@ default_args = {
     'email_on_retry': False,
     'retries': 1,
 }
-
 
 def get_translated_path(path):
     parts = path.split("/")
@@ -26,6 +26,12 @@ def get_translated_path(path):
 
 FS_CONN_ID = "fs_text_data"  # id of connection defined in Airflow UI
 FILE_NAME = "ner/*.txt"
+ES_CONN_ARGS = {
+    "hosts": os.environ["ELASTIC_HOST"],
+    "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",
+    "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
+    "verify_certs": True,
+}
 
 with DAG(
         'ner_workflow_custom',
@@ -33,6 +39,7 @@ with DAG(
         schedule_interval=None,
         render_template_as_native_obj=True  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
 ) as dag:
+
     detect_files = MultipleFilesSensor(
         task_id="wait_for_files",
         fs_conn_id=FS_CONN_ID,
@@ -57,9 +64,25 @@ with DAG(
     ).expand(path=detect_files.output.map(
         get_translated_path))  # .output lets us fetch the return_value of previously executed Operator
 
+    es_push_task = ElasticPushOperator(
+        task_id="elastic_push",
+        fs_conn_id=FS_CONN_ID,
+        index="ner",
+        document={},
+        es_conn_args=ES_CONN_ARGS,
+        pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
+    )
     stats_task = NerStatisticsOperator(
         task_id="generate_stats",
         json_data="{{task_instance.xcom_pull('detect_entities')}}"
+    )
+
+    es_search_task = ElasticSearchOperator(
+        task_id="elastic_get",
+        fs_conn_id=FS_CONN_ID,
+        index="ner",
+        query={"match_all": {}},
+        es_conn_args=ES_CONN_ARGS,
     )
 
     summary_task = SummaryStatsOperator(
@@ -71,4 +94,4 @@ with DAG(
         fs_conn_id=FS_CONN_ID
     )
 
-detect_files >> translate_task >> ner_task >> stats_task >> summary_task
+detect_files >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
