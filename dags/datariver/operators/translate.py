@@ -88,7 +88,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
                 # (maybe create a new folder and move new copies there?)
                 print(f"Translating {full_path} from {lang} to {self.output_language}")
 
-                with open(new_path, "a") as new_f:
+                with open(new_path, "w") as new_f:
                     translator = translators[lang]
                     # split text to sentences, so we can translate only a fragment instead of the whole file
                     sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
