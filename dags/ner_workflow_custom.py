@@ -3,8 +3,8 @@ from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
 from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
-from datariver.operators.elastic_push import ElasticPushOperator
-from datariver.operators.elastic_get import ElasticSearchOperator
+from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
+
 import os
     
 default_args = {
