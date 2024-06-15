@@ -48,19 +48,32 @@ with DAG(
         task_id="move_files",
         bash_command='''
             IFS="," 
+            first="true"
             for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed -E "s/[ '[]//g" | tr -d ']');
             do
                 base_dir=$(dirname "$file")
+                filename=$(basename "$file")
                 dest="$base_dir/{{run_id}}"
-                echo "moving '$file' to $dest"
                 mkdir -p $dest && mv $file $dest
+                if [[ $first == "true" ]]; then
+                    first="false"
+                    echo -n "$dest/$filename"
+                else
+                    echo -n ",$dest/$filename"
+                fi
             done
         ''',
+        do_xcom_push=True
     )
     trigger_dag_task = TriggerDagRunOperator(
         task_id='trigger_dag',
         trigger_dag_id='mailbox'
     )
+    trigger_ner_task = TriggerDagRunOperator(
+        task_id='trigger_ner',
+        trigger_dag_id='ner_workflow_parametrized',
+        conf= {"files": "{{ task_instance.xcom_pull(task_ids='move_files').split(\",\") }}" }
+    )
 
-detect_files_task >> move_files_task >> trigger_dag_task
+detect_files_task >> move_files_task >> trigger_dag_task >> trigger_ner_task
 
