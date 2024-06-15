@@ -31,7 +31,7 @@ language_names = {
 
 
 class DeepTranslatorOperator(BaseOperator, LoggingMixin):
-    template_fields = ("files", "output_language")  # needed to be able to use Jinja templating for 'files' variable
+    template_fields = ("files", "output_language", "output_dir")  # needed to be able to use Jinja templating for 'files' variable
 
     def __init__(self, *, files, output_language, output_dir=".", fs_conn_id="fs_default", **kwargs):
         super().__init__(**kwargs)

@@ -156,7 +156,7 @@ services:
         fi
 
         mkdir -p /opt/airflow/{logs,dags,plugins,db,data}
-        mkdir -p /opt/airflow/data/{translated,summary}
+        
         chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,plugins,db,data}
         exec /entrypoint airflow version && airflow config get-value database sql_alchemy_conn
     # yamllint enable rule:line-length

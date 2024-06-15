@@ -36,7 +36,7 @@ ES_CONN_ARGS = {
     "verify_certs": True,
 }
 def validate_params(**context):
-    if "params" not in context or "files" not in context["params"]:
+    if "params" not in context or "files" not in context["params"] or len(context["params"]["files"]) == 0:
         raise AirflowConfigException("No params defined")
     return context["params"]["files"]
 
@@ -60,7 +60,7 @@ with DAG(
         task_id="translate",
         files="{{task_instance.xcom_pull('validate_params')}}",
         fs_conn_id=FS_CONN_ID,
-        output_dir="ner/translated/",
+        output_dir='{{ "/".join(params["files"][0].split("/")[:-1] + ["translated"]) }}',
         output_language="en"
     )
 
@@ -97,7 +97,7 @@ with DAG(
         ner_counters="{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}",
         translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}",
         summary_filename="summary.out",
-        output_dir="ner/summary/",
+        output_dir='{{ "/".join(task_instance.xcom_pull("validate_params")[0].split("/")[:-1] + ["summary"])}}',
         fs_conn_id=FS_CONN_ID
     )
 

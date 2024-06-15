@@ -10,7 +10,7 @@ def write_dict_to_file(dictionary, file):
 
 
 class SummaryStatsOperator(BaseOperator):
-    template_fields = ("ner_counters", "translate_stats")
+    template_fields = ("ner_counters", "translate_stats", "output_dir")
 
     def __init__(self, *, ner_counters, translate_stats, summary_filename, output_dir=".", fs_conn_id="fs_default",
                  **kwargs):
@@ -32,6 +32,7 @@ class SummaryStatsOperator(BaseOperator):
         lang_count = self.translate_stats["lang_count"]
         translated_count = self.translate_stats["translated_count"]
         en_lang_count = 0
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
         if "en" in lang_count:
             en_lang_count = lang_count["en"]
         try:
