@@ -2,7 +2,7 @@ from airflow import DAG
 from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
 from airflow.api.client.local_client import Client
-from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.bash import BashOperator
 
 default_args = {
@@ -34,7 +34,7 @@ with DAG(
         render_template_as_native_obj=True  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
 ) as dag:
 
-    detect_files = MultipleFilesSensor(
+    detect_files_task = MultipleFilesSensor(
         task_id="wait_for_files",
         fs_conn_id=FS_CONN_ID,
         filepath=FILE_NAME,
@@ -44,7 +44,7 @@ with DAG(
         on_success_callback = restart_dag
     )
 
-    move_files = BashOperator(
+    move_files_task = BashOperator(
         task_id="move_files",
         bash_command='''
             IFS="," 
@@ -57,6 +57,10 @@ with DAG(
             done
         ''',
     )
+    trigger_dag_task = TriggerDagRunOperator(
+        task_id='trigger_dag',
+        trigger_dag_id='mailbox'
+    )
 
-detect_files >> move_files
+detect_files_task >> move_files_task >> trigger_dag_task
 
