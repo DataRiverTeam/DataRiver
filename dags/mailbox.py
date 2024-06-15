@@ -2,6 +2,8 @@ from airflow import DAG
 from datetime import timedelta
 from datariver.sensors.filesystem import MultipleFilesSensor
 from airflow.api.client.local_client import Client
+from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 
 default_args = {
     'owner': 'airflow',
@@ -42,4 +44,19 @@ with DAG(
         on_success_callback = restart_dag
     )
 
-detect_files
+    move_files = BashOperator(
+        task_id="move_files",
+        bash_command='''
+            IFS="," 
+            for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed -E "s/[ '[]//g" | tr -d ']');
+            do
+                base_dir=$(dirname "$file")
+                dest="$base_dir/{{run_id}}"
+                echo "moving '$file' to $dest"
+                mkdir -p $dest && mv $file $dest
+            done
+        ''',
+    )
+
+detect_files >> move_files
+
