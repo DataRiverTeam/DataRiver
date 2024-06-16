@@ -4,7 +4,7 @@ import json
 
 
 class NerStatisticsOperator(BaseOperator):
-    template_fields = ("json_data")
+    template_fields = ("json_data",)
 
     def __init__(self, *, json_data, **kwargs):
         super().__init__(**kwargs)
