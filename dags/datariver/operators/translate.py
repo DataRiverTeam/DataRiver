@@ -53,6 +53,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 
         lang_count = {}
         successfully_translated = 0
+        not_translated = 0 # files where the detected language is the same as the target language 
 
         for file_path in self.files:
             full_path = os.path.join(basepath, file_path)
@@ -79,6 +80,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 
                     if lang == self.output_language:
                         shutil.copyfile(full_path, new_path)
+                        not_translated += 1
                         continue
 
                 # Rename source text file - we mark it as being in use,
@@ -123,7 +125,8 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
         stats["stats"] = {
             "Unique languages detected": lang_count,
             "Successfully translated": successfully_translated,
-            "Errors": len(self.files) - successfully_translated
+            "Translation unrequired": not_translated, 
+            "Errors": len(self.files) - successfully_translated - not_translated
         }
 
         context["ti"].xcom_push(key="stats", value=stats)
