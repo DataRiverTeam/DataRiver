@@ -104,8 +104,6 @@ with DAG(
 
     summary_task = SummaryMarkdownOperator(
         task_id="summary",
-        # ner_counters="{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}",
-        # translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}",
         summary_filename="summary.md",
         output_dir='{{ "/".join(task_instance.xcom_pull("validate_params")[0].split("/")[:-1] + ["summary"])}}',
         fs_conn_id=FS_CONN_ID, 
