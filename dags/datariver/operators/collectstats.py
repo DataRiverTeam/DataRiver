@@ -104,12 +104,6 @@ class SummaryMarkdownOperator(BaseOperator):
         
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
-        # print(self.stats)
-        # print("*** STATS ***")
-        # for stat in self.stats:
-        #     print(stat, type(stat))
-
-
         try:
             with open(full_path, "w") as file:
                 file.write("# Summary statistics of dag run:\n")
@@ -128,18 +122,6 @@ class SummaryMarkdownOperator(BaseOperator):
                         rendered += self.__render_item(value)
 
                         file.write(rendered)
-
-                    # file.write(json.dumps(stat["stats"]))
-                    
-        #         file.write("==============================\n\n")
-        #         file.write("Correctly translated files:" + str(translated_count['successfully']) + " of " + str(
-        #             translated_count['unsuccessfully'] + translated_count['successfully'] - en_lang_count) + "\n")
-        #         file.write("\nNumber of files by language:\n")
-        #         write_dict_to_file(lang_count, file)
-        #         file.write("\nNumber of named entites by occurence:\n")
-        #         write_dict_to_file(ne_counter, file)
-        #         file.write("\nNumber of named entites category by occurence:\n")
-        #         write_dict_to_file(ne_category_counter, file)
 
         except IOError as e:
             raise Exception(f"Couldn't open {full_path} ({str(e)})!")
