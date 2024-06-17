@@ -27,7 +27,7 @@ class NerStatisticsOperator(BaseOperator):
                         label_counter[label] = 1
                     start = ent["start"]
                     end = ent["end"]
-                    entity = text[start:end]
+                    entity = text[start:end].replace('\n', '\\n').replace('\t', '\\t')
                     if entity in entity_counter:
                         entity_counter[entity] = entity_counter[entity] + 1
                     else:

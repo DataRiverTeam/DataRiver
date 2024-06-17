@@ -68,11 +68,14 @@ class SummaryMarkdownOperator(BaseOperator):
 
 
 
+    def _escape_text(text):
+        return text.replace('\\', '\\\\')
+
     def __render_item(self, data, level = 0):
         type_ = type(data)
 
         if type_ is str:
-            return data + "\n"
+            return self._escape_text(data) + "\n"    # we need to escape backslash
         elif type_ is float or type_ is int:
             return str(data) + "\n"
         elif type_ is dict:
