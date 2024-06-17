@@ -13,7 +13,7 @@ class SummaryStatsOperator(BaseOperator):
     template_fields = ("ner_counters", "translate_stats", "output_dir")
 
     def __init__(self, *, ner_counters, translate_stats, summary_filename, output_dir=".", fs_conn_id="fs_default",
-                 **kwargs):
+                **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
         self.ner_counters = ner_counters
@@ -33,6 +33,7 @@ class SummaryStatsOperator(BaseOperator):
         translated_count = self.translate_stats["translated_count"]
         en_lang_count = 0
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
         if "en" in lang_count:
             en_lang_count = lang_count["en"]
         try:
@@ -47,6 +48,80 @@ class SummaryStatsOperator(BaseOperator):
                 write_dict_to_file(ne_counter, file)
                 file.write("\nNumber of named entites category by occurence:\n")
                 write_dict_to_file(ne_category_counter, file)
+
+        except IOError as e:
+            raise Exception(f"Couldn't open {full_path} ({str(e)})!")
+
+
+
+class SummaryMarkdownOperator(BaseOperator):
+    template_fields = ("output_dir", "stats")
+
+    def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",
+                stats = [], **kwargs):
+        super().__init__(**kwargs)
+        self.fs_conn_id = fs_conn_id
+        self.summary_filename = summary_filename
+        self.output_dir = output_dir
+
+        self.stats = stats
+
+
+
+    def __render_item(self, data, level = 0):
+        type_ = type(data)
+
+        if type_ is str:
+            return data + "\n"
+        elif type_ is float or type_ is int:
+            return str(data) + "\n"
+        elif type_ is dict:
+            return "\n" + self.__render_dict(data, level + 1)
+        elif type_ is list or type_ is tuple:
+            return "\n" + self.__render_list(data, level + 1)
+        
+
+    def __render_list(self, items, level = 0):
+        text = ""
+
+        for item in items:
+            text += (level * "\t") + "- " + __render_item(item) + "\n"
+
+        return text
+
+
+    def __render_dict(self, data, level = 0):
+        text = ""
+        for key, value in data.items():
+            text += (level * "\t") + f"- {key}: " + self.__render_item(value, level + 1)
+
+        return text
+
+    def execute(self, context):
+        hook = FSHook(self.fs_conn_id)
+        basepath = hook.get_path()
+        full_path = os.path.join(basepath, self.output_dir, self.summary_filename)
+        
+        os.makedirs(os.path.dirname(full_path), exist_ok=True)
+
+        try:
+            with open(full_path, "w") as file:
+                file.write("# Summary statistics of dag run:\n")
+                
+                import json
+
+                for stat in self.stats:
+                    if stat["title"]:
+                        file.write(f"## {stat['title']}\n")
+                    
+
+                    for key, value in stat["stats"].items():
+                        rendered = ""
+                        rendered += f"- {key}: "
+
+                        rendered += self.__render_item(value)
+
+                        file.write(rendered)
 
         except IOError as e:
             raise Exception(f"Couldn't open {full_path} ({str(e)})!")

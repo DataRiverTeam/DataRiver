@@ -117,10 +117,13 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
             except IOError as e:
                 self.log.error(f"Couldn't open {file_path} ({str(e)})!")
 
-        translated_count = {}
-        translated_count["successfully"] = successfully_translated
-        translated_count["unsuccessfully"] = len(self.files) - successfully_translated
-        translate_stats = {}
-        translate_stats["lang_count"] = lang_count
-        translate_stats["translated_count"] = translated_count
-        context["ti"].xcom_push(key="stats", value=translate_stats)
+
+        stats = {}
+        stats["title"] = "Translation"
+        stats["stats"] = {
+            "Unique languages detected": lang_count,
+            "Successfully translated": successfully_translated,
+            "Errors": len(self.files) - successfully_translated
+        }
+
+        context["ti"].xcom_push(key="stats", value=stats)

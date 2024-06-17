@@ -33,5 +33,12 @@ class NerStatisticsOperator(BaseOperator):
                     else:
                         entity_counter[entity] = 1
 
-        returned_tuple = (label_counter, entity_counter)
-        context["ti"].xcom_push(key="stats", value=returned_tuple)
+        stats = {
+            "title": "NER statistics",
+            "stats": {
+                "labels": label_counter,
+                "entities": entity_counter
+            }
+        }
+        
+        context["ti"].xcom_push(key="stats", value=stats)

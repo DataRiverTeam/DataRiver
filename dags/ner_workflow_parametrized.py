@@ -8,7 +8,7 @@ from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
 from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerStatisticsOperator
-from datariver.operators.collectstats import SummaryStatsOperator
+from datariver.operators.collectstats import SummaryStatsOperator, SummaryMarkdownOperator
 
 import os
 
@@ -92,13 +92,26 @@ with DAG(
         es_conn_args=ES_CONN_ARGS,
     )
 
-    summary_task = SummaryStatsOperator(
+    # summary_task = SummaryStatsOperator(
+    #     task_id="summary",
+    #     ner_counters="{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}",
+    #     translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}",
+    #     summary_filename="summary.out",
+    #     output_dir='{{ "/".join(task_instance.xcom_pull("validate_params")[0].split("/")[:-1] + ["summary"])}}',
+    #     fs_conn_id=FS_CONN_ID, 
+    # )
+
+
+    summary_task = SummaryMarkdownOperator(
         task_id="summary",
-        ner_counters="{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}",
-        translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}",
-        summary_filename="summary.out",
+        summary_filename="summary.md",
         output_dir='{{ "/".join(task_instance.xcom_pull("validate_params")[0].split("/")[:-1] + ["summary"])}}',
-        fs_conn_id=FS_CONN_ID
+        fs_conn_id=FS_CONN_ID, 
+
+        # this method works too, might be useful if we pull data with different xcom keys
+        # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
+
+        stats="{{task_instance.xcom_pull(task_ids = ['generate_stats','translate'], key = 'stats')}}"
     )
 
 validate_params_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
