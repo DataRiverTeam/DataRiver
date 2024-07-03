@@ -4,7 +4,7 @@ import json
 
 
 class NerStatisticsOperator(BaseOperator):
-    template_fields = ("json_data")
+    template_fields = ("json_data",)
 
     def __init__(self, *, json_data, **kwargs):
         super().__init__(**kwargs)
@@ -27,11 +27,18 @@ class NerStatisticsOperator(BaseOperator):
                         label_counter[label] = 1
                     start = ent["start"]
                     end = ent["end"]
-                    entity = text[start:end]
+                    entity = text[start:end].replace('\n', '\\n').replace('\t', '\\t')
                     if entity in entity_counter:
                         entity_counter[entity] = entity_counter[entity] + 1
                     else:
                         entity_counter[entity] = 1
 
-        returned_tuple = (label_counter, entity_counter)
-        context["ti"].xcom_push(key="stats", value=returned_tuple)
+        stats = {
+            "title": "NER statistics",
+            "stats": {
+                "labels": label_counter,
+                "entities": entity_counter
+            }
+        }
+        
+        context["ti"].xcom_push(key="stats", value=stats)

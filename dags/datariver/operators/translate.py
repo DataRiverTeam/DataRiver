@@ -31,7 +31,7 @@ language_names = {
 
 
 class DeepTranslatorOperator(BaseOperator, LoggingMixin):
-    template_fields = ("files", "output_language")  # needed to be able to use Jinja templating for 'files' variable
+    template_fields = ("files", "output_language", "output_dir")  # needed to be able to use Jinja templating for 'files' variable
 
     def __init__(self, *, files, output_language, output_dir=".", fs_conn_id="fs_default", **kwargs):
         super().__init__(**kwargs)
@@ -53,6 +53,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 
         lang_count = {}
         successfully_translated = 0
+        not_translated = 0 # files where the detected language is the same as the target language 
 
         for file_path in self.files:
             full_path = os.path.join(basepath, file_path)
@@ -79,6 +80,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 
                     if lang == self.output_language:
                         shutil.copyfile(full_path, new_path)
+                        not_translated += 1
                         continue
 
                 # Rename source text file - we mark it as being in use,
@@ -117,10 +119,14 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
             except IOError as e:
                 self.log.error(f"Couldn't open {file_path} ({str(e)})!")
 
-        translated_count = {}
-        translated_count["successfully"] = successfully_translated
-        translated_count["unsuccessfully"] = len(self.files) - successfully_translated
-        translate_stats = {}
-        translate_stats["lang_count"] = lang_count
-        translate_stats["translated_count"] = translated_count
-        context["ti"].xcom_push(key="stats", value=translate_stats)
+
+        stats = {}
+        stats["title"] = "Translation"
+        stats["stats"] = {
+            "Unique languages detected": lang_count,
+            "Successfully translated": successfully_translated,
+            "Translation unrequired": not_translated, 
+            "Errors": len(self.files) - successfully_translated - not_translated
+        }
+
+        context["ti"].xcom_push(key="stats", value=stats)
