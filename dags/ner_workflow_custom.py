@@ -4,9 +4,11 @@ from datariver.sensors.filesystem import MultipleFilesSensor
 from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
 from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
+from datariver.operators.stats import NerStatisticsOperator
+from datariver.operators.collectstats import SummaryStatsOperator
 
 import os
-    
+
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -19,9 +21,10 @@ def get_translated_path(path):
     parts = path.split("/")
     if len(parts) < 1:
         return path
-    return  "/".join(parts[:-1]+["translated"] + parts[-1:])
+    return "/".join(parts[:-1] + ["translated"] + parts[-1:])
 
-FS_CONN_ID = "fs_text_data"    #id of connection defined in Airflow UI
+
+FS_CONN_ID = "fs_text_data"  # id of connection defined in Airflow UI
 FILE_NAME = "ner/*.txt"
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
@@ -31,10 +34,10 @@ ES_CONN_ARGS = {
 }
 
 with DAG(
-    'ner_workflow_custom',
-    default_args=default_args,
-    schedule_interval=None,
-    render_template_as_native_obj=True      # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
+        'ner_workflow_custom',
+        default_args=default_args,
+        schedule_interval=None,
+        render_template_as_native_obj=True  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
 ) as dag:
 
     detect_files = MultipleFilesSensor(
@@ -58,7 +61,8 @@ with DAG(
         task_id="detect_entities",
         model="en_core_web_md",
         fs_conn_id=FS_CONN_ID
-    ).expand(path=detect_files.output.map(get_translated_path))      # .output lets us fetch the return_value of previously executed Operator
+    ).expand(path=detect_files.output.map(
+        get_translated_path))  # .output lets us fetch the return_value of previously executed Operator
 
     es_push_task = ElasticPushOperator(
         task_id="elastic_push",
@@ -67,6 +71,10 @@ with DAG(
         document={},
         es_conn_args=ES_CONN_ARGS,
         pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
+    )
+    stats_task = NerStatisticsOperator(
+        task_id="generate_stats",
+        json_data="{{task_instance.xcom_pull('detect_entities')}}"
     )
 
     es_search_task = ElasticSearchOperator(
@@ -77,4 +85,13 @@ with DAG(
         es_conn_args=ES_CONN_ARGS,
     )
 
-detect_files >> translate_task >> ner_task >> es_push_task >> es_search_task
+    summary_task = SummaryStatsOperator(
+        task_id="summary",
+        ner_counters="{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}",
+        translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}",
+        summary_filename="summary.out",
+        output_dir="ner/summary/",
+        fs_conn_id=FS_CONN_ID
+    )
+
+detect_files >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
