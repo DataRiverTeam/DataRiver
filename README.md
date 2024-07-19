@@ -49,6 +49,12 @@ sudo usermod -aG docker <your-user-name>
 
 ### `SummaryMarkdownOperator`
 
+Generates a summary Markdown file based on passed dictionary.
+
+Parameters:
+- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of file's output location
+- `output_dir: str = "."` - a subdirectory to put the output file, relative to the base path specified by filesystem connection  
+- `summary_filename: str` - a name of output file
 
 ## `datariver.operators.elasticsearch`
 
