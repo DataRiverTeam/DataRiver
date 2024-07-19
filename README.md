@@ -29,12 +29,12 @@ If you want to delete all pulled images and volumes created run.
 docker compose down --volumes --rmi all
 ```
 
-# Ariflow webserver
+## Airflow webserver
 
 username: airflow \
 password: airflow
 
-# If smth won't work it is worth to try
+## If smth won't work it is worth to try
 ```
 sudo usermod -aG docker <your-user-name>
 ```
@@ -92,6 +92,14 @@ Parameters:
 ## `datariver.operators.json`
 
 ### `MapJsonFile`
+Expects a file containing JSON array. 
+It iterates over the list and executes a map function over every element.
+
+Parameters:
+- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of input file's location
+- `path: str` - path relative to the base path specified by given file system connection
+- `python_callable: Callable[Any, Any]` - any Python function expecting an item from the JSON list as an argument; might return any value which will be then returned to the XCOM by the operator.
+
 
 ## `datariver.operators.langdetect`
 
