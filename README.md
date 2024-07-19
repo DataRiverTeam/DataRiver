@@ -38,3 +38,58 @@ password: airflow
 ```
 sudo usermod -aG docker <your-user-name>
 ```
+
+
+
+# Operators
+
+## `datariver.operators.collectstats`
+
+### `SummaryStatsOperator`
+
+### `SummaryMarkdownOperator`
+
+
+## `datariver.operators.elasticsearch`
+
+A wrapper for the [Elastisearch python module](https://elasticsearch-py.readthedocs.io/en/v8.14.0/api/elasticsearch.html#elasticsearch.Elasticsearch.search).
+
+### `ElasticPushOperator`
+Pushes a valid document to the specified Elasticsearch index.
+
+Parameters:
+- `index: str` - the name of the Elasticsearch index
+- `document: dict` - a document to be put into the specified index
+- `es_conn_args: dict` - a dictionary containing valid `elasticsearch.Elasticsearch` parameters as key-value pairs.
+    - See [Elasticsearch module documentation](https://elasticsearch-py.readthedocs.io/en/v8.14.0/api/elasticsearch.html#elasticsearch) 
+
+
+### `ElasticSearchOperator`
+Performs a search query in the specified Elasticsearch index.
+
+Parameters:
+- `index: str` - the name of the Elasticsearch index
+- `query: dict` - a dictionary defining a valid Elasticsearch query
+- `es_conn_args: dict` - a dictionary containing valid `elasticsearch.Elasticsearch` parameters as key-value pairs.
+    - See [Elasticsearch module documentation](https://elasticsearch-py.readthedocs.io/en/v8.14.0/api/elasticsearch.html#elasticsearch) 
+    
+
+## `datariver.operators.json`
+
+### `MapJsonFile`
+
+## `datariver.operators.langdetect`
+
+### `LangdetectOperator`
+
+## `datariver.operators.ner`
+
+### `NerOperator`
+
+## `datariver.operators.stats`
+
+### `NerStatisticsOperator`
+
+## `datariver.operators.translate`
+
+### `DeepTranslatorOperator`
