@@ -8,3 +8,4 @@ resources
 .env*
 data
 dags/**/__pycache__/
+.idea
