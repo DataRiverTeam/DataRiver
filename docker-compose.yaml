@@ -235,9 +235,15 @@ services:
         find . -type d -exec chmod 750 \{\} \;;
         find . -type f -exec chmod 640 \{\} \;;
         echo "Waiting for Elasticsearch availability";
-        until curl -s --cacert config/certs/ca/ca.crt ${ELASTIC_HOST} | grep -q "missing authentication credentials"; do sleep 30; done;
+        until curl -s --cacert config/certs/ca/ca.crt ${ELASTIC_HOST} | grep "missing authentication credentials"; do
+          echo "Elasticsearch not available waiting ..."
+          sleep 30
+        done
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" "${ELASTIC_HOST}/_security/user/kibana_system/_password" -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:${ELASTIC_PASSWORD}" -H "Content-Type: application/json" "${ELASTIC_HOST}/_security/user/kibana_system/_password" -d "{\"password\":\"${KIBANA_PASSWORD}\"}" | grep "^{}"; do
+          echo "Couldn't set Kibana password retrying ..."
+          sleep 10;
+        done;
         echo "All done!";
       '
     healthcheck:
