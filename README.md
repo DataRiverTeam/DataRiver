@@ -31,13 +31,15 @@ docker compose down --volumes --rmi all
 
 # Services
 ## Airflow webserver: 
-- port: http://127.0.0.1/ 
+- port: http://localhost/8080
 - username: airflow 
 - password: airflow 
 ## Kibana:
 - port: http://localhost:5601/ 
+- username: elastic 
+- password: airflow 
 ## Elasticsearch:
-- port: http://localhost:9200/
+- port: http://es01:9200/
 
 # If smth won't work it is worth to try
 ```
