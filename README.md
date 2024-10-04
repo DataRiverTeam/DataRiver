@@ -1,9 +1,4 @@
 # How to run container
-If you've built any previous version run:
-```
-docker compose build
-```
-
 In order to start server simply run. First run will take few minutes image have to be built.
 ```
 docker compose up
@@ -24,15 +19,41 @@ To remove container run.
 docker compose down
 ```
 
+If you want to delete all volumes created run.
+```
+docker compose down --volumes --remove-orphans
+```
 If you want to delete all pulled images and volumes created run.
 ```
 docker compose down --volumes --rmi all
 ```
 
-# Ariflow webserver
+If you want to rebuild base image (needed after adding package to requirements.txt):
+``` 
+docker compose build
+```
 
-username: airflow \
-password: airflow
+# Services
+## Airflow webserver: 
+- port: http://localhost/8080
+- username: airflow 
+- password: airflow 
+
+> ### **_NOTE:_**  After first webserver start you need to provide fs_conn_id in UI. 
+> In order to do that perform following actions 
+> #### Step 1: 
+> select admin page in navbar the\
+![insturction pt.2](resources/fs_conn_id_1.png?raw=true) 
+> #### Step 2: 
+> Select fs_conn_id and insert path `/opt/airflow/data` \
+![insturction pt.1](resources/conn_id.png) 
+
+## Kibana:
+- port: http://localhost:5601/ 
+- username: elastic 
+- password: airflow 
+## Elasticsearch:
+- port: http://es01:9200/
 
 # If smth won't work it is worth to try
 ```
