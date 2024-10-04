@@ -38,6 +38,12 @@ docker compose build
 - port: http://localhost/8080
 - username: airflow 
 - password: airflow 
+
+> **_NOTE:_**  After first webserver start you need to provide fs_conn_id in UI 
+
+![insturction pt.1](resources/conn_id.png) \
+![insturction pt.2](resources/fs_conn_id_1.png?raw=true)
+
 ## Kibana:
 - port: http://localhost:5601/ 
 - username: elastic 
