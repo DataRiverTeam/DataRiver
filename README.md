@@ -28,6 +28,11 @@ If you want to delete all pulled images and volumes created run.
 docker compose down --volumes --rmi all
 ```
 
+If you want to rebuild base image (needed after adding package to requirements.txt):
+``` 
+docker compose build
+```
+
 # Services
 ## Airflow webserver: 
 - port: http://localhost/8080
