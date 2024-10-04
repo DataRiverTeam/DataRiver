@@ -293,7 +293,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s --cacert config/certs/ca/ca.crt ${ELASTIC_HOST} | grep -q 'missing authentication credentials'",
+          "curl -s --cacert config/certs/ca/ca.crt ${ELASTIC_HOST} | grep 'missing authentication credentials'",
         ]
       interval: 10s
       timeout: 10s
@@ -327,7 +327,7 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -s -I http://localhost:5601 | grep -q 'HTTP/1.1 302 Found'",
+          "curl -s -I http://localhost:5601 | grep 'HTTP/1.1 302 Found'",
         ]
       interval: 10s
       timeout: 10s
