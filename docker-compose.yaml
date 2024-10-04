@@ -340,8 +340,6 @@ services:
 volumes:
   certs:
     driver: local
-  resources:
-    driver: local
   esdata01:
     driver: local
   kibanadata:
