@@ -29,10 +29,15 @@ If you want to delete all pulled images and volumes created run.
 docker compose down --volumes --rmi all
 ```
 
-# Ariflow webserver
-
-username: airflow \
-password: airflow
+# Services
+## Airflow webserver: 
+- port: http://127.0.0.1/ 
+- username: airflow 
+- password: airflow 
+## Kibana:
+- port: http://localhost:5601/ 
+## Elasticsearch:
+- port: http://localhost:9200/
 
 # If smth won't work it is worth to try
 ```
