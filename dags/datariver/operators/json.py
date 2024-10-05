@@ -8,7 +8,7 @@ import os
 
 class MapJsonFile(BaseOperator):
 
-    def __init__(self, *, fs_conn_id="fs_default", path, python_callable: Callable[[dict], Any], **kwargs):
+    def __init__(self, *, fs_conn_id="fs_default", path, python_callable: Callable[Any, Any], **kwargs):
         super().__init__(**kwargs)
         self.path=path
         self.fs_conn_id=fs_conn_id
