@@ -4,7 +4,6 @@ airflow.db
 webserver_config.py
 logs
 airflow-webserver.pid
-resources
 .env*
 data
 dags/**/__pycache__/
