@@ -49,7 +49,7 @@ with DAG(
         bash_command='''
             IFS="," 
             first="true"
-            for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed -E "s/[ '[]//g" | tr -d ']');
+            for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed -E "s/['[]//g" | tr -d ']');
             do
                 base_dir="$(dirname "$file")"
                 filename="$(basename "$file")"
