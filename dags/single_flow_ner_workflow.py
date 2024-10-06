@@ -68,7 +68,7 @@ with DAG(
         task_id="translate",
         file="{{params.file}}",
         fs_conn_id="{{params.fs_conn_id}}",
-        output_dir='{{ "/".join(params["file"].split("/")[:-1] + ["translated"]) }}',
+        translated_file_path="{{task_instance.xcom_pull('translate_path')}}",
         output_language="en"
     )
 
@@ -100,15 +100,6 @@ with DAG(
         query={"match_all": {}},
         es_conn_args=ES_CONN_ARGS,
     )
-
-    # summary_task = SummaryStatsOperator(
-    #     task_id="summary",
-    #     ner_counters="{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}",
-    #     translate_stats="{{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}",
-    #     summary_filename="summary.out",
-    #     output_dir='{{ "/".join(task_instance.xcom_pull("validate_params")[0].split("/")[:-1] + ["summary"])}}',
-    #     fs_conn_id=FS_CONN_ID,
-    # )
 
 
     summary_task = SummaryMarkdownOperator(

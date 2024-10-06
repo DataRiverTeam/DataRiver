@@ -17,9 +17,6 @@ class NerStatisticsOperator(BaseOperator):
         for data in self.json_data:
             detected = ast.literal_eval(json.dumps(data)) #literal_eval is used here, because data pushed to xcom by NerOperator are not in fully correct json format
 
-            # print(type(detected))
-            # print(detected)
-            # for sentence in detected:
             text = detected["text"]
             for ent in detected["ents"]:
                 label = ent["label"]

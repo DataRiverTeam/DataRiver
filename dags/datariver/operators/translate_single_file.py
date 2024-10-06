@@ -31,14 +31,14 @@ language_names = {
 
 
 class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
-    template_fields = ("file", "output_language", "output_dir", "fs_conn_id")
+    template_fields = ("file", "output_language", "fs_conn_id", "translated_file_path")
 
-    def __init__(self, *, file, output_language, output_dir=".", fs_conn_id="fs_default", **kwargs):
+    def __init__(self, *, file, output_language, translated_file_path, fs_conn_id="fs_default", **kwargs):
         super().__init__(**kwargs)
         self.file = file
         self.output_language = output_language
         self.fs_conn_id = fs_conn_id
-        self.output_dir = output_dir
+        self.translated_file_path = translated_file_path
 
     def execute(self, context):
         import nltk
@@ -58,7 +58,7 @@ class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
         file_path = self.file
         full_path = os.path.join(basepath, file_path)
         # create not existing directories or open will throw an error
-        new_path = os.path.join(basepath, self.output_dir, os.path.basename(file_path))
+        new_path = os.path.join(basepath, self.translated_file_path)
         os.makedirs(os.path.dirname(new_path), exist_ok=True)
         try:
             text = ""
