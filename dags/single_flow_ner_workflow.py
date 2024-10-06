@@ -58,6 +58,12 @@ with DAG(
         python_callable=validate_params
     )
 
+    translate_path_task = PythonOperator(
+        task_id="translate_path",
+        python_callable=get_translated_path,
+        op_kwargs = {"path": "{{params.file}}"}
+    )
+
     translate_task = SingleFileTranslatorOperator(
         task_id="translate",
         file="{{params.file}}",
@@ -70,7 +76,7 @@ with DAG(
         task_id="detect_entities",
         model="en_core_web_md",
         fs_conn_id="{{params.fs_conn_id}}",
-        path=get_translated_path(validate_params_task.output.__str__())
+        path="{{task_instance.xcom_pull('translate_path')}}"
     )
 
     es_push_task = ElasticPushOperator(
@@ -117,4 +123,4 @@ with DAG(
         stats="{{task_instance.xcom_pull(task_ids = ['generate_stats','translate'], key = 'stats')}}"
     )
 
-validate_params_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
+validate_params_task >> translate_path_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
