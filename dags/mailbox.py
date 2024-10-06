@@ -51,11 +51,11 @@ with DAG(
             first="true"
             for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed -E "s/[ '[]//g" | tr -d ']');
             do
-                base_dir=$(dirname "$file")
-                filename=$(basename "$file")
+                base_dir="$(dirname "$file")"
+                filename="$(basename "$file")"
                 dest="$base_dir/{{run_id}}"
-                mkdir -p $dest && mv $file $dest
-                if [[ $first == "true" ]]; then
+                mkdir -p "$dest" && mv "$file" "$dest"
+                if [[ "$first" == "true" ]]; then
                     first="false"
                     echo -n "$dest/$filename"
                 else
