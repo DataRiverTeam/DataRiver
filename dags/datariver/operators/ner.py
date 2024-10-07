@@ -4,7 +4,7 @@ import os
 
 
 class NerOperator(BaseOperator):    
-    template_fields = ("path",)
+    template_fields = ("path", "fs_conn_id")
 
     def __init__(self, *, path, fs_conn_id="fs_default", model="en_core_web_sm", language="english", **kwargs):
         super().__init__(**kwargs)

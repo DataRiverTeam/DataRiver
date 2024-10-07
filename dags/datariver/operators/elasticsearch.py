@@ -2,10 +2,12 @@ from airflow.models.baseoperator import BaseOperator
 
 
 class ElasticPushOperator(BaseOperator):
-    template_fields = ("document",)
+    template_fields = ("document", "fs_conn_id")
 
     def __init__(self, *, index, document, fs_conn_id="fs_default", es_conn_args={}, **kwargs):
         super().__init__(**kwargs)
+
+        # note: fs_conn_id is probably useless in the elasticsearch operators
         self.fs_conn_id = fs_conn_id
         self.index = index
         self.document = document
