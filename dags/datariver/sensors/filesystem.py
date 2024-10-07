@@ -19,6 +19,8 @@ if TYPE_CHECKING:
 
 
 class MultipleFilesSensor(BaseSensorOperator):
+    template_fields = ("fs_conn_id", "filepath")
+
     """
     Detects all files present in the base directory, matching the expression.
     If at list one file was detected, the list of all detected files is then sent with Xcom as key "return_value".
@@ -33,7 +35,7 @@ class MultipleFilesSensor(BaseSensorOperator):
         default is ``False``.
     """
     
-    def __init__ (
+    def __init__(
         self,
         *,
         filepath,
