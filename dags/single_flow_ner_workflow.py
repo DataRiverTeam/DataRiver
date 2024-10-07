@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
-from datariver.operators.translate_single_file import SingleFileTranslatorOperator
+from datariver.operators.translate import SingleFileTranslatorOperator
 from datariver.operators.ner import NerOperator
 from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerStatisticsOperator
@@ -35,7 +35,7 @@ ES_CONN_ARGS = {
     "verify_certs": True,
 }
 def validate_params(**context):
-    if "params" not in context or "file" not in context["params"] or "fs_conn_id" not in context["params"]:
+    if "params" not in context or "file_path" not in context["params"] or "fs_conn_id" not in context["params"]:
         raise AirflowConfigException("No params defined")
 
 with DAG(
@@ -44,7 +44,7 @@ with DAG(
         schedule_interval=None,
         render_template_as_native_obj=True,  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
         params={
-            "file": Param(
+            "file_path": Param(
                 type="string",
             ),
             "fs_conn_id": Param(
@@ -61,12 +61,12 @@ with DAG(
     translate_path_task = PythonOperator(
         task_id="translate_path",
         python_callable=get_translated_path,
-        op_kwargs = {"path": "{{params.file}}"}
+        op_kwargs = {"path": "{{params.file_path}}"}
     )
 
     translate_task = SingleFileTranslatorOperator(
         task_id="translate",
-        file="{{params.file}}",
+        file_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
         translated_file_path="{{task_instance.xcom_pull('translate_path')}}",
         output_language="en"
@@ -105,7 +105,7 @@ with DAG(
     summary_task = SummaryMarkdownOperator(
         task_id="summary",
         summary_filename="summary.md",
-        output_dir='{{ "/".join(params["file"].split("/")[:-1] + ["summary"])}}',
+        output_dir='{{ "/".join(params["file_path"].split("/")[:-1] + ["summary"])}}',
         fs_conn_id="{{params.fs_conn_id}}",
 
         # this method works too, might be useful if we pull data with different xcom keys
