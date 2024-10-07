@@ -49,10 +49,17 @@ with DAG(
         bash_command='''
             IFS="," 
             first="true"
+            # value pulled from xcom is in format ['file_1', 'file_2']
+            # sed explanation:
+            # - remove [' from the begginig
+            # - replace ', ' with , everywhere
+            # - remove '] from the end
             for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed "s/^\['//;s/', '/,/g;s/'\]$//")
             do
+                # move detected files from mailbox to folder where processing will happen
                 base_dir="$(dirname "$file")"
                 filename="$(basename "$file")"
+                # build folder name basaed on unique run_id
                 dest="$base_dir/{{run_id}}"
                 mkdir -p "$dest" && mv "$file" "$dest"
                 if [[ "$first" == "true" ]]; then
