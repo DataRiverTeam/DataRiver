@@ -1,145 +1,16 @@
 from airflow import DAG
-from airflow.operators.python import PythonOperator, PythonVirtualenvOperator
-from elasticsearch.helpers import scan
-from elasticsearch import Elasticsearch
+
+from airflow.operators.python import PythonOperator
+from airflow.exceptions import AirflowConfigException
+from airflow.models.param import Param
+from datariver.operators.translate import SingleFileTranslatorOperator
+from datariver.operators.ner import NerOperator
+from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
+from datariver.operators.stats import NerStatisticsOperator
+from datariver.operators.collectstats import SummaryMarkdownOperator
+
 import os
-from typing import Dict
 
-from datetime import timedelta
-from datariver.sensors.filesystem import MultipleFilesSensor
-
-# Task expects list of strings containing file names.
-# It opens every file from the list, performs language detection and groups the files based on detected language
-# def detect_language(files: list[str]):
-def detect_language(ti):
-    import langdetect
-    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
-    langs = {}
-    print(files)
-    for file_path in files:
-        try:
-            with open(file_path, "r") as f:
-                text = f.read()
-                lang = langdetect.detect(text) 
-                if lang not in langs:
-                    langs[lang] = []
-                langs[lang].append(file_path)
-        except IOError:
-            print("There was an error when processing file: " + file_path)
-            # TODO handle error
-    ti.xcom_push(key="langs", value=langs)
-    return langs
-
-MAX_FRAGMENT_LENGTH = 4000
-
-# https://github.com/alyssaq/nltk_data/blob/master/tokenizers/punkt/README
-language_names = {
-    'cz': 'czech',
-    'da': 'danish',
-    'nl': 'dutch',
-    'en': 'english',
-    'et': 'estonian',
-    'fi': 'finnish',
-    'fr': 'french',
-    'de': 'german',
-    'el': 'greek',
-    'it': 'italian',
-    'no': 'norwegian',
-    'pl': 'polish',
-    'pt': 'portuguese',
-    'ru': 'russian',
-    'sl': 'slovene',
-    'es': 'spanish',
-    'sv': 'swedish',
-    'tr': 'turkish'
-}
-
-# Task translates text files, based on received dict from "detect_languages".
-def translate(ti):
-    import nltk
-    from deep_translator import GoogleTranslator
-
-    langs: Dict[str, list[str]] = ti.xcom_pull(key="langs", task_ids="detect_language")
-    nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-    for lang in langs:
-        if lang == "en":
-            continue
-        translator = GoogleTranslator(source=lang, target="en") 
-        print("Translating language: " , lang)
-        for file_path in langs[lang]:
-            # Rename source text file - we mark it as being in use,
-            # so we can simultaneously read from it and put translated text to a new file.
-            # It allows reusage of the old Xcom list from "fetch_data" task.
-            new_path = file_path + ".old"
-            os.rename(file_path, new_path)
-            try:
-                with open(new_path, "r") as f, open(file_path, "a") as new_f:
-                    # We probably shouldn't read the whole text file at once - what if the file is REALLY big? 
-                    text = f.read()
-                    # split text to sentences, so we can translate only a fragment instead of the whole file
-                    sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
-                    l = 0
-                    r = 0
-                    total_length = 0
-
-                    while r < len(sentences):
-                        if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
-                            total_length += len(sentences[r])                            
-                        else:
-                            to_translate = " ".join(sentences[l : r + 1])
-                            translation = translator.translate(to_translate)
-                            new_f.write(translation)        # perhaps we should make sure that we use proper char encoding when writing to file?
-                            l = r + 1
-                            total_length = 0
-                        r += 1
-                    else:
-                        to_translate = " ".join(sentences[l : r + 1])
-                        translation = translator.translate(to_translate)
-                        new_f.write(translation)
-
-            except IOError:
-                raise Exception(f"Couldn't open {file_path}!")
-
-
-def detect_entities(ti):
-    import spacy    
-    import nltk
-
-    nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-    files = ti.xcom_pull(key="return_value", task_ids="wait_for_files")
-
-    es = Elasticsearch(
-        os.environ["ELASTIC_HOST"],
-        basic_auth=("elastic", os.environ["ELASTIC_PASSWORD"]),
-        timeout=60
-    )
-    # delete index named-entities change this in future
-    es.options(ignore_status=[400,404]).indices.delete(index='named-entities')
-    document = {}
-    for file in files:
-        nlp = spacy.load("en_core_web_md")
-        # get basename and trim extension
-        id:str = os.path.splitext(os.path.basename(file))[0]
-        document[id] = []
-        try:
-            with open(file, "r") as f: 
-                text = f.read()
-                sentences = nltk.tokenize.sent_tokenize(text, "english")
-                for s in sentences:
-                    doc = nlp(s)
-                    document[id].append(doc.to_json())
-                    # doc[*].ent - named entity detected by nlp
-                    # doc[*].ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
-                    # doc[*].sent - sentence including given entity
-        except IOError:
-            raise Exception("Given file doesn't exist!")
-        
-    es.index(
-        index="named-entities",
-        document=document
-    )
-
-    
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -148,37 +19,99 @@ default_args = {
     'retries': 1,
 }
 
+def get_translated_path(path):
+    parts = path.split("/")
+    if len(parts) < 1:
+        return path
+    return "/".join(parts[:-1] + ["translated"] + parts[-1:])
 
-FS_CONN_ID = "fs_text_data"    #id of connection defined in Airflow UI
+
+FS_CONN_ID = "fs_text_data"  # id of connection defined in Airflow UI
 FILE_NAME = "ner/*.txt"
+ES_CONN_ARGS = {
+    "hosts": os.environ["ELASTIC_HOST"],
+    "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",
+    "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
+    "verify_certs": True,
+}
+def validate_params(**context):
+    if "params" not in context or "file_path" not in context["params"] or "fs_conn_id" not in context["params"]:
+        raise AirflowConfigException("No params defined")
 
-
-with DAG('ner_workflow', default_args=default_args, schedule_interval=None) as dag:
-
-    detect_files = MultipleFilesSensor(
-        task_id="wait_for_files",
-        fs_conn_id=FS_CONN_ID,
-        filepath=FILE_NAME,
-        poke_interval=60,
-        mode="reschedule",
-        timeout=timedelta(minutes=60),
+with DAG(
+    'ner_workflow',
+    default_args=default_args,
+    schedule_interval=None,
+    render_template_as_native_obj=True,  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
+    params={
+        "file_path": Param(
+            type="string",
+        ),
+        "fs_conn_id": Param(
+            type="string",
+            default="fs_default"
+        )
+    },
+) as dag:
+    validate_params_task = PythonOperator(
+        task_id="validate_params",
+        python_callable=validate_params
     )
 
-    detect_language_task = PythonOperator(
-        task_id='detect_language',
-        python_callable=detect_language,
-        # op_kwargs={"text": example_text}
-        # op_kwargs={"files": []}
-    )
-    translate_task = PythonOperator(
-        task_id='translate',
-        python_callable=translate,
+    translate_path_task = PythonOperator(
+        task_id="translate_path",
+        python_callable=get_translated_path,
+        op_kwargs = {"path": "{{params.file_path}}"}
     )
 
-    entity_detection_task = PythonOperator(
+    translate_task = SingleFileTranslatorOperator(
+        task_id="translate",
+        file_path="{{params.file_path}}",
+        fs_conn_id="{{params.fs_conn_id}}",
+        translated_file_path="{{task_instance.xcom_pull('translate_path')}}",
+        output_language="en"
+    )
+
+    ner_task = NerOperator(
         task_id="detect_entities",
-        python_callable=detect_entities,
-        retries=1
+        model="en_core_web_md",
+        fs_conn_id="{{params.fs_conn_id}}",
+        path="{{task_instance.xcom_pull('translate_path')}}"
     )
 
-detect_files >> detect_language_task >> translate_task >> entity_detection_task
+    es_push_task = ElasticPushOperator(
+        task_id="elastic_push",
+        fs_conn_id="{{params.fs_conn_id}}",
+        index="ner",
+        document={},
+        es_conn_args=ES_CONN_ARGS,
+        pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
+    )
+
+    stats_task = NerStatisticsOperator(
+        task_id="generate_stats",
+        json_data="{{task_instance.xcom_pull('detect_entities')}}"
+    )
+
+    es_search_task = ElasticSearchOperator(
+        task_id="elastic_get",
+        fs_conn_id="{{params.fs_conn_id}}",
+        index="ner",
+        query={"match_all": {}},
+        es_conn_args=ES_CONN_ARGS,
+    )
+
+
+    summary_task = SummaryMarkdownOperator(
+        task_id="summary",
+        summary_filename="summary.md",
+        output_dir='{{ "/".join(params["file_path"].split("/")[:-1] + ["summary"])}}',
+        fs_conn_id="{{params.fs_conn_id}}",
+
+        # this method works too, might be useful if we pull data with different xcom keys
+        # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
+
+        stats="{{task_instance.xcom_pull(task_ids = ['generate_stats','translate'], key = 'stats')}}"
+    )
+
+validate_params_task >> translate_path_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task

@@ -1,9 +1,11 @@
 dags/__pycache__
 airflow.cfg
 airflow.db
+db/
 webserver_config.py
 logs
 airflow-webserver.pid
 .env*
 data
 dags/**/__pycache__/
+.idea

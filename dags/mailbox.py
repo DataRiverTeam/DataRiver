@@ -1,9 +1,13 @@
-from airflow import DAG
 from datetime import timedelta
-from datariver.sensors.filesystem import MultipleFilesSensor
-from airflow.api.client.local_client import Client
+
+from airflow import DAG
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+from airflow.models.param import Param
+
+
+from datariver.sensors.filesystem import MultipleFilesSensor
 
 default_args = {
     'owner': 'airflow',
@@ -13,13 +17,11 @@ default_args = {
     'retries': 1,
 }
 
-
-
 FS_CONN_ID = "fs_text_data"  # id of connection defined in Airflow UI
-FILE_NAME = "ner/*.txt"
 
 
-def restart_dag( ):
+def retrigger_dag():
+    from airflow.api.client.local_client import Client
     print("restarting dag")
     import time
     time.sleep(5)
@@ -27,27 +29,47 @@ def restart_dag( ):
     c.trigger_dag(dag_id='mailbox', conf={})
 
 
-with DAG(
-        'mailbox',
-        default_args=default_args,
-        schedule_interval=None,
-        render_template_as_native_obj=True  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
-) as dag:
+def parse_paths(paths):
+    def create_conf(path):
+        return {
+            "path": path
+        }
 
+    paths_list = paths.split(",")
+
+    return list(map(create_conf, paths_list))
+
+
+with DAG(
+    'mailbox',
+    default_args=default_args,
+    schedule_interval=None,
+    render_template_as_native_obj=True,
+    params={
+        "fs_conn_id": Param(
+            type="string",
+            default="fs_data"
+        ),
+        "filepath": Param(
+            type="string",
+            default="map/*.json"
+        )
+    },
+) as dag:
     detect_files_task = MultipleFilesSensor(
         task_id="wait_for_files",
-        fs_conn_id=FS_CONN_ID,
-        filepath=FILE_NAME,
+        fs_conn_id="{{params.fs_conn_id}}",
+        filepath="{{params.filepath}}",
         poke_interval=60,
         mode="reschedule",
         timeout=timedelta(minutes=60),
-        on_success_callback = restart_dag
+        on_success_callback=retrigger_dag
     )
 
     move_files_task = BashOperator(
         task_id="move_files",
         bash_command='''
-            IFS="," 
+            IFS=","
             first="true"
             # value pulled from xcom is in format ['file_1', 'file_2']
             # sed explanation:
@@ -72,15 +94,24 @@ with DAG(
         ''',
         do_xcom_push=True
     )
-    trigger_dag_task = TriggerDagRunOperator(
-        task_id='trigger_dag',
+
+    parse_paths_task = PythonOperator(
+        task_id='parse_paths',
+        python_callable=parse_paths,
+        op_kwargs={
+            "paths": "{{ task_instance.xcom_pull(task_ids='move_files')}}"
+        }
+    )
+
+    trigger_mailbox = TriggerDagRunOperator(
+        task_id='trigger_mailbox',
         trigger_dag_id='mailbox'
     )
-    trigger_ner_task = TriggerDagRunOperator(
-        task_id='trigger_ner',
-        trigger_dag_id='ner_workflow_parametrized',
-        conf= {"files": "{{ task_instance.xcom_pull(task_ids='move_files').split(\",\") }}" }
-    )
 
-detect_files_task >> move_files_task >> trigger_dag_task >> trigger_ner_task
+    trigger_map_file_task = TriggerDagRunOperator.partial(
+        task_id='trigger_map_file',
+        trigger_dag_id='map_file'
+    ).expand(conf=parse_paths_task.output)
 
+
+detect_files_task >> move_files_task >> parse_paths_task >> trigger_map_file_task >> trigger_mailbox
