@@ -111,7 +111,7 @@ class SummaryMarkdownOperator(BaseOperator):
             with open(full_path, "w") as file:
                 file.write("# Summary statistics of dag run:\n")
                 
-                import json
+                import json_tools
 
                 for stat in self.stats:
                     if stat["title"]:

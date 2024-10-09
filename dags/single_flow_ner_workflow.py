@@ -19,12 +19,6 @@ default_args = {
     'retries': 1,
 }
 
-def get_translated_path(path):
-    parts = path.split("/")
-    if len(parts) < 1:
-        return path
-    return "/".join(parts[:-1] + ["translated"] + parts[-1:])
-
 
 FS_CONN_ID = "fs_text_data"  # id of connection defined in Airflow UI
 FILE_NAME = "ner/*.txt"
@@ -34,6 +28,7 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
+#file_path can be renamed to json_file path to improve code readability
 def validate_params(**context):
     if "params" not in context or "file_path" not in context["params"] or "fs_conn_id" not in context["params"]:
         raise AirflowConfigException("No params defined")
@@ -58,17 +53,12 @@ with DAG(
         python_callable=validate_params
     )
 
-    translate_path_task = PythonOperator(
-        task_id="translate_path",
-        python_callable=get_translated_path,
-        op_kwargs = {"path": "{{params.file_path}}"}
-    )
-
     translate_task = SingleFileTranslatorOperator(
         task_id="translate",
-        file_path="{{params.file_path}}",
+        json_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
-        translated_file_path="{{task_instance.xcom_pull('translate_path')}}",
+        input_key="content",
+        output_key="translated",
         output_language="en"
     )
 
@@ -114,4 +104,4 @@ with DAG(
         stats="{{task_instance.xcom_pull(task_ids = ['generate_stats','translate'], key = 'stats')}}"
     )
 
-validate_params_task >> translate_path_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
+validate_params_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
