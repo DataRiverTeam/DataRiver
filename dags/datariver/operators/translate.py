@@ -137,15 +137,16 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 
 
 class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
-    template_fields = ("json_path", "output_language", "fs_conn_id", "input_key", "output_key")
+    template_fields = ("json_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_path, output_language, fs_conn_id="fs_default", input_key,  output_key, **kwargs):
+    def __init__(self, *, json_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
         self.json_path = json_path
         self.output_language = output_language
         self.fs_conn_id = fs_conn_id
         self.input_key = input_key
         self.output_key = output_key
+        self.encoding = encoding
 
     def execute(self, context):
         import nltk
@@ -166,12 +167,11 @@ class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
         full_path = os.path.join(basepath, json_path)
         try:
             text = None
-            with open(full_path, "r+") as f:
+            with open(full_path, "r+", encoding=self.encoding) as f:
                 data = json.load(f)
                 text = data.get(self.input_key)
                 if text is not None:
                     lang = langdetect.detect(text)
-                    print(lang)
 
                     if lang in lang_count:
                         lang_count[lang] = lang_count[lang] + 1
@@ -208,15 +208,15 @@ class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
                     else:
                         to_translate = " ".join(sentences[l: r + 1])
                         translation = translator.translate(to_translate)
-                        print(translation)
                         translated_text += translation
 
                     successfully_translated += 1
 
+                    #TODO: it should be possible to add key-value pair to json without writing whole file, maybe by treating json file as text file?
                     f.seek(0)
                     f.truncate(0)
                     data[self.output_key]=translated_text
-                    json.dump(data, f)
+                    json.dump(data, f, ensure_ascii=False)
                 else:
                     self.log.error(f"{json_path} does not contain key {self.input_key}!")
         except IOError as e:
