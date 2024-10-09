@@ -1,3 +1,5 @@
+from idlelib.pyparse import trans
+
 from airflow.models.baseoperator import BaseOperator
 from deep_translator import GoogleTranslator
 from airflow.hooks.filesystem import FSHook
@@ -164,7 +166,7 @@ class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
         full_path = os.path.join(basepath, json_path)
         try:
             text = None
-            with open(full_path, "r") as f:
+            with open(full_path, "r+") as f:
                 data = json.load(f)
                 text = data.get(self.input_key)
                 if text is not None:
@@ -184,47 +186,41 @@ class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
                         not_translated += 1
 
                     print(f"Translating {full_path} from {lang} to {self.output_language}")
+
+                    translated_text = ""
+                    translator = translators[lang]
+                    # split text to sentences, so we can translate only a fragment instead of the whole file
+                    sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
+
+                    l = 0
+                    r = 0
+                    total_length = 0
+                    while r < len(sentences):
+                        if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
+                            total_length += len(sentences[r])
+                        else:
+                            to_translate = " ".join(sentences[l: r + 1])
+                            translation = translator.translate(to_translate)
+                            translated_text += translation  # perhaps we should make sure that we use proper char encoding when writing to file?
+                            l = r + 1
+                            total_length = 0
+                        r += 1
+                    else:
+                        to_translate = " ".join(sentences[l: r + 1])
+                        translation = translator.translate(to_translate)
+                        print(translation)
+                        translated_text += translation
+
+                    successfully_translated += 1
+
+                    f.seek(0)
+                    f.truncate(0)
+                    data[self.output_key]=translated_text
+                    json.dump(data, f)
                 else:
                     self.log.error(f"{json_path} does not contain key {self.input_key}!")
         except IOError as e:
             self.log.error(f"Couldn't open {full_path} ({str(e)})!")
-
-
-        if text is not None:
-            translated_text = ""
-            translator = translators[lang]
-            # split text to sentences, so we can translate only a fragment instead of the whole file
-            sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
-
-            l = 0
-            r = 0
-            total_length = 0
-            while r < len(sentences):
-                if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
-                    total_length += len(sentences[r])
-                else:
-                    to_translate = " ".join(sentences[l: r + 1])
-                    translation = translator.translate(to_translate)
-                    translated_text.join(translation)  # perhaps we should make sure that we use proper char encoding when writing to file?
-                    l = r + 1
-                    total_length = 0
-                r += 1
-            else:
-                to_translate = " ".join(sentences[l: r + 1])
-                translation = translator.translate(to_translate)
-                translated_text.join(translation)
-
-            successfully_translated += 1
-            try:
-                #we should think about a way of adding that key without reading the whole file
-                with open(full_path, "r+") as new_f:#TODO:moze lepiej raz otworzyc i wczytac, i potem doklejac, a nie wczytywac 2x
-                    file_data = json.load(new_f)
-                    file_data[self.output_key]=translated_text
-                    json.dump(file_data, new_f)
-
-            except IOError as e:
-                self.log.error(f"Couldn't open {full_path} ({str(e)})!")
-
 
         stats = {}
         stats["title"] = "Translation"
