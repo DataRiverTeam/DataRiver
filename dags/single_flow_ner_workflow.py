@@ -7,7 +7,7 @@ from datariver.operators.translate import SingleFileTranslatorOperator
 from datariver.operators.ner import NerJsonOperator
 from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerJsonStatisticsOperator
-from datariver.operators.collectstats import SummaryMarkdownOperator
+from datariver.operators.collectstats import JsonSummaryMarkdownOperator
 
 import os
 
@@ -97,7 +97,7 @@ with DAG(
     )
 
 
-    summary_task = SummaryMarkdownOperator(
+    summary_task = JsonSummaryMarkdownOperator(
         task_id="summary",
         summary_filename="summary.md",
         output_dir='{{ "/".join(params["file_path"].split("/")[:-1] + ["summary"])}}',
@@ -106,7 +106,8 @@ with DAG(
         # this method works too, might be useful if we pull data with different xcom keys
         # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
 
-        stats="{{task_instance.xcom_pull(task_ids = ['generate_stats','translate'], key = 'stats')}}"
+        json_path="{{params.file_path}}",
+        input_key="ner_stats",
     )
 
 validate_params_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
