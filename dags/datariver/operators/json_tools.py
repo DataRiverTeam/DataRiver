@@ -29,7 +29,8 @@ class MapJsonFile(BaseOperator):
                 mapped.append(self.python_callable(record))
 
         return mapped
-        
+
+#I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
 class JsonCommunicatingOperator(BaseOperator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -56,3 +57,10 @@ class JsonCommunicatingOperator(BaseOperator):
                 json.dump(data, f, ensure_ascii=False)
         except IOError as e:
             self.log.error(f"Couldn't open {full_path} ({str(e)})!")
+
+    @staticmethod
+    def generate_full_path(file_path, fs_conn_id):
+        hook = FSHook(fs_conn_id)
+        basepath = hook.get_path()
+        full_path = os.path.join(basepath, file_path)
+        return full_path

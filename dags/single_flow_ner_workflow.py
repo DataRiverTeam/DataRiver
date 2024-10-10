@@ -6,7 +6,7 @@ from airflow.models.param import Param
 from datariver.operators.translate import SingleFileTranslatorOperator
 from datariver.operators.ner import NerJsonOperator
 from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
-from datariver.operators.stats import NerStatisticsOperator
+from datariver.operators.stats import NerJsonStatisticsOperator
 from datariver.operators.collectstats import SummaryMarkdownOperator
 
 import os
@@ -67,6 +67,8 @@ with DAG(
         model="en_core_web_md",
         fs_conn_id="{{params.fs_conn_id}}",
         json_path="{{params.file_path}}",
+        input_key="translated",
+        output_key="ner"
     )
 
     es_push_task = ElasticPushOperator(
@@ -78,9 +80,12 @@ with DAG(
         pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
     )
 
-    stats_task = NerStatisticsOperator(
+    stats_task = NerJsonStatisticsOperator(
         task_id="generate_stats",
-        json_data="{{task_instance.xcom_pull('detect_entities')}}"
+        json_path="{{params.file_path}}",
+        fs_conn_id="{{params.fs_conn_id}}",
+        input_key="ner",
+        output_key="ner_stats",
     )
 
     es_search_task = ElasticSearchOperator(
