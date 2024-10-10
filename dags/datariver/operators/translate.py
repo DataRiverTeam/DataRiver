@@ -9,6 +9,10 @@ import shutil
 import ijson
 import json
 
+from docutils.parsers.rst.directives import encoding
+
+from datariver.operators.json_tools import JsonCommunicatingOperator
+
 # TODO:
 # Perhaps we should make the operator more universal?
 MAX_FRAGMENT_LENGTH = 4000
@@ -136,7 +140,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
         context["ti"].xcom_push(key="stats", value=stats)
 
 
-class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
+class SingleFileTranslatorOperator(JsonCommunicatingOperator, LoggingMixin):
     template_fields = ("json_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):
@@ -165,62 +169,50 @@ class SingleFileTranslatorOperator(BaseOperator, LoggingMixin):
 
         json_path = self.json_path
         full_path = os.path.join(basepath, json_path)
-        try:
-            text = None
-            with open(full_path, "r+", encoding=self.encoding) as f:
-                data = json.load(f)
-                text = data.get(self.input_key)
-                if text is not None:
-                    lang = langdetect.detect(text)
+        text = self.get_value_from_json_file(full_path, self.encoding, self.input_key)
+        if text is not None:
+            lang = langdetect.detect(text)
 
-                    if lang in lang_count:
-                        lang_count[lang] = lang_count[lang] + 1
-                    else:
-                        lang_count[lang] = 1
+            if lang in lang_count:
+                lang_count[lang] = lang_count[lang] + 1
+            else:
+                lang_count[lang] = 1
 
-                    if lang not in translators:
-                        translators[lang] = GoogleTranslator(source=lang, target="en")
+            if lang not in translators:
+                translators[lang] = GoogleTranslator(source=lang, target="en")
 
-                    if lang == self.output_language:
-                        shutil.copyfile(full_path, full_path)
-                        not_translated += 1
+            if lang == self.output_language:
+                shutil.copyfile(full_path, full_path)
+                not_translated += 1
 
-                    print(f"Translating {full_path} from {lang} to {self.output_language}")
+            print(f"Translating {full_path} from {lang} to {self.output_language}")
 
-                    translated_text = ""
-                    translator = translators[lang]
-                    # split text to sentences, so we can translate only a fragment instead of the whole file
-                    sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
+            translated_text = ""
+            translator = translators[lang]
+            # split text to sentences, so we can translate only a fragment instead of the whole file
+            sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
 
-                    l = 0
-                    r = 0
-                    total_length = 0
-                    while r < len(sentences):
-                        if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
-                            total_length += len(sentences[r])
-                        else:
-                            to_translate = " ".join(sentences[l: r + 1])
-                            translation = translator.translate(to_translate)
-                            translated_text += translation  # perhaps we should make sure that we use proper char encoding when writing to file?
-                            l = r + 1
-                            total_length = 0
-                        r += 1
-                    else:
-                        to_translate = " ".join(sentences[l: r + 1])
-                        translation = translator.translate(to_translate)
-                        translated_text += translation
-
-                    successfully_translated += 1
-
-                    #TODO: it should be possible to add key-value pair to json without writing whole file, maybe by treating json file as text file?
-                    f.seek(0)
-                    f.truncate(0)
-                    data[self.output_key]=translated_text
-                    json.dump(data, f, ensure_ascii=False)
+            l = 0
+            r = 0
+            total_length = 0
+            while r < len(sentences):
+                if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
+                    total_length += len(sentences[r])
                 else:
-                    self.log.error(f"{json_path} does not contain key {self.input_key}!")
-        except IOError as e:
-            self.log.error(f"Couldn't open {full_path} ({str(e)})!")
+                    to_translate = " ".join(sentences[l: r + 1])
+                    translation = translator.translate(to_translate)
+                    translated_text += translation  # perhaps we should make sure that we use proper char encoding when writing to file?
+                    l = r + 1
+                    total_length = 0
+                r += 1
+            else:
+                to_translate = " ".join(sentences[l: r + 1])
+                translation = translator.translate(to_translate)
+                translated_text += translation
+
+            successfully_translated += 1
+            self.add_value_to_json_file(full_path, self.encoding, self.output_key, translated_text)
+
 
         stats = {}
         stats["title"] = "Translation"
