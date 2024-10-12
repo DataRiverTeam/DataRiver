@@ -47,12 +47,12 @@ class NerOperator(BaseOperator):
 
 
 class NerJsonOperator(JsonArgsBaseOperator):
-    template_fields = ("json_path", "fs_conn_id", "input_key", "output_key", "encoding")
+    template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_path, fs_conn_id="fs_default", model="en_core_web_sm", language="english",
+    def __init__(self, *, json_file_path, fs_conn_id="fs_default", model="en_core_web_sm", language="english",
                  input_key="translated", output_key="ner", encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
-        self.json_path = json_path
+        self.json_file_path = json_file_path
         self.fs_conn_id = fs_conn_id
         self.model = model
         self.language = language
@@ -67,12 +67,12 @@ class NerJsonOperator(JsonArgsBaseOperator):
 
         hook = FSHook(self.fs_conn_id)
 
-        file_path = os.path.join(hook.get_path(), self.json_path)
+        file_path = os.path.join(hook.get_path(), self.json_file_path)
         nlp = spacy.load(self.model)
 
         detected = []
 
-        text = self.get_value_from_json_file(file_path, self.encoding, self.input_key)
+        text = self.get_value(file_path, self.encoding, self.input_key)
 
         sentences = nltk.tokenize.sent_tokenize(text, self.language)
         for s in sentences:
@@ -85,4 +85,4 @@ class NerJsonOperator(JsonArgsBaseOperator):
             # .ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
             # .sent - sentence including given entity
 
-        self.add_value_to_json_file(file_path, self.encoding, self.output_key, detected)
+        self.add_value(file_path, self.encoding, self.output_key, detected)

@@ -131,10 +131,10 @@ class SummaryMarkdownOperator(BaseOperator):
 
 
 class JsonSummaryMarkdownOperator(JsonArgsBaseOperator):
-    template_fields = ("output_dir", "fs_conn_id", "json_path", "input_key", "encoding")
+    template_fields = ("output_dir", "fs_conn_id", "json_file_path", "input_key", "encoding")
 
     def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",
-                 input_key, json_path, encoding="utf-8", **kwargs):
+                 input_key, json_file_path, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
         self.summary_filename = summary_filename
@@ -142,7 +142,7 @@ class JsonSummaryMarkdownOperator(JsonArgsBaseOperator):
 
         self.input_key = input_key
         self.encoding = encoding
-        self.json_path = json_path
+        self.json_file_path = json_file_path
 
 
     def __render_item(self, data, level=0):
@@ -183,11 +183,11 @@ class JsonSummaryMarkdownOperator(JsonArgsBaseOperator):
             with open(full_path, "w") as file:
                 file.write("# Summary statistics of dag run:\n")
 
-                full_json_path = self.generate_full_path(self.json_path, self.fs_conn_id)
+                full_json_file_path = self.generate_full_path(self.json_file_path, self.fs_conn_id)
 
                 #temporary solution until collecting translate task does not work
                 stats = []
-                stats.append(self.get_value_from_json_file(full_json_path, self.encoding, self.input_key))
+                stats.append(self.get_value(full_json_file_path, self.encoding, self.input_key))
                 for stat in stats:
                     if stat["title"]:
                         file.write(f"## {stat['title']}\n")

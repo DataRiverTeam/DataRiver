@@ -55,7 +55,7 @@ with DAG(
 
     translate_task = JsonTranslateOperator(
         task_id="translate",
-        json_path="{{params.file_path}}",
+        json_file_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
         input_key="content",
         output_key="translated",
@@ -66,7 +66,7 @@ with DAG(
         task_id="detect_entities",
         model="en_core_web_md",
         fs_conn_id="{{params.fs_conn_id}}",
-        json_path="{{params.file_path}}",
+        json_file_path="{{params.file_path}}",
         input_key="translated",
         output_key="ner"
     )
@@ -74,7 +74,7 @@ with DAG(
     es_push_task = ElasticJsonPushOperator(
         task_id="elastic_push",
         fs_conn_id="{{params.fs_conn_id}}",
-        json_path="{{params.file_path}}",
+        json_file_path="{{params.file_path}}",
         input_key="ner",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
@@ -82,7 +82,7 @@ with DAG(
 
     stats_task = NerJsonStatisticsOperator(
         task_id="generate_stats",
-        json_path="{{params.file_path}}",
+        json_file_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
         input_key="ner",
         output_key="ner_stats",
@@ -106,7 +106,7 @@ with DAG(
         # this method works too, might be useful if we pull data with different xcom keys
         # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
 
-        json_path="{{params.file_path}}",
+        json_file_path="{{params.file_path}}",
         input_key="ner_stats",
     )
 

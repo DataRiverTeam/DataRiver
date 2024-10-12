@@ -46,11 +46,11 @@ class NerStatisticsOperator(BaseOperator):
 
 
 class NerJsonStatisticsOperator(JsonArgsBaseOperator):
-    template_fields = ("json_path", "fs_conn_id", "input_key", "output_key", "encoding")
+    template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_path, fs_conn_id, input_key, output_key, encoding="utf-8", **kwargs):
+    def __init__(self, *, json_file_path, fs_conn_id, input_key, output_key, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
-        self.json_path = json_path
+        self.json_file_path = json_file_path
         self.fs_conn_id = fs_conn_id
         self.input_key = input_key
         self.output_key = output_key
@@ -60,8 +60,8 @@ class NerJsonStatisticsOperator(JsonArgsBaseOperator):
         label_counter = dict()
         entity_counter = dict()
 
-        full_path = self.generate_full_path(self.json_path, self.fs_conn_id)
-        json_data = self.get_value_from_json_file(full_path, self.encoding, self.input_key)
+        full_path = self.generate_full_path(self.json_file_path, self.fs_conn_id)
+        json_data = self.get_value(full_path, self.encoding, self.input_key)
 
         for data in json_data:
             detected = ast.literal_eval(json.dumps(data)) #literal_eval is used here, because data pushed to xcom by NerOperator are not in fully correct json format
@@ -89,4 +89,4 @@ class NerJsonStatisticsOperator(JsonArgsBaseOperator):
             }
         }
 
-        self.add_value_to_json_file(full_path, self.encoding, self.output_key, stats)
+        self.add_value(full_path, self.encoding, self.output_key, stats)

@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
-from datariver.operators.translate import SingleFileTranslatorOperator
+from datariver.operators.translate import DeepTranslatorOperator
 from datariver.operators.ner import NerOperator
 from datariver.operators.elasticsearch import ElasticPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerStatisticsOperator
@@ -64,7 +64,7 @@ with DAG(
         op_kwargs = {"path": "{{params.file_path}}"}
     )
 
-    translate_task = SingleFileTranslatorOperator(
+    translate_task = DeepTranslatorOperator(
         task_id="translate",
         file_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",

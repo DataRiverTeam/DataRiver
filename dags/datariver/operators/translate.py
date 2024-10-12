@@ -141,11 +141,11 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 
 
 class JsonTranslateOperator(JsonArgsBaseOperator, LoggingMixin):
-    template_fields = ("json_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
+    template_fields = ("json_file_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):
+    def __init__(self, *, json_file_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
-        self.json_path = json_path
+        self.json_file_path = json_file_path
         self.output_language = output_language
         self.fs_conn_id = fs_conn_id
         self.input_key = input_key
@@ -167,9 +167,9 @@ class JsonTranslateOperator(JsonArgsBaseOperator, LoggingMixin):
         successfully_translated = 0
         not_translated = 0 # files where the detected language is the same as the target language
 
-        json_path = self.json_path
-        full_path = os.path.join(basepath, json_path)
-        text = self.get_value_from_json_file(full_path, self.encoding, self.input_key)
+        json_file_path = self.json_file_path
+        full_path = os.path.join(basepath, json_file_path)
+        text = self.get_value(full_path, self.encoding, self.input_key)
         if text is not None:
             lang = langdetect.detect(text)
 
@@ -211,7 +211,7 @@ class JsonTranslateOperator(JsonArgsBaseOperator, LoggingMixin):
                 translated_text += translation
 
             successfully_translated += 1
-            self.add_value_to_json_file(full_path, self.encoding, self.output_key, translated_text)
+            self.add_value(full_path, self.encoding, self.output_key, translated_text)
 
 
         stats = {}
