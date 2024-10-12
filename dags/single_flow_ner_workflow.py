@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
+from datariver.operators.langdetect import JsonLangdetectOperator
 from datariver.operators.translate import JsonTranslateOperator
 from datariver.operators.ner import NerJsonOperator
 from datariver.operators.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
@@ -53,6 +54,14 @@ with DAG(
         python_callable=validate_params
     )
 
+    detect_language_task = JsonLangdetectOperator(
+        task_id="detect_language",
+        json_path="{{params.file_path}}",
+        fs_conn_id="{{params.fs_conn_id}}",
+        input_key="content",
+        output_key="language",
+    )
+
     translate_task = JsonTranslateOperator(
         task_id="translate",
         json_file_path="{{params.file_path}}",
@@ -96,7 +105,6 @@ with DAG(
         es_conn_args=ES_CONN_ARGS,
     )
 
-
     summary_task = JsonSummaryMarkdownOperator(
         task_id="summary",
         summary_filename="summary.md",
@@ -110,4 +118,4 @@ with DAG(
         input_key="ner_stats",
     )
 
-validate_params_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
+validate_params_task >> detect_language_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
