@@ -2,12 +2,15 @@ from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 import os
 
-from datariver.operators.json_tools import JsonCommunicatingOperator
+from datariver.operators.json_tools import JsonArgsBaseOperator
 
 def write_dict_to_file(dictionary, file):
     sorted_dict = dict(sorted(dictionary.items(), key=lambda item: item[1], reverse=True))
     for key in sorted_dict:
         file.write(key + " - " + str(sorted_dict[key]) + "\n")
+
+def _escape_text(text):
+    return text.replace('\\', '\\\\')
 
 
 class SummaryStatsOperator(BaseOperator):
@@ -69,14 +72,11 @@ class SummaryMarkdownOperator(BaseOperator):
 
 
 
-    def _escape_text(text):
-        return text.replace('\\', '\\\\')
-
     def __render_item(self, data, level = 0):
         type_ = type(data)
 
         if type_ is str:
-            return self._escape_text(data) + "\n"    # we need to escape backslash
+            return _escape_text(data) + "\n"    # we need to escape backslash
         elif type_ is float or type_ is int:
             return str(data) + "\n"
         elif type_ is dict:
@@ -130,7 +130,7 @@ class SummaryMarkdownOperator(BaseOperator):
             raise Exception(f"Couldn't open {full_path} ({str(e)})!")
 
 
-class JsonSummaryMarkdownOperator(JsonCommunicatingOperator):
+class JsonSummaryMarkdownOperator(JsonArgsBaseOperator):
     template_fields = ("output_dir", "fs_conn_id", "json_path", "input_key", "encoding")
 
     def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",
@@ -144,14 +144,12 @@ class JsonSummaryMarkdownOperator(JsonCommunicatingOperator):
         self.encoding = encoding
         self.json_path = json_path
 
-    def _escape_text(text):
-        return text.replace('\\', '\\\\')
 
     def __render_item(self, data, level=0):
         type_ = type(data)
 
         if type_ is str:
-            return self._escape_text(data) + "\n"  # we need to escape backslash
+            return _escape_text(data) + "\n"  # we need to escape backslash
         elif type_ is float or type_ is int:
             return str(data) + "\n"
         elif type_ is dict:

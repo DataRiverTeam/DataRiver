@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
-from datariver.operators.translate import SingleFileTranslatorOperator
+from datariver.operators.translate import JsonTranslateOperator
 from datariver.operators.ner import NerJsonOperator
 from datariver.operators.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerJsonStatisticsOperator
@@ -53,7 +53,7 @@ with DAG(
         python_callable=validate_params
     )
 
-    translate_task = SingleFileTranslatorOperator(
+    translate_task = JsonTranslateOperator(
         task_id="translate",
         json_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
