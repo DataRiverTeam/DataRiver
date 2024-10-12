@@ -1,5 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
-from datariver.operators.json_tools import JsonCommunicatingOperator
+
+from datariver.operators.json_tools import JsonArgsBaseOperator
 
 class ElasticPushOperator(BaseOperator):
     template_fields = ("document", "fs_conn_id")
@@ -56,8 +57,7 @@ class ElasticSearchOperator(BaseOperator):
 
         return result.body
 
-
-class ElasticJsonPushOperator(JsonCommunicatingOperator):
+class ElasticJsonPushOperator(JsonArgsBaseOperator):
     template_fields = ("fs_conn_id", "json_path", "input_key", "encoding")
 
     def __init__(self, *, index, fs_conn_id="fs_default", es_conn_args={}, json_path, input_key, encoding="utf-8", **kwargs):
