@@ -1,5 +1,4 @@
 from airflow.models.baseoperator import BaseOperator
-
 from datariver.operators.json_tools import JsonCommunicatingOperator
 
 class ElasticPushOperator(BaseOperator):
@@ -26,16 +25,17 @@ class ElasticPushOperator(BaseOperator):
         )
         es.indices.refresh(index=self.index)
 
+
 class ElasticSearchOperator(BaseOperator):
 
     def __init__(
-            self,
-            *,
-            index,
-            query={ "match_all" : {} },
-            fs_conn_id="fs_default",
-            es_conn_args={},
-            **kwargs
+        self,
+        *,
+        index,
+        query={"match_all": {}},
+        fs_conn_id="fs_default",
+        es_conn_args={},
+        **kwargs
     ):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
@@ -55,6 +55,7 @@ class ElasticSearchOperator(BaseOperator):
         )
 
         return result.body
+
 
 class ElasticJsonPushOperator(JsonCommunicatingOperator):
     template_fields = ("fs_conn_id", "json_path", "input_key", "encoding")
