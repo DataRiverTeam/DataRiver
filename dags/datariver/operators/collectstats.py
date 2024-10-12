@@ -130,7 +130,7 @@ class SummaryMarkdownOperator(BaseOperator):
             raise Exception(f"Couldn't open {full_path} ({str(e)})!")
 
 
-class JsonSummaryMarkdownOperator(JsonArgsBaseOperator):
+class JsonSummaryMarkdownOperator(BaseOperator, JsonArgsBaseOperator):
     template_fields = ("output_dir", "fs_conn_id", "json_file_path", "input_key", "encoding")
 
     def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",

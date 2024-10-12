@@ -46,7 +46,7 @@ class NerOperator(BaseOperator):
         return detected
 
 
-class NerJsonOperator(JsonArgsBaseOperator):
+class NerJsonOperator(BaseOperator, JsonArgsBaseOperator):
     template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, fs_conn_id="fs_default", model="en_core_web_sm", language="english",

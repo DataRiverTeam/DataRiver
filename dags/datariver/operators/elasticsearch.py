@@ -57,7 +57,7 @@ class ElasticSearchOperator(BaseOperator):
 
         return result.body
 
-class ElasticJsonPushOperator(JsonArgsBaseOperator):
+class ElasticJsonPushOperator(BaseOperator, JsonArgsBaseOperator):
     template_fields = ("fs_conn_id", "json_file_path", "input_key", "encoding")
 
     def __init__(self, *, index, fs_conn_id="fs_default", es_conn_args={}, json_file_path, input_key, encoding="utf-8", **kwargs):
