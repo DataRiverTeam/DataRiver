@@ -4,6 +4,7 @@ from typing import Any
 
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
+from airflow.utils.log.logging_mixin import LoggingMixin
 import ijson
 import os
 
@@ -32,8 +33,9 @@ class MapJsonFile(BaseOperator):
 
 
 #I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
-class JsonArgs:
-    def __init__(self, fs_conn_id, json_file_path, encoding="utf-8"):
+class JsonArgs(LoggingMixin):
+    def __init__(self, fs_conn_id, json_file_path, encoding="utf-8", **kwargs):
+        super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
         self.json_file_path = json_file_path
         self.encoding = encoding
