@@ -2,7 +2,7 @@ from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 import os
 
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 
 def write_dict_to_file(dictionary, file):
     sorted_dict = dict(sorted(dictionary.items(), key=lambda item: item[1], reverse=True))
@@ -130,7 +130,7 @@ class SummaryMarkdownOperator(BaseOperator):
             raise Exception(f"Couldn't open {full_path} ({str(e)})!")
 
 
-class JsonSummaryMarkdownOperator(BaseOperator, JsonArgsBaseOperator):
+class JsonSummaryMarkdownOperator(BaseOperator, JsonArgs):
     template_fields = ("output_dir", "fs_conn_id", "json_file_path", "input_key", "encoding")
 
     def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",

@@ -1,6 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 import os
 
 class LangdetectOperator(BaseOperator):
@@ -33,7 +33,7 @@ class LangdetectOperator(BaseOperator):
         return langs        # returning value from execute() is equivalent to 
                             # context["ti"].xcom_push(key="return_value", value=langs)
 
-class JsonLangdetectOperator(BaseOperator, JsonArgsBaseOperator):
+class JsonLangdetectOperator(BaseOperator, JsonArgs):
     template_fields = ("json_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_path, fs_conn_id="fs_default", input_key, output_key, encoding="utf-8", **kwargs):

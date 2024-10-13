@@ -31,9 +31,7 @@ class MapJsonFile(BaseOperator):
         return mapped
 
 #I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
-class JsonArgsBaseOperator:
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+class JsonArgs:
 
     def get_value(self, full_path, encoding, key):
         text = None

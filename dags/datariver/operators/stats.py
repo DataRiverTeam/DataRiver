@@ -3,7 +3,7 @@ import ast
 import json
 
 
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 
 class NerStatisticsOperator(BaseOperator):
     template_fields = ("json_data",)
@@ -45,7 +45,7 @@ class NerStatisticsOperator(BaseOperator):
         context["ti"].xcom_push(key="stats", value=stats)
 
 
-class NerJsonStatisticsOperator(BaseOperator, JsonArgsBaseOperator):
+class NerJsonStatisticsOperator(BaseOperator, JsonArgs):
     template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, fs_conn_id, input_key, output_key, encoding="utf-8", **kwargs):

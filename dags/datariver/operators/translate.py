@@ -11,7 +11,7 @@ import json
 
 from docutils.parsers.rst.directives import encoding
 
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 
 # TODO:
 # Perhaps we should make the operator more universal?
@@ -140,7 +140,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
         context["ti"].xcom_push(key="stats", value=stats)
 
 
-class JsonTranslateOperator(BaseOperator, JsonArgsBaseOperator, LoggingMixin):
+class JsonTranslateOperator(BaseOperator, JsonArgs, LoggingMixin):
     template_fields = ("json_file_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):

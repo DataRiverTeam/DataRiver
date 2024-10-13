@@ -2,7 +2,7 @@ from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 import os
 
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 
 class NerOperator(BaseOperator):    
     template_fields = ("path", "fs_conn_id")
@@ -46,7 +46,7 @@ class NerOperator(BaseOperator):
         return detected
 
 
-class NerJsonOperator(BaseOperator, JsonArgsBaseOperator):
+class NerJsonOperator(BaseOperator, JsonArgs):
     template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, fs_conn_id="fs_default", model="en_core_web_sm", language="english",
