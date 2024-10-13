@@ -1,8 +1,7 @@
 from airflow import DAG
 
-from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.operators.python import PythonOperator, ShortCircuitOperator
 from airflow.utils.trigger_rule import TriggerRule
-from airflow.operators.dummy import DummyOperator
 from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
 from datariver.operators.json_tools import JsonArgs
@@ -73,9 +72,10 @@ with DAG(
         output_key="language",
     )
 
-    branch = BranchPythonOperator(
-        task_id="branch",
-        python_callable=choose_branch
+    check_if_translation_is_needed = ShortCircuitOperator(
+        task_id="check_if_translation_is_needed",
+        python_callable=decide_about_translation,
+        ignore_downstream_trigger_rules = False
     )
 
     dummy = DummyOperator(task_id="dummy")
@@ -136,4 +136,4 @@ with DAG(
         input_key="ner_stats",
     )
 
-validate_params_task >> detect_language_task >> branch >> [translate_task, dummy] >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
+validate_params_task >> detect_language_task >> check_if_translation_is_needed >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
