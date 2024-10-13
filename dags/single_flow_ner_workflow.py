@@ -56,7 +56,7 @@ with DAG(
 
     detect_language_task = JsonLangdetectOperator(
         task_id="detect_language",
-        json_path="{{params.file_path}}",
+        json_file_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
         input_key="content",
         output_key="language",

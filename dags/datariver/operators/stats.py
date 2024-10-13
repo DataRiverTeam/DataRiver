@@ -45,7 +45,7 @@ class NerStatisticsOperator(BaseOperator):
         context["ti"].xcom_push(key="stats", value=stats)
 
 
-class NerJsonStatisticsOperator(BaseOperator, JsonArgs):
+class NerJsonStatisticsOperator(BaseOperator):
     template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, fs_conn_id, input_key, output_key, encoding="utf-8", **kwargs):
@@ -59,9 +59,8 @@ class NerJsonStatisticsOperator(BaseOperator, JsonArgs):
     def execute(self, context):
         label_counter = dict()
         entity_counter = dict()
-
-        full_path = self.generate_full_path(self.json_file_path, self.fs_conn_id)
-        json_data = self.get_value(full_path, self.encoding, self.input_key)
+        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
+        json_data = json_args.get_value(self.input_key)
 
         for data in json_data:
             detected = ast.literal_eval(json.dumps(data)) #literal_eval is used here, because data pushed to xcom by NerOperator are not in fully correct json format
@@ -89,4 +88,4 @@ class NerJsonStatisticsOperator(BaseOperator, JsonArgs):
             }
         }
 
-        self.add_value(full_path, self.encoding, self.output_key, stats)
+        json_args.add_value(self.output_key, stats)

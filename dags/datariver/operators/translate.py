@@ -140,7 +140,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
         context["ti"].xcom_push(key="stats", value=stats)
 
 
-class JsonTranslateOperator(BaseOperator, JsonArgs, LoggingMixin):
+class JsonTranslateOperator(BaseOperator, LoggingMixin):
     template_fields = ("json_file_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):
@@ -155,9 +155,7 @@ class JsonTranslateOperator(BaseOperator, JsonArgs, LoggingMixin):
     def execute(self, context):
         import nltk
         import langdetect
-
-        hook = FSHook(self.fs_conn_id)
-        basepath = hook.get_path()
+        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
 
         nltk.download("punkt")
 
@@ -166,10 +164,7 @@ class JsonTranslateOperator(BaseOperator, JsonArgs, LoggingMixin):
         lang_count = {}
         successfully_translated = 0
         not_translated = 0 # files where the detected language is the same as the target language
-
-        json_file_path = self.json_file_path
-        full_path = os.path.join(basepath, json_file_path)
-        text = self.get_value(full_path, self.encoding, self.input_key)
+        text = json_args.get_value(self.input_key)
         if text is not None:
             lang = langdetect.detect(text)
 
@@ -182,10 +177,9 @@ class JsonTranslateOperator(BaseOperator, JsonArgs, LoggingMixin):
                 translators[lang] = GoogleTranslator(source=lang, target="en")
 
             if lang == self.output_language:
-                shutil.copyfile(full_path, full_path)
                 not_translated += 1
 
-            print(f"Translating {full_path} from {lang} to {self.output_language}")
+            print(f"Translating {json_args.get_full_path()} from {lang} to {self.output_language}")
 
             translated_text = ""
             translator = translators[lang]
@@ -211,7 +205,7 @@ class JsonTranslateOperator(BaseOperator, JsonArgs, LoggingMixin):
                 translated_text += translation
 
             successfully_translated += 1
-            self.add_value(full_path, self.encoding, self.output_key, translated_text)
+            json_args.add_value(self.output_key, translated_text)
 
 
         stats = {}

@@ -57,7 +57,7 @@ class ElasticSearchOperator(BaseOperator):
 
         return result.body
 
-class ElasticJsonPushOperator(BaseOperator, JsonArgs):
+class ElasticJsonPushOperator(BaseOperator):
     template_fields = ("fs_conn_id", "json_file_path", "input_key", "encoding")
 
     def __init__(self, *, index, fs_conn_id="fs_default", es_conn_args={}, json_file_path, input_key, encoding="utf-8", **kwargs):
@@ -75,10 +75,9 @@ class ElasticJsonPushOperator(BaseOperator, JsonArgs):
 
     def execute(self, context):
         from elasticsearch import Elasticsearch
-
-        full_path = self.generate_full_path(self.json_file_path, self.fs_conn_id)
+        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
         document = {}
-        document["document"] = list(self.get_value(full_path, self.encoding, self.input_key))
+        document["document"] = list(json_args.get_value(self.input_key))
 
         es = Elasticsearch(
             **self.es_conn_args
