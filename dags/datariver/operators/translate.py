@@ -1,17 +1,10 @@
-from idlelib.pyparse import trans
-
 from airflow.models.baseoperator import BaseOperator
 from deep_translator import GoogleTranslator
 from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 import os
 import shutil
-import ijson
-import json
-
-from docutils.parsers.rst.directives import encoding
-
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 
 # TODO:
 # Perhaps we should make the operator more universal?
@@ -140,7 +133,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
         context["ti"].xcom_push(key="stats", value=stats)
 
 
-class JsonTranslateOperator(BaseOperator, JsonArgsBaseOperator, LoggingMixin):
+class JsonTranslateOperator(BaseOperator, LoggingMixin):
     template_fields = ("json_file_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):
@@ -154,41 +147,21 @@ class JsonTranslateOperator(BaseOperator, JsonArgsBaseOperator, LoggingMixin):
 
     def execute(self, context):
         import nltk
-        import langdetect
-
-        hook = FSHook(self.fs_conn_id)
-        basepath = hook.get_path()
+        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
 
         nltk.download("punkt")
-
-        translators = {}
-
-        lang_count = {}
-        successfully_translated = 0
-        not_translated = 0 # files where the detected language is the same as the target language
-
-        json_file_path = self.json_file_path
-        full_path = os.path.join(basepath, json_file_path)
-        text = self.get_value(full_path, self.encoding, self.input_key)
-        if text is not None:
-            lang = langdetect.detect(text)
-
-            if lang in lang_count:
-                lang_count[lang] = lang_count[lang] + 1
-            else:
-                lang_count[lang] = 1
-
-            if lang not in translators:
-                translators[lang] = GoogleTranslator(source=lang, target="en")
-
-            if lang == self.output_language:
-                shutil.copyfile(full_path, full_path)
-                not_translated += 1
-
-            print(f"Translating {full_path} from {lang} to {self.output_language}")
+        text = json_args.get_value(self.input_key)
+        lang = json_args.get_value("language")
+        ## todo add error handling
+        if text is None:
+            return
+        if lang == self.output_language:
+            translated_text = text
+        else:
+            translator = GoogleTranslator(source=lang, target="en")
+            print(f"Translating {json_args.get_full_path()} from {lang} to {self.output_language}")
 
             translated_text = ""
-            translator = translators[lang]
             # split text to sentences, so we can translate only a fragment instead of the whole file
             sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
 
@@ -210,17 +183,4 @@ class JsonTranslateOperator(BaseOperator, JsonArgsBaseOperator, LoggingMixin):
                 translation = translator.translate(to_translate)
                 translated_text += translation
 
-            successfully_translated += 1
-            self.add_value(full_path, self.encoding, self.output_key, translated_text)
-
-
-        stats = {}
-        stats["title"] = "Translation"
-        stats["stats"] = {
-            "Unique languages detected": lang_count,
-            "Successfully translated": successfully_translated,
-            "Translation unrequired": not_translated,
-            "Errors": 1 - successfully_translated - not_translated
-        }
-
-        context["ti"].xcom_push(key="stats", value=stats)
+        json_args.add_value(self.output_key, translated_text)

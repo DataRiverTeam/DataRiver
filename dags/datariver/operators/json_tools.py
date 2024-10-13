@@ -4,6 +4,7 @@ from typing import Any
 
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
+from airflow.utils.log.logging_mixin import LoggingMixin
 import ijson
 import os
 
@@ -30,33 +31,46 @@ class MapJsonFile(BaseOperator):
 
         return mapped
 
-#I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
-class JsonArgsBaseOperator:
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
-    def get_value(self, full_path, encoding, key):
+#I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
+class JsonArgs(LoggingMixin):
+    def __init__(self, fs_conn_id, json_file_path, encoding="utf-8", **kwargs):
+        super().__init__(**kwargs)
+        self.fs_conn_id = fs_conn_id
+        self.json_file_path = json_file_path
+        self.encoding = encoding
+
+    def hook(self):
+        return FSHook(self.fs_conn_id)
+
+    def get_base_path(self):
+        return self.hook().get_path()
+
+    def get_full_path(self):
+        return os.path.join(self.get_base_path(), self.json_file_path)
+
+    def get_value(self, key):
         text = None
         try:
-            with open(full_path, "r", encoding=encoding) as f:
+            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
                 data = json.load(f)
                 text = data.get(key)
                 if text is None:
-                    self.log.error(f"{full_path} does not contain key {key}!")
+                    self.log.error(f"{self.get_full_path()} does not contain key {key}!")
         except IOError as e:
-            self.log.error(f"Couldn't open {full_path} ({str(e)})!")
+            self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return text
 
-    def add_value(self, full_path, encoding, key, value):
+    def add_value(self, key, value):
         try:
-            with open(full_path, "r+", encoding=encoding) as f:
+            with open(self.get_full_path(), "r+", encoding=self.encoding) as f:
                 data = json.load(f)
                 f.seek(0)
                 f.truncate(0)
                 data[key] = value
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except IOError as e:
-            self.log.error(f"Couldn't open {full_path} ({str(e)})!")
+            self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
 
     @staticmethod
     def generate_full_path(file_path, fs_conn_id):

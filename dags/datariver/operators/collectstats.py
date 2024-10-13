@@ -2,7 +2,7 @@ from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 import os
 
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 
 def write_dict_to_file(dictionary, file):
     sorted_dict = dict(sorted(dictionary.items(), key=lambda item: item[1], reverse=True))
@@ -89,7 +89,7 @@ class SummaryMarkdownOperator(BaseOperator):
         text = ""
 
         for item in items:
-            text += (level * "\t") + "- " + __render_item(item) + "\n"
+            text += (level * "\t") + "- " + self.__render_item(item) + "\n"
 
         return text
 
@@ -130,7 +130,7 @@ class SummaryMarkdownOperator(BaseOperator):
             raise Exception(f"Couldn't open {full_path} ({str(e)})!")
 
 
-class JsonSummaryMarkdownOperator(BaseOperator, JsonArgsBaseOperator):
+class JsonSummaryMarkdownOperator(BaseOperator):
     template_fields = ("output_dir", "fs_conn_id", "json_file_path", "input_key", "encoding")
 
     def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",
@@ -161,7 +161,7 @@ class JsonSummaryMarkdownOperator(BaseOperator, JsonArgsBaseOperator):
         text = ""
 
         for item in items:
-            text += (level * "\t") + "- " + __render_item(item) + "\n"
+            text += (level * "\t") + "- " + self.__render_item(item) + "\n"
 
         return text
 
@@ -173,9 +173,8 @@ class JsonSummaryMarkdownOperator(BaseOperator, JsonArgsBaseOperator):
         return text
 
     def execute(self, context):
-        hook = FSHook(self.fs_conn_id)
-        basepath = hook.get_path()
-        full_path = os.path.join(basepath, self.output_dir, self.summary_filename)
+        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
+        full_path = os.path.join(json_args.get_base_path(), self.output_dir, self.summary_filename)
 
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
@@ -183,11 +182,9 @@ class JsonSummaryMarkdownOperator(BaseOperator, JsonArgsBaseOperator):
             with open(full_path, "w") as file:
                 file.write("# Summary statistics of dag run:\n")
 
-                full_json_file_path = self.generate_full_path(self.json_file_path, self.fs_conn_id)
-
                 #temporary solution until collecting translate task does not work
                 stats = []
-                stats.append(self.get_value(full_json_file_path, self.encoding, self.input_key))
+                stats.append(json_args.get_value(self.input_key))
                 for stat in stats:
                     if stat["title"]:
                         file.write(f"## {stat['title']}\n")

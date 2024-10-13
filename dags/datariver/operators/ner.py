@@ -2,7 +2,7 @@ from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 import os
 
-from datariver.operators.json_tools import JsonArgsBaseOperator
+from datariver.operators.json_tools import JsonArgs
 
 class NerOperator(BaseOperator):    
     template_fields = ("path", "fs_conn_id")
@@ -46,7 +46,7 @@ class NerOperator(BaseOperator):
         return detected
 
 
-class NerJsonOperator(BaseOperator, JsonArgsBaseOperator):
+class NerJsonOperator(BaseOperator):
     template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_file_path, fs_conn_id="fs_default", model="en_core_web_sm", language="english",
@@ -63,16 +63,12 @@ class NerJsonOperator(BaseOperator, JsonArgsBaseOperator):
     def execute(self, context):
         import spacy
         import nltk
+        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
         nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-
-        hook = FSHook(self.fs_conn_id)
-
-        file_path = os.path.join(hook.get_path(), self.json_file_path)
         nlp = spacy.load(self.model)
 
         detected = []
-
-        text = self.get_value(file_path, self.encoding, self.input_key)
+        text = json_args.get_value(self.input_key)
 
         sentences = nltk.tokenize.sent_tokenize(text, self.language)
         for s in sentences:
@@ -85,4 +81,4 @@ class NerJsonOperator(BaseOperator, JsonArgsBaseOperator):
             # .ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
             # .sent - sentence including given entity
 
-        self.add_value(file_path, self.encoding, self.output_key, detected)
+        json_args.add_value(self.output_key, detected)
