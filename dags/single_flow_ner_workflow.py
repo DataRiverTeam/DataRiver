@@ -1,8 +1,11 @@
 from airflow import DAG
 
-from airflow.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.utils.trigger_rule import TriggerRule
+from airflow.operators.dummy import DummyOperator
 from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
+from datariver.operators.json_tools import JsonArgs
 from datariver.operators.langdetect import JsonLangdetectOperator
 from datariver.operators.translate import JsonTranslateOperator
 from datariver.operators.ner import NerJsonOperator
@@ -18,6 +21,7 @@ default_args = {
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
+    'trigger_rule': TriggerRule.NONE_FAILED
 }
 
 
@@ -33,6 +37,13 @@ ES_CONN_ARGS = {
 def validate_params(**context):
     if "params" not in context or "file_path" not in context["params"] or "fs_conn_id" not in context["params"]:
         raise AirflowConfigException("No params defined")
+
+def choose_branch(**context):
+    json_args = JsonArgs(context["params"]["fs_conn_id"],context["params"]["file_path"])
+    language = json_args.get_value("language")
+    if language != "en":
+        return "translate"
+    return "dummy"
 
 with DAG(
         'single_flow_ner_workflow',
@@ -61,6 +72,13 @@ with DAG(
         input_key="content",
         output_key="language",
     )
+
+    branch = BranchPythonOperator(
+        task_id="branch",
+        python_callable=choose_branch
+    )
+
+    dummy = DummyOperator(task_id="dummy")
 
     translate_task = JsonTranslateOperator(
         task_id="translate",
@@ -118,4 +136,4 @@ with DAG(
         input_key="ner_stats",
     )
 
-validate_params_task >> detect_language_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
+validate_params_task >> detect_language_task >> branch >> [translate_task, dummy] >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
