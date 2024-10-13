@@ -1,6 +1,6 @@
 from airflow import DAG
 
-from airflow.operators.python import PythonOperator, ShortCircuitOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
@@ -37,7 +37,9 @@ def validate_params(**context):
 def decide_about_translation(**context):
     json_args = JsonArgs(context["params"]["fs_conn_id"],context["params"]["json_file_path"])
     language = json_args.get_value("language")
-    return language != "en"
+    if language != "en":
+        return "translate"
+    return "detect_entities_without_translation"
 
 with DAG(
         'single_flow_ner_workflow',
@@ -67,10 +69,9 @@ with DAG(
         output_key="language",
     )
 
-    check_if_translation_is_needed = ShortCircuitOperator(
-        task_id="check_if_translation_is_needed",
-        python_callable=decide_about_translation,
-        ignore_downstream_trigger_rules = False
+    decide_about_translation = BranchPythonOperator(
+        task_id="branch",
+        python_callable=decide_about_translation
     )
 
     translate_task = JsonTranslateOperator(
@@ -88,6 +89,16 @@ with DAG(
         fs_conn_id="{{params.fs_conn_id}}",
         json_file_path="{{params.json_file_path}}",
         input_key="translated",
+        output_key="ner",
+        trigger_rule = TriggerRule.NONE_FAILED_OR_SKIPPED
+    )
+
+    ner_without_translation_task = NerJsonOperator(
+        task_id="detect_entities_without_translation",
+        model="en_core_web_md",
+        fs_conn_id="{{params.fs_conn_id}}",
+        json_file_path="{{params.json_file_path}}",
+        input_key="content",
         output_key="ner"
     )
 
@@ -129,4 +140,6 @@ with DAG(
         input_key="ner_stats",
     )
 
-validate_params_task >> detect_language_task >> check_if_translation_is_needed >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
+validate_params_task >> detect_language_task >> decide_about_translation >> [translate_task, ner_without_translation_task]
+translate_task >> ner_task
+[ner_without_translation_task, ner_task] >> stats_task >> summary_task >> es_push_task >> es_search_task
