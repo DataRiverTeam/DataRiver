@@ -21,7 +21,7 @@ def map_paths(paths, **context):
     def create_conf(path):
         return {
             "fs_conn_id": context['params']['fs_conn_id'],
-            "file_path": path,
+            "json_file_path": path,
         }
 
     return list(map(create_conf, [path for path in paths if path is not None]))
@@ -38,7 +38,9 @@ def copy_item_to_file(item, context):
     hook = FSHook(context['params']['fs_conn_id'])
 
     if len(item['resultData']['results']) > 0:
-        title = item['resultData']['results'][0]['title'][0:16]
+        article = item['resultData']['results'][0]
+        title = article['title'][0:16]
+        content = article["content"]
         curr_date = str(datetime.datetime.now())
         dir_path = os.path.join(
             hook.get_path(),
@@ -55,7 +57,12 @@ def copy_item_to_file(item, context):
         )
 
         with open(full_path, "w") as file:
-            file.write(json.dumps(item, indent=2))
+            file.write(
+                json.dumps(
+                    {"title": title, "content": content},
+                    indent=2
+                )
+            )
 
         return full_path
 
@@ -96,7 +103,7 @@ with DAG(
 
     trigger_ner_task = TriggerDagRunOperator.partial(
         task_id='trigger_ner',
-        trigger_dag_id='ner_workflow',
+        trigger_dag_id='ner_single_file',
     ).expand(conf=create_confs_task.output)
 
 map_task >> create_confs_task >> trigger_ner_task

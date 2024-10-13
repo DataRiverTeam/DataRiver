@@ -30,31 +30,37 @@ ES_CONN_ARGS = {
     "verify_certs": True,
 }
 
+
 def validate_params(**context):
     if "params" not in context or "json_file_path" not in context["params"] or "fs_conn_id" not in context["params"]:
         raise AirflowConfigException("No params defined")
 
+
 def decide_about_translation(**context):
-    json_args = JsonArgs(context["params"]["fs_conn_id"],context["params"]["json_file_path"])
+    json_args = JsonArgs(
+        context["params"]["fs_conn_id"],
+        context["params"]["json_file_path"]
+    )
     language = json_args.get_value("language")
     if language != "en":
         return "translate"
     return "detect_entities_without_translation"
 
+
 with DAG(
-        'single_flow_ner_workflow',
-        default_args=default_args,
-        schedule_interval=None,
-        render_template_as_native_obj=True,  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
-        params={
-            "json_file_path": Param(
-                type="string",
-            ),
-            "fs_conn_id": Param(
-                type="string",
-                default="fs_default"
-            )
-        },
+    'ner_single_file',
+    default_args=default_args,
+    schedule_interval=None,
+    render_template_as_native_obj=True,  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
+    params={
+        "json_file_path": Param(
+            type="string",
+        ),
+        "fs_conn_id": Param(
+            type="string",
+            default="fs_default"
+        )
+    },
 ) as dag:
     validate_params_task = PythonOperator(
         task_id="validate_params",
@@ -90,7 +96,7 @@ with DAG(
         json_file_path="{{params.json_file_path}}",
         input_key="translated",
         output_key="ner",
-        trigger_rule = TriggerRule.NONE_FAILED_OR_SKIPPED
+        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED
     )
 
     ner_without_translation_task = NerJsonOperator(
