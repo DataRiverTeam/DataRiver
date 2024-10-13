@@ -43,11 +43,11 @@ class JsonArgs(LoggingMixin):
     def hook(self):
         return FSHook(self.fs_conn_id)
 
-    def get_basepath(self):
+    def get_base_path(self):
         return self.hook().get_path()
 
     def get_full_path(self):
-        return os.path.join(self.get_basepath(), self.json_file_path)
+        return os.path.join(self.get_base_path(), self.json_file_path)
 
     def get_value(self, key):
         text = None

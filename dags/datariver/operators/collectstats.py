@@ -174,7 +174,7 @@ class JsonSummaryMarkdownOperator(BaseOperator):
 
     def execute(self, context):
         json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
-        full_path = os.path.join(json_args.get_basepath(), self.output_dir, self.summary_filename)
+        full_path = os.path.join(json_args.get_base_path(), self.output_dir, self.summary_filename)
 
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
