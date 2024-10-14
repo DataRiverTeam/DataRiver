@@ -39,7 +39,7 @@ def validate_params(**context):
         raise AirflowConfigException("No params defined")
 
 with DAG(
-    'ner_workflow',
+    'ner_workflow_multiple_files',
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
