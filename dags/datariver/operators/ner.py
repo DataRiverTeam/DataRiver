@@ -7,7 +7,7 @@ from datariver.operators.json_tools import JsonArgs
 class NerOperator(BaseOperator):    
     template_fields = ("path", "fs_conn_id")
 
-    def __init__(self, *, path, fs_conn_id="fs_default", model="en_core_web_sm", language="english", **kwargs):
+    def __init__(self, *, path, fs_conn_id="fs_data", model="en_core_web_sm", language="english", **kwargs):
         super().__init__(**kwargs)
         self.path = path
         self.fs_conn_id = fs_conn_id
@@ -49,7 +49,7 @@ class NerOperator(BaseOperator):
 class NerJsonOperator(BaseOperator):
     template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_file_path, fs_conn_id="fs_default", model="en_core_web_sm", language="english",
+    def __init__(self, *, json_file_path, fs_conn_id="fs_data", model="en_core_web_sm", language="english",
                  input_key="translated", output_key="ner", encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
         self.json_file_path = json_file_path

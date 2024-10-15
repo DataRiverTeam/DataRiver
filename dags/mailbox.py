@@ -17,7 +17,7 @@ default_args = {
     'retries': 1,
 }
 
-FS_CONN_ID = "fs_text_data"  # id of connection defined in Airflow UI
+FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
 
 
 def retrigger_dag():

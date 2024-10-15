@@ -7,7 +7,7 @@ from airflow.hooks.filesystem import FSHook
 
 from datariver.sensors.filesystem import MultipleFilesSensor
 
-FS_CONN_ID = "fs_text_data"    #id of connection defined in Airflow UI
+FS_CONN_ID = "fs_data"    #id of connection defined in Airflow UI
 
 
 FILE_NAME = "*.zip"
@@ -36,7 +36,7 @@ with DAG('multi_file_sensor_test', default_args=default_args, schedule_interval=
     
     wait_for_files = MultipleFilesSensor(
         task_id="wait_for_files",
-        #   fs_conn_id="fs_default",          # if you don't specify other fs_conn_id, the default one is fs_default which points to "/"
+        #   fs_conn_id="fs_data",          # if you don't specify other fs_conn_id, the default one is fs_data which points to "/"
         fs_conn_id=FS_CONN_ID,              
         filepath=FILE_NAME,                 # FILEPATH IS RELATIVE TO BASE DIR OF CONNECTION!!!
         poke_interval=30,                   # interval between probing if the file with given path exists,
@@ -47,7 +47,7 @@ with DAG('multi_file_sensor_test', default_args=default_args, schedule_interval=
 
     # wait_for_file = FileSensor(
     #     task_id='wait_for_file',
-    #     # fs_conn_id="fs_default",          # if you don't specify other fs_conn_id, the default one is fs_default which points to "/"
+    #     # fs_conn_id="fs_data",          # if you don't specify other fs_conn_id, the default one is fs_data which points to "/"
     #     fs_conn_id=FS_CONN_ID,              
     #     filepath=FILE_NAME,                 # FILEPATH IS RELATIVE TO BASE DIR OF CONNECTION!!!
     #     poke_interval=30,                   # interval between probing if the file with given path exists,

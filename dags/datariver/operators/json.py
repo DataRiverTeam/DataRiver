@@ -15,7 +15,7 @@ class MapJsonFile(BaseOperator):
     def __init__(
         self,
         *,
-        fs_conn_id="fs_default",
+        fs_conn_id="fs_data",
         path,
         python_callable: Callable[[dict, Context], Any],
         **kwargs

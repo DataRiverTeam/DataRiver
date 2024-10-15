@@ -16,7 +16,7 @@ def _escape_text(text):
 class SummaryStatsOperator(BaseOperator):
     template_fields = ("ner_counters", "translate_stats", "output_dir")
 
-    def __init__(self, *, ner_counters, translate_stats, summary_filename, output_dir=".", fs_conn_id="fs_default",
+    def __init__(self, *, ner_counters, translate_stats, summary_filename, output_dir=".", fs_conn_id="fs_data",
                 **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
@@ -61,7 +61,7 @@ class SummaryStatsOperator(BaseOperator):
 class SummaryMarkdownOperator(BaseOperator):
     template_fields = ("output_dir", "stats", "fs_conn_id")
 
-    def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",
+    def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_data",
                 stats = [], **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
@@ -133,7 +133,7 @@ class SummaryMarkdownOperator(BaseOperator):
 class JsonSummaryMarkdownOperator(BaseOperator):
     template_fields = ("output_dir", "fs_conn_id", "json_file_path", "input_key", "encoding")
 
-    def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_default",
+    def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_data",
                  input_key, json_file_path, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id

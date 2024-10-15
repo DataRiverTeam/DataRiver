@@ -39,7 +39,7 @@ class MultipleFilesSensor(BaseSensorOperator):
         self,
         *,
         filepath,
-        fs_conn_id="fs_default",
+        fs_conn_id="fs_data",
         recursive=False,
         deferrable: bool = conf.getboolean("operators", "default_deferrable", fallback=False),
         **kwargs,

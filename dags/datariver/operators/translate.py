@@ -34,7 +34,7 @@ language_names = {
 class DeepTranslatorOperator(BaseOperator, LoggingMixin):
     template_fields = ("files", "output_language", "output_dir")  # needed to be able to use Jinja templating for 'files' variable
 
-    def __init__(self, *, files, output_language, output_dir=".", fs_conn_id="fs_default", **kwargs):
+    def __init__(self, *, files, output_language, output_dir=".", fs_conn_id="fs_data", **kwargs):
         super().__init__(**kwargs)
         self.files = files
         self.output_language = output_language
@@ -136,7 +136,7 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 class JsonTranslateOperator(BaseOperator, LoggingMixin):
     template_fields = ("json_file_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_file_path, output_language, fs_conn_id="fs_default", input_key,  output_key, encoding="utf-8", **kwargs):
+    def __init__(self, *, json_file_path, output_language, fs_conn_id="fs_data", input_key,  output_key, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
         self.json_file_path = json_file_path
         self.output_language = output_language

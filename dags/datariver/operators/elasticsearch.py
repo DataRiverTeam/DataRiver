@@ -5,7 +5,7 @@ from datariver.operators.json_tools import JsonArgs
 class ElasticPushOperator(BaseOperator):
     template_fields = ("document", "fs_conn_id")
 
-    def __init__(self, *, index, document, fs_conn_id="fs_default", es_conn_args={}, **kwargs):
+    def __init__(self, *, index, document, fs_conn_id="fs_data", es_conn_args={}, **kwargs):
         super().__init__(**kwargs)
 
         # note: fs_conn_id is probably useless in the elasticsearch operators
@@ -34,7 +34,7 @@ class ElasticSearchOperator(BaseOperator):
         *,
         index,
         query={"match_all": {}},
-        fs_conn_id="fs_default",
+        fs_conn_id="fs_data",
         es_conn_args={},
         **kwargs
     ):
@@ -60,7 +60,7 @@ class ElasticSearchOperator(BaseOperator):
 class ElasticJsonPushOperator(BaseOperator):
     template_fields = ("fs_conn_id", "json_file_path", "input_key", "encoding")
 
-    def __init__(self, *, index, fs_conn_id="fs_default", es_conn_args={}, json_file_path, input_key, encoding="utf-8", **kwargs):
+    def __init__(self, *, index, fs_conn_id="fs_data", es_conn_args={}, json_file_path, input_key, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
 
         # note: fs_conn_id is probably useless in the elasticsearch operators

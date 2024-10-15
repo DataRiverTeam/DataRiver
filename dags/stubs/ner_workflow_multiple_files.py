@@ -26,7 +26,7 @@ def get_translated_path(path):
     return "/".join(parts[:-1] + ["translated"] + parts[-1:])
 
 
-FS_CONN_ID = "fs_text_data"  # id of connection defined in Airflow UI
+FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
 FILE_NAME = "ner/*.txt"
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
@@ -49,7 +49,7 @@ with DAG(
         ),
         "fs_conn_id": Param(
             type="string",
-            default="fs_default"
+            default="fs_data"
         )
     },
 ) as dag:

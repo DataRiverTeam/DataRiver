@@ -58,7 +58,7 @@ with DAG(
         ),
         "fs_conn_id": Param(
             type="string",
-            default="fs_default"
+            default="fs_data"
         )
     },
 ) as dag:
