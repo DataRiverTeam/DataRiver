@@ -46,7 +46,7 @@ docker compose build
 ![insturction pt.2](resources/fs_conn_id_1.png?raw=true) 
 > #### Step 2: 
 > Select fs_conn_id and insert path `/opt/airflow/data` \
-![insturction pt.1](resources/conn_id.png) 
+![insturction pt.1](resources/fs_data.png) 
 
 ## Kibana:
 - port: http://localhost:5601/ 
