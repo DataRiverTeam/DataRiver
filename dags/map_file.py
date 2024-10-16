@@ -39,7 +39,7 @@ def copy_item_to_file(item, context):
 
     if len(item['resultData']['results']) > 0:
         article = item['resultData']['results'][0]
-        title = article['title'][0:16]
+        title = article['title']
         content = article["content"]
         curr_date = str(datetime.datetime.now())
         dir_path = os.path.join(
@@ -53,7 +53,7 @@ def copy_item_to_file(item, context):
 
         full_path = os.path.join(
             dir_path,
-            title + " " + curr_date + ".json"
+            f'{title[:16].replace(" ", "_")}_{curr_date}.json'
         )
 
         with open(full_path, "w") as file:
