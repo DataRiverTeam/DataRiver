@@ -1,160 +1,99 @@
-# How to run container
-In order to start server simply run. First run will take few minutes image have to be built.
-```
-docker compose up
-```
+# DataRiver
 
-To run also elastic-search cluster run
+## Quick start
+### Requirements
+In order to run the containers, you need [Docker](https://www.docker.com).
+
+
+### Building Docker containers
+
+Run Airflow with Elasticsearch (**Recommended way**) 
 ```
 docker compose --profile elastic up
 ```
 
-To run also elastic-search cluster and kibana dashboard run
+#### Alternatively
+Launch only the Airflow containers \
+(*note: provided DAGs won't work without providing other Elasticsearch server in configuration*)
+```
+docker compose up
+```
+
+Run with Elasticsearch cluster and Kibana dashboard
 ```
 docker compose --profile elastic --profile debug up
 ```
 
-To remove container run.
+Rebuild base image (_required after modyfying the requirements.txt file_)
 ```
-docker compose down
-```
-
-If you want to delete all volumes created run.
-```
-docker compose down --volumes --remove-orphans
-```
-If you want to delete all pulled images and volumes created run.
-```
-docker compose down --volumes --rmi all
-```
-
-If you want to rebuild base image (needed after adding package to requirements.txt):
-``` 
 docker compose build
 ```
+### Configuring the Apache Airflow
+After the first launch, before triggering any DAGs, you need to provide required filesystem connections in Airflow.
 
-# Services
-## Airflow webserver: 
-- port: http://localhost/8080
-- username: airflow 
-- password: airflow 
+### Step 1
+Open http://localhost:8080/ in the browser.
 
-> ### **_NOTE:_**  After first webserver start you need to provide fs_conn_id in UI. 
-> In order to do that perform following actions 
-> #### Step 1: 
-> select admin page in navbar the\
-![insturction pt.2](resources/fs_conn_id_1.png?raw=true) 
-> #### Step 2: 
-> Select fs_conn_id and insert path `/opt/airflow/data` \
-![insturction pt.1](resources/fs_data.png) 
+### Step 2
+Navigate to _Admin > Connections_: \
+![Navigate to Admin > Connections](resources/tutorial_conf_conn_panel.png?raw=true)
 
-## Kibana:
-- port: http://localhost:5601/ 
-- username: elastic 
-- password: airflow 
-## Elasticsearch:
-- port: http://es01:9200/
+### Step 3
+Select the _file (path)_ connection type, and provide the connection ID and the base directory path \
+![Configure connection](resources/tutorial_conf_fs_data.png)
 
-## If smth won't work it is worth to try
+_Note: the `/opt/airflow/data` directory is preferred, it's directly mapped to `data` directory in the root of the project and allows easy way to upload files._
+
+### Step 4
+When triggering the `mailbox` DAG via UI, you need to provide two parameters: connection ID and path relative to the directory specified by connection with given ID. \
+![Configure triggered DAG](resources/tutorial_conf_trigger.png)
+
+### Step 5
+The `mailbox` DAG uses a sensor to wait for files.
+In order to start processing the files, you need to put them in the directory specified in the DAG's configuration (default: `/opt/airflow/data/map/*.json`)
+
+## Service access
+
+### Airflow webserver:
+
+- default URL: http://localhost:8080/
+- username: _airflow_
+- password: _airflow_
+
+
+### Kibana:
+
+- default URL: http://localhost:5601/
+- username: elastic
+- password: airflow
+
+### Elasticsearch:
+
+- default URL: http://es01:9200/
+
+## Troubleshooting
+
+If something doesn't work it is worth to try adding current system user to docker group
 ```
 sudo usermod -aG docker <your-user-name>
 ```
 
-# Operators
+## Cleaning up
+Remove container
+```
+docker compose down
+```
 
-## `datariver.operators.collectstats`
+Delete all related volumes.
+```
+docker compose down --volumes --remove-orphans
+```
 
-### `SummaryStatsOperator`
+Delete all related images and volumes
+```
+docker compose down --volumes --rmi all
+```
 
-Generates a summary text file based on passed dictionary.
+## Docs
 
-Parameters:
-- `ner_counters: dict` - contains two dictionaries, the first dictionary contains number of occurrences for each label and the second contains number of occurrences for each named entity
-- `translate_stats: dict` - contains a dictionary with statistics generated during translation, namely: a dictionary with number of occurrences for each language and counts of: successfully translated files, translations with errors and files for which translation was not necessary
-- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of file's output location
-- `output_dir: str = "."` - a subdirectory to put the output file, relative to the base path specified by filesystem connection  
-- `summary_filename: str` - a name of output file
-
-### `SummaryMarkdownOperator`
-
-Generates a summary Markdown file based on passed dictionary.
-
-Parameters:
-- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of file's output location
-- `output_dir: str = "."` - a subdirectory to put the output file, relative to the base path specified by filesystem connection  
-- `summary_filename: str` - a name of output file
-
-## `datariver.operators.elasticsearch`
-
-A wrapper for the [Elastisearch python module](https://elasticsearch-py.readthedocs.io/en/v8.14.0/api/elasticsearch.html#elasticsearch.Elasticsearch.search).
-
-### `ElasticPushOperator`
-Pushes a valid document to the specified Elasticsearch index.
-
-Parameters:
-- `index: str` - the name of the Elasticsearch index
-- `document: dict` - a document to be put into the specified index
-- `es_conn_args: dict` - a dictionary containing valid `elasticsearch.Elasticsearch` parameters as key-value pairs.
-    - See [Elasticsearch module documentation](https://elasticsearch-py.readthedocs.io/en/v8.14.0/api/elasticsearch.html#elasticsearch) 
-
-
-### `ElasticSearchOperator`
-Performs a search query in the specified Elasticsearch index.
-
-Parameters:
-- `index: str` - the name of the Elasticsearch index
-- `query: dict` - a dictionary defining a valid Elasticsearch query
-- `es_conn_args: dict` - a dictionary containing valid `elasticsearch.Elasticsearch` parameters as key-value pairs.
-    - See [Elasticsearch module documentation](https://elasticsearch-py.readthedocs.io/en/v8.14.0/api/elasticsearch.html#elasticsearch) 
-    
-
-## `datariver.operators.json`
-
-### `MapJsonFile`
-Expects a file containing JSON array. 
-It iterates over the list and executes a map function over every element.
-
-Parameters:
-- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of input file's location
-- `path: str` - path relative to the base path specified by given file system connection
-- `python_callable: Callable[Any, Any]` - any Python function expecting an item from the JSON list as an argument; might return any value which will be then returned to the XCOM by the operator.
-
-
-## `datariver.operators.langdetect`
-
-### `LangdetectOperator`
-Generates a dictionary which for each lang code contains list of paths to files in that language
-
-Parameters:
-- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of file's output location
-- `files: list` - each element of that list is a string containing path to an input file
-
-## `datariver.operators.ner`
-
-### `NerOperator`
-Searches for named entities and outputs JSON-like data, which contain e. g. sentences containing named entities with position ant type of the entity
-
-Parameters:
-- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of file's output location
-- `path: str` - path at which task looks for file to translate
-- `model: str = "en_core_web_md"` - model used during named entities recognition
-- `language: str = "english"` - language of input file
-
-## `datariver.operators.stats`
-
-### `NerStatisticsOperator`
-Generates dictionary with NER statistics using JSON-like data
-
-Parameters:
-- `json_data: str` - data in JSON-like format generated by to_json() of spacy, containing information about named entities
-
-## `datariver.operators.translate`
-
-### `DeepTranslatorOperator`
-Detects language, translates file fragment by fragment to target language and shares statistics about translated files.
-
-Parameters:
-- `fs_conn_id: str` - an ID of Airflow filesystem connection; used to get the base path of file's output location
-- `output_dir: str = "."` - a subdirectory to put the output file, relative to the base path specified by filesystem connection 
-- `output_language: str` - two-letter language code, output file will be translated to language corresponding to this code
-- `files: list` - each element of that list is a string containing path to an input file
+You can find the operators' description [here](docs.md)
