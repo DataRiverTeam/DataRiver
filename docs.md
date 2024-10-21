@@ -25,7 +25,7 @@ Parameters:
 - `output_dir: str = "."` - a subdirectory to put the output file, relative to the base path specified by filesystem connection
 - `summary_filename: str` - a name of output file
 
-## `datariver.operators.elasticsearch`
+### `datariver.operators.elasticsearch`
 
 A wrapper for the [Elastisearch python module](https://elasticsearch-py.readthedocs.io/en/v8.14.0/api/elasticsearch.html#elasticsearch.Elasticsearch.search).
 
