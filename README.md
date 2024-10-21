@@ -42,7 +42,8 @@ Navigate to _Admin > Connections_: \
 Select the _file (path)_ connection type, and provide the connection ID and the base directory path \
 ![Configure connection](resources/tutorial_conf_fs_data.png)
 
-_Note: the `/opt/airflow/data` directory is preferred, it's directly mapped to `data` directory in the root of the project and allows easy way to upload files manually._
+_Note: the `/opt/airflow/data` directory is preferred, it's directly mapped to `data` directory in the root of the project and allows easy way to upload files. \
+If the `data` folder doesn't exist, you should create it manually_
 
 ### Step 4
 When triggering the `mailbox` DAG via UI, you need to provide two parameters: connection ID and path relative to the directory specified by connection with given ID. \
