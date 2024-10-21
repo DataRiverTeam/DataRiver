@@ -2,12 +2,12 @@
 
 ## Quick start
 ### Requirements
-_TODO: describe Docker and other system requirements_
+In order to run the containers, you need [Docker](https://www.docker.com).
 
 
 ### Building Docker containers
 
-Run Airflow with Elasticsearch (**Recommended**) 
+Run Airflow with Elasticsearch (**Recommended way**) 
 ```
 docker compose --profile elastic up
 ```
@@ -30,16 +30,27 @@ docker compose build
 ```
 ### Configuring the Apache Airflow
 After the first launch, before triggering any DAGs, you need to provide required filesystem connections in Airflow.
-### Step 1:
 
-Navigate to _Admin/Connections_:
-![instruction step 1](resources/fs_conn_id_1.png?raw=true)
+### Step 1
+Open http://localhost:8080/ in the browser.
 
-### Step 2:
+### Step 2
+Navigate to _Admin > Connections_: \
+![Navigate to Admin > Connections](resources/tutorial_conf_conn_panel.png?raw=true)
 
-Select the _file (path)_ connection type, and provide the connection ID and the base directory path `/opt/airflow/data` \
-![instruction step 2](resources/fs_data.png)
+### Step 3
+Select the _file (path)_ connection type, and provide the connection ID and the base directory path \
+![Configure connection](resources/tutorial_conf_fs_data.png)
 
+_Note: the `/opt/airflow/data` directory is preferred, it's directly mapped to `data` directory in the root of the project and allows easy way to upload files manually._
+
+### Step 4
+When triggering the `mailbox` DAG via UI, you need to provide two parameters: connection ID and path relative to the directory specified by connection with given ID. \
+![Configure triggered DAG](resources/tutorial_conf_trigger.png)
+
+### Step 5
+The `mailbox` DAG uses a sensor to wait for files.
+In order to start processing the files, you need to put them in the directory specified in the DAG's configuration (for example: `/opt/airflow/data/map/*.json`)
 
 ## Service access
 
