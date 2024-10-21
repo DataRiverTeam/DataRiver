@@ -42,8 +42,7 @@ Navigate to _Admin > Connections_: \
 Select the _file (path)_ connection type, and provide the connection ID and the base directory path \
 ![Configure connection](resources/tutorial_conf_fs_data.png)
 
-_Note: the `/opt/airflow/data` directory is preferred, it's directly mapped to `data` directory in the root of the project and allows easy way to upload files. \
-If the `data` folder doesn't exist, you should create it manually_
+_Note: the `/opt/airflow/data` directory is preferred, it's directly mapped to `data` directory in the root of the project and allows easy way to upload files._
 
 ### Step 4
 When triggering the `mailbox` DAG via UI, you need to provide two parameters: connection ID and path relative to the directory specified by connection with given ID. \
@@ -51,7 +50,7 @@ When triggering the `mailbox` DAG via UI, you need to provide two parameters: co
 
 ### Step 5
 The `mailbox` DAG uses a sensor to wait for files.
-In order to start processing the files, you need to put them in the directory specified in the DAG's configuration (for example: `/opt/airflow/data/map/*.json`)
+In order to start processing the files, you need to put them in the directory specified in the DAG's configuration (default: `/opt/airflow/data/map/*.json`)
 
 ## Service access
 
