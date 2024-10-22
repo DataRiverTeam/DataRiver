@@ -72,6 +72,32 @@ class JsonArgs(LoggingMixin):
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
 
+    def get_values(self, keys):
+        text = None
+        texts = {}
+        try:
+            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
+                data = json.load(f)
+                for key in keys:
+                    text = data.get(key)
+                    if text is None:
+                        self.log.error(f"{self.get_full_path()} does not contain key {key}!")
+                    else:
+                        texts[key] = text
+        except IOError as e:
+            self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
+        return texts
+
+    def get_keys(self):
+        keys=[]
+        try:
+            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
+                data = json.load(f)
+                keys = data.keys()
+        except IOError as e:
+            self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
+        return keys
+
     @staticmethod
     def generate_full_path(file_path, fs_conn_id):
         hook = FSHook(fs_conn_id)

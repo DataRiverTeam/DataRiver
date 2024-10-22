@@ -58,7 +58,7 @@ class ElasticSearchOperator(BaseOperator):
 
 
 class ElasticJsonPushOperator(BaseOperator):
-    template_fields = ("fs_conn_id", "json_file_path", "input_key", "encoding")
+    template_fields = ("fs_conn_id", "json_file_path", "input_keys", "keys_to_skip", "encoding")
 
     def __init__(
         self,
@@ -67,9 +67,10 @@ class ElasticJsonPushOperator(BaseOperator):
         fs_conn_id="fs_data",
         es_conn_args={},
         json_file_path,
-        input_key,
+        input_keys=[],
         encoding="utf-8",
         refresh=False,
+        keys_to_skip=[],
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -78,9 +79,11 @@ class ElasticJsonPushOperator(BaseOperator):
         self.index = index
         self.es_conn_args = es_conn_args
         self.json_file_path = json_file_path
-        self.input_key = input_key
+        self.input_keys = input_keys             #keys to push to es if present
         self.encoding = encoding
         self.refresh = refresh
+        self.keys_to_skip = keys_to_skip         #if input_keys are empty, full document is pushed with exception of keys_to_skip
+                                                 #when both are empty, all keys are pushed
 
         # pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
 
@@ -93,13 +96,12 @@ class ElasticJsonPushOperator(BaseOperator):
         )
 
         document = {}
-        # FIXME: remove "document" key from the index document,
-        # the dict should be indexed directly
-        # FIXME: the operator shouldn't be responsible for shaping the doc;
-        # a valid doc should be passed as argument,
-        # and the only responsibilities of the operator
-        # should be elasticsearch related
-        document["document"] = list(json_args.get_value(self.input_key))
+        if self.input_keys:
+            document = json_args.get_values(self.input_keys)
+        else:
+            present_keys = json_args.get_keys()
+            keys = list(set(present_keys) - set(self.keys_to_skip))
+            document = json_args.get_values(keys)
 
         es = Elasticsearch(
             **self.es_conn_args
