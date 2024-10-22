@@ -51,7 +51,8 @@ with DAG(
     'ner_single_file',
     default_args=default_args,
     schedule_interval=None,
-    render_template_as_native_obj=True,  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
+    # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
+    render_template_as_native_obj=True,
     params={
         "json_file_path": Param(
             type="string",
@@ -127,9 +128,8 @@ with DAG(
 
     es_search_task = ElasticSearchOperator(
         task_id="elastic_get",
-        fs_conn_id="{{params.fs_conn_id}}",
         index="ner",
-        query={"match_all": {}},
+        query={"term": {"_id": "{{task_instance.xcom_pull('elastic_push')['_id']}}"}},
         es_conn_args=ES_CONN_ARGS,
     )
 
