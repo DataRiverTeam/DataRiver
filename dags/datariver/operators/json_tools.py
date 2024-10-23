@@ -50,16 +50,16 @@ class JsonArgs(LoggingMixin):
         return os.path.join(self.get_base_path(), self.json_file_path)
 
     def get_value(self, key):
-        text = None
+        value = None
         try:
             with open(self.get_full_path(), "r", encoding=self.encoding) as f:
                 data = json.load(f)
-                text = data.get(key)
-                if text is None:
+                value = data.get(key)
+                if value is None:
                     self.log.error(f"{self.get_full_path()} does not contain key {key}!")
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
-        return text
+        return value
 
     def add_value(self, key, value):
         try:
@@ -71,6 +71,32 @@ class JsonArgs(LoggingMixin):
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
+
+    def get_values(self, keys):
+        value = None
+        values = {}
+        try:
+            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
+                data = json.load(f)
+                for key in keys:
+                    value = data.get(key)
+                    if value is None:
+                        self.log.error(f"{self.get_full_path()} does not contain key {key}!")
+                    else:
+                        values[key] = value
+        except IOError as e:
+            raise RuntimeError(f"Couldn't open {self.get_full_path()} ({str(e)})!")
+        return values
+
+    def get_keys(self):
+        keys=[]
+        try:
+            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
+                data = json.load(f)
+                keys = data.keys()
+        except IOError as e:
+            self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
+        return keys
 
     @staticmethod
     def generate_full_path(file_path, fs_conn_id):

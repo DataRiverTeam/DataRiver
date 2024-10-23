@@ -113,7 +113,6 @@ with DAG(
         task_id="elastic_push",
         fs_conn_id="{{params.fs_conn_id}}",
         json_file_path="{{params.json_file_path}}",
-        input_key="ner",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
     )
