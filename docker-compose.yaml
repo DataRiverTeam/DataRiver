@@ -40,14 +40,11 @@
 ---
 x-airflow-common:
   &airflow-common
-  # In order to add custom dependencies or upgrade provider packages you can use your extended image.
-  # Comment the image line, place your Dockerfile in the directory where you placed the docker-compose.yaml
-  # and uncomment the "build" line below, Then run `docker-compose build` to build the images.
   build: .
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: SequentialExecutor
-    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/db/airflow.db
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
     AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
@@ -73,8 +70,26 @@ x-airflow-common:
     - certs:/usr/share/elasticsearch/config/certs
   user: "0:0"
   # user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    postgres:
+      condition: service_healthy
 
 services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+    restart: always
+
   airflow-webserver:
     <<: *airflow-common
     command: webserver
@@ -88,6 +103,8 @@ services:
       start_period: 30s
     restart: always
     depends_on:
+      postgres:
+        condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
 
@@ -102,6 +119,8 @@ services:
       start_period: 30s
     restart: always
     depends_on:
+      postgres:
+        condition: service_healthy
       airflow-init:
         condition: service_completed_successfully
 
@@ -338,15 +357,11 @@ services:
       - debug
 
 volumes:
+  postgres-db-volume:
+    driver: local
   certs:
     driver: local
   esdata01:
     driver: local
   kibanadata:
-    driver: local
-  metricbeatdata01:
-    driver: local
-  filebeatdata01:
-    driver: local
-  logstashdata01:
     driver: local
