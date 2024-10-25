@@ -134,8 +134,7 @@ with DAG(
 
     summary_task = JsonSummaryMarkdownOperator(
         task_id="summary",
-        summary_filename="summary.md",
-        output_dir='{{ "/".join(params["json_file_path"].split("/")[:-1] + ["summary"])}}',
+        summary_filename='{{ params.json_file_path.replace(".json",".md") }}',
         fs_conn_id="{{params.fs_conn_id}}",
 
         # this method works too, might be useful if we pull data with different xcom keys
