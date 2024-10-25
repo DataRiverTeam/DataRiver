@@ -149,7 +149,6 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
         import nltk
         json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
 
-        nltk.download("punkt")
         text = json_args.get_value(self.input_key)
         lang = json_args.get_value("language")
         ## todo add error handling
