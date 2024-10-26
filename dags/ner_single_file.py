@@ -1,8 +1,7 @@
 from airflow import DAG
 
-from airflow.operators.python import PythonOperator, BranchPythonOperator
+from airflow.operators.python import BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
-from airflow.exceptions import AirflowConfigException
 from airflow.models.param import Param
 from datariver.operators.json_tools import JsonArgs
 from datariver.operators.langdetect import JsonLangdetectOperator
@@ -31,16 +30,27 @@ ES_CONN_ARGS = {
 }
 
 
-def decide_about_translation(**context):
-    json_args = JsonArgs(
-        context["params"]["fs_conn_id"],
-        context["params"]["json_file_path"]
-    )
-    language = json_args.get_value("language")
-    if language != "en":
-        return "translate"
-    return "detect_entities_without_translation"
+def decide_about_translation(ti, **context):
+    fs_conn_id = context["params"]["fs_conn_id"]
+    json_file_path = context["params"]["json_file_path"]
+    translation = []
+    no_translation = []
+    for file_path in json_file_path:
+        json_args = JsonArgs(fs_conn_id, file_path)
+        language = json_args.get_value("language")
+        if language != "en":
+            translation.append(file_path)
+        else:
+            no_translation.append(file_path)
 
+    branches = []
+    if len(translation) > 0:
+        branches.append("translate")
+        ti.xcom_push(key="json_file_path_translation", value=translation)
+    if len(no_translation) > 0:
+        branches.append("detect_entities_without_translation")
+        ti.xcom_push(key="json_file_path_no_translation", value=no_translation)
+    return branches
 
 with DAG(
     'ner_single_file',
@@ -68,13 +78,14 @@ with DAG(
 
     decide_about_translation = BranchPythonOperator(
         task_id="branch",
-        python_callable=decide_about_translation
+        python_callable=decide_about_translation,
+        provide_context=True
     )
 
     translate_task = JsonTranslateOperator(
         task_id="translate",
-        json_file_path="{{params.json_file_path}}",
-        fs_conn_id="{{params.fs_conn_id}}",
+        json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_translation") }}',
+        fs_conn_id="{{ params.fs_conn_id }}",
         input_key="content",
         output_key="translated",
         output_language="en"
@@ -84,7 +95,7 @@ with DAG(
         task_id="detect_entities",
         model="en_core_web_md",
         fs_conn_id="{{params.fs_conn_id}}",
-        json_file_path="{{params.json_file_path}}",
+        json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_translation") }}',
         input_key="translated",
         output_key="ner",
         trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED
@@ -94,7 +105,7 @@ with DAG(
         task_id="detect_entities_without_translation",
         model="en_core_web_md",
         fs_conn_id="{{params.fs_conn_id}}",
-        json_file_path="{{params.json_file_path}}",
+        json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_no_translation") }}',
         input_key="content",
         output_key="ner"
     )
@@ -109,7 +120,7 @@ with DAG(
 
     summary_task = JsonSummaryMarkdownOperator(
         task_id="summary",
-        summary_filename='{{ params.json_file_path.replace(".json",".md") }}',
+        summary_filenames='{{ params.json_file_path|replace(".json",".md") }}',
         fs_conn_id="{{params.fs_conn_id}}",
 
         # this method works too, might be useful if we pull data with different xcom keys
