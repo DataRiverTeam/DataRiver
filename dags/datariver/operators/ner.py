@@ -34,7 +34,6 @@ class NerOperator(BaseOperator):
                 for s in sentences:
                     doc = nlp(s)
 
-                    
                     detected.append(doc.to_json()) # I'm not convinced if we should return all the data in JSON format specifically
 
                     # .ent - named entity detected by nlp
@@ -63,22 +62,23 @@ class NerJsonOperator(BaseOperator):
     def execute(self, context):
         import spacy
         import nltk
-        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
-        nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
-        nlp = spacy.load(self.model)
+        for file_path in self.json_file_path:
+            json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
+            nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
+            nlp = spacy.load(self.model)
 
-        detected = []
-        text = json_args.get_value(self.input_key)
+            detected = []
+            text = json_args.get_value(self.input_key)
 
-        sentences = nltk.tokenize.sent_tokenize(text, self.language)
-        for s in sentences:
-            doc = nlp(s)
+            sentences = nltk.tokenize.sent_tokenize(text, self.language)
+            for s in sentences:
+                doc = nlp(s)
 
-            detected.append(
-                doc.to_json())  # I'm not convinced if we should return all the data in JSON format specifically
+                detected.append(
+                    doc.to_json())  # I'm not convinced if we should return all the data in JSON format specifically
 
-            # .ent - named entity detected by nlp
-            # .ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
-            # .sent - sentence including given entity
+                # .ent - named entity detected by nlp
+                # .ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
+                # .sent - sentence including given entity
 
-        json_args.add_value(self.output_key, detected)
+            json_args.add_value(self.output_key, detected)

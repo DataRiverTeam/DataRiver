@@ -89,30 +89,31 @@ class ElasticJsonPushOperator(BaseOperator):
 
     def execute(self, context):
         from elasticsearch import Elasticsearch
-        json_args = JsonArgs(
-            self.fs_conn_id,
-            self.json_file_path,
-            self.encoding
-        )
+        for file_path in self.json_file_path:
+            json_args = JsonArgs(
+                self.fs_conn_id,
+                file_path,
+                self.encoding
+            )
 
-        document = {}
-        if self.input_keys:
-            document = json_args.get_values(self.input_keys)
-        else:
-            present_keys = json_args.get_keys()
-            keys = list(set(present_keys) - set(self.keys_to_skip))
-            document = json_args.get_values(keys)
+            document = {}
+            if self.input_keys:
+                document = json_args.get_values(self.input_keys)
+            else:
+                present_keys = json_args.get_keys()
+                keys = list(set(present_keys) - set(self.keys_to_skip))
+                document = json_args.get_values(keys)
 
-        es = Elasticsearch(
-            **self.es_conn_args
-        )
+            es = Elasticsearch(
+                **self.es_conn_args
+            )
 
-        response = es.index(
-            index=self.index,
-            document=document
-        )
+            response = es.index(
+                index=self.index,
+                document=document
+            )
 
-        if self.refresh:
-            es.indices.refresh(index=self.index)
+            if self.refresh:
+                es.indices.refresh(index=self.index)
 
-        return response.body
+        # return response.body todo handle return somehow

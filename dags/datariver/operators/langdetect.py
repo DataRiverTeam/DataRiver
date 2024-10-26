@@ -46,7 +46,8 @@ class JsonLangdetectOperator(BaseOperator):
 
     def execute(self, context):
         import langdetect
-        json_args = JsonArgs(self.fs_conn_id, self.json_file_path, self.encoding)
-        text = json_args.get_value(self.input_key)
-        lang = langdetect.detect(text)
-        json_args.add_value(self.output_key, lang)
+        for file_path in self.json_file_path:
+            json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
+            text = json_args.get_value(self.input_key)
+            lang = langdetect.detect(text)
+            json_args.add_value(self.output_key, lang)

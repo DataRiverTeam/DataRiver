@@ -31,11 +31,6 @@ ES_CONN_ARGS = {
 }
 
 
-def validate_params(**context):
-    if "params" not in context or "json_file_path" not in context["params"] or "fs_conn_id" not in context["params"]:
-        raise AirflowConfigException("No params defined")
-
-
 def decide_about_translation(**context):
     json_args = JsonArgs(
         context["params"]["fs_conn_id"],
@@ -55,7 +50,7 @@ with DAG(
     render_template_as_native_obj=True,
     params={
         "json_file_path": Param(
-            type="string",
+            type="array",
         ),
         "fs_conn_id": Param(
             type="string",
@@ -63,11 +58,6 @@ with DAG(
         )
     },
 ) as dag:
-    validate_params_task = PythonOperator(
-        task_id="validate_params",
-        python_callable=validate_params
-    )
-
     detect_language_task = JsonLangdetectOperator(
         task_id="detect_language",
         json_file_path="{{params.json_file_path}}",
@@ -109,27 +99,12 @@ with DAG(
         output_key="ner"
     )
 
-    es_push_task = ElasticJsonPushOperator(
-        task_id="elastic_push",
-        fs_conn_id="{{params.fs_conn_id}}",
-        json_file_path="{{params.json_file_path}}",
-        index="ner",
-        es_conn_args=ES_CONN_ARGS,
-    )
-
     stats_task = NerJsonStatisticsOperator(
         task_id="generate_stats",
         json_file_path="{{params.json_file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
         input_key="ner",
         output_key="ner_stats",
-    )
-
-    es_search_task = ElasticSearchOperator(
-        task_id="elastic_get",
-        index="ner",
-        query={"term": {"_id": "{{task_instance.xcom_pull('elastic_push')['_id']}}"}},
-        es_conn_args=ES_CONN_ARGS,
     )
 
     summary_task = JsonSummaryMarkdownOperator(
@@ -144,6 +119,21 @@ with DAG(
         input_key="ner_stats",
     )
 
-validate_params_task >> detect_language_task >> decide_about_translation >> [translate_task, ner_without_translation_task]
+    es_push_task = ElasticJsonPushOperator(
+        task_id="elastic_push",
+        fs_conn_id="{{params.fs_conn_id}}",
+        json_file_path="{{params.json_file_path}}",
+        index="ner",
+        es_conn_args=ES_CONN_ARGS,
+    )
+
+    es_search_task = ElasticSearchOperator(
+        task_id="elastic_get",
+        index="ner",
+        query={"term": {"_id": "{{task_instance.xcom_pull('elastic_push')['_id']}}"}},
+        es_conn_args=ES_CONN_ARGS,
+    )
+
+detect_language_task >> decide_about_translation >> [translate_task, ner_without_translation_task]
 translate_task >> ner_task
 [ner_without_translation_task, ner_task] >> stats_task >> summary_task >> es_push_task >> es_search_task
