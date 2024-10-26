@@ -5,8 +5,6 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
-
-
 from datariver.sensors.filesystem import MultipleFilesSensor
 
 default_args = {
@@ -106,7 +104,8 @@ with DAG(
 
     trigger_mailbox = TriggerDagRunOperator(
         task_id='trigger_mailbox',
-        trigger_dag_id='mailbox'
+        trigger_dag_id='mailbox',
+        conf="{{ params }}"
     )
 
 
