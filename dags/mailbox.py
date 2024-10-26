@@ -105,7 +105,7 @@ with DAG(
     trigger_mailbox = TriggerDagRunOperator(
         task_id='trigger_mailbox',
         trigger_dag_id='mailbox',
-        conf="{{ params }}"
+        conf="{{ params }}" # noqa
     )
 
 
