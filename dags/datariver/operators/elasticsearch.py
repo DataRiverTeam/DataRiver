@@ -88,6 +88,7 @@ class ElasticJsonPushOperator(BaseOperator):
         # pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
 
     def execute(self, context):
+        results = []
         from elasticsearch import Elasticsearch
         for file_path in self.json_file_path:
             json_args = JsonArgs(
@@ -115,5 +116,5 @@ class ElasticJsonPushOperator(BaseOperator):
 
             if self.refresh:
                 es.indices.refresh(index=self.index)
-
-        # return response.body todo handle return somehow
+            results.append(response.body)
+        return results

@@ -141,7 +141,7 @@ with DAG(
     es_search_task = ElasticSearchOperator(
         task_id="elastic_get",
         index="ner",
-        query={"term": {"_id": "{{task_instance.xcom_pull('elastic_push')['_id']}}"}},
+        query={"terms": {"_id": "{{ task_instance.xcom_pull('elastic_push') | selectattr('_id') | list }}"}},
         es_conn_args=ES_CONN_ARGS,
     )
 
