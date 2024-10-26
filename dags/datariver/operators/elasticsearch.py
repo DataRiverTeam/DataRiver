@@ -1,5 +1,4 @@
 from airflow.models.baseoperator import BaseOperator
-
 from datariver.operators.json_tools import JsonArgs
 
 

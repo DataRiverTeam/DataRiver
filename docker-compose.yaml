@@ -274,7 +274,6 @@ services:
       retries: 120
     env_file:
       - .env
-
   es01:
     depends_on:
       setup:
