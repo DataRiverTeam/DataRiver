@@ -20,20 +20,11 @@ default_args = {
 FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
 
 
-def retrigger_dag():
-    from airflow.api.client.local_client import Client
-    print("restarting dag")
-    import time
-    time.sleep(5)
-    c = Client("None", None)
-    c.trigger_dag(dag_id='mailbox', conf={})
-
-
 def parse_paths(paths, batch_size):
     def create_conf(path):
         return {
             "path": path,
-            "batch_size": batch_size
+            "batch_size": int(batch_size)
         }
 
     paths_list = paths.split(",")
@@ -57,7 +48,7 @@ with DAG(
         ),
         "batch_size": Param(
             type="integer",
-            default="10"
+            default=10
         )
     },
 ) as dag:
@@ -67,8 +58,7 @@ with DAG(
         filepath="{{params.filepath}}",
         poke_interval=60,
         mode="reschedule",
-        timeout=timedelta(minutes=60),
-        on_success_callback=retrigger_dag
+        timeout=timedelta(minutes=60)
     )
 
     move_files_task = BashOperator(
@@ -109,15 +99,15 @@ with DAG(
         }
     )
 
-    trigger_mailbox = TriggerDagRunOperator(
-        task_id='trigger_mailbox',
-        trigger_dag_id='mailbox'
-    )
-
     trigger_map_file_task = TriggerDagRunOperator.partial(
         task_id='trigger_map_file',
         trigger_dag_id='map_file'
     ).expand(conf=parse_paths_task.output)
+
+    trigger_mailbox = TriggerDagRunOperator(
+        task_id='trigger_mailbox',
+        trigger_dag_id='mailbox'
+    )
 
 
 detect_files_task >> move_files_task >> parse_paths_task >> trigger_map_file_task >> trigger_mailbox
