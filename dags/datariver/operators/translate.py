@@ -134,11 +134,11 @@ class DeepTranslatorOperator(BaseOperator, LoggingMixin):
 
 
 class JsonTranslateOperator(BaseOperator, LoggingMixin):
-    template_fields = ("json_file_path", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
+    template_fields = ("json_files_paths", "output_language", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_file_path, output_language, fs_conn_id="fs_data", input_key,  output_key, encoding="utf-8", **kwargs):
+    def __init__(self, *, json_files_paths, output_language, fs_conn_id="fs_data", input_key,  output_key, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
-        self.json_file_path = json_file_path
+        self.json_files_paths = json_files_paths
         self.output_language = output_language
         self.fs_conn_id = fs_conn_id
         self.input_key = input_key
@@ -147,7 +147,7 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
 
     def execute(self, context):
         import nltk
-        for file_path in self.json_file_path:
+        for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
 
             text = json_args.get_value(self.input_key)

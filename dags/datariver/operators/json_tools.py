@@ -34,10 +34,10 @@ class MapJsonFile(BaseOperator):
 
 #I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
 class JsonArgs(LoggingMixin):
-    def __init__(self, fs_conn_id, json_file_path, encoding="utf-8", **kwargs):
+    def __init__(self, fs_conn_id, json_files_paths, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
-        self.json_file_path = json_file_path
+        self.json_files_paths = json_files_paths
         self.encoding = encoding
 
     def hook(self):
@@ -47,7 +47,7 @@ class JsonArgs(LoggingMixin):
         return self.hook().get_path()
 
     def get_full_path(self):
-        return os.path.join(self.get_base_path(), self.json_file_path)
+        return os.path.join(self.get_base_path(), self.json_files_paths)
 
     def get_value(self, key):
         value = None

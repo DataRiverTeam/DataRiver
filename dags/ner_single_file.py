@@ -32,10 +32,10 @@ ES_CONN_ARGS = {
 
 def decide_about_translation(ti, **context):
     fs_conn_id = context["params"]["fs_conn_id"]
-    json_file_path = context["params"]["json_file_path"]
+    json_files_paths = context["params"]["json_files_paths"]
     translation = []
     no_translation = []
-    for file_path in json_file_path:
+    for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
         language = json_args.get_value("language")
         if language != "en":
@@ -46,10 +46,10 @@ def decide_about_translation(ti, **context):
     branches = []
     if len(translation) > 0:
         branches.append("translate")
-        ti.xcom_push(key="json_file_path_translation", value=translation)
+        ti.xcom_push(key="json_files_paths_translation", value=translation)
     if len(no_translation) > 0:
         branches.append("detect_entities_without_translation")
-        ti.xcom_push(key="json_file_path_no_translation", value=no_translation)
+        ti.xcom_push(key="json_files_paths_no_translation", value=no_translation)
     return branches
 
 with DAG(
@@ -59,7 +59,7 @@ with DAG(
     # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
     render_template_as_native_obj=True,
     params={
-        "json_file_path": Param(
+        "json_files_paths": Param(
             type="array",
         ),
         "fs_conn_id": Param(
@@ -74,7 +74,7 @@ with DAG(
 ) as dag:
     detect_language_task = JsonLangdetectOperator(
         task_id="detect_language",
-        json_file_path="{{ params.json_file_path }}",
+        json_files_paths="{{ params.json_files_paths }}",
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="content",
         output_key="language",
@@ -89,7 +89,7 @@ with DAG(
 
     translate_task = JsonTranslateOperator(
         task_id="translate",
-        json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_translation") }}',
+        json_files_paths='{{ ti.xcom_pull(task_ids="branch", key="json_files_paths_translation") }}',
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="content",
         output_key="translated",
@@ -101,7 +101,7 @@ with DAG(
         task_id="detect_entities",
         model="en_core_web_md",
         fs_conn_id="{{params.fs_conn_id}}",
-        json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_translation") }}',
+        json_files_paths='{{ ti.xcom_pull(task_ids="branch", key="json_files_paths_translation") }}',
         input_key="translated",
         output_key="ner",
         trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,
@@ -112,7 +112,7 @@ with DAG(
         task_id="detect_entities_without_translation",
         model="en_core_web_md",
         fs_conn_id="{{ params.fs_conn_id }}",
-        json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_no_translation") }}',
+        json_files_paths='{{ ti.xcom_pull(task_ids="branch", key="json_files_paths_no_translation") }}',
         input_key="content",
         output_key="ner",
         encoding="{{ params.encoding }}"
@@ -120,7 +120,7 @@ with DAG(
 
     stats_task = NerJsonStatisticsOperator(
         task_id="generate_stats",
-        json_file_path="{{ params.json_file_path }}",
+        json_files_paths="{{ params.json_files_paths }}",
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="ner",
         output_key="ner_stats",
@@ -129,13 +129,13 @@ with DAG(
 
     summary_task = JsonSummaryMarkdownOperator(
         task_id="summary",
-        summary_filenames='{{ params.json_file_path|replace(".json",".md") }}',
+        summary_filenames='{{ params.json_files_paths|replace(".json",".md") }}',
         fs_conn_id="{{params.fs_conn_id}}",
 
         # this method works too, might be useful if we pull data with different xcom keys
         # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
 
-        json_file_path="{{ params.json_file_path }}",
+        json_files_paths="{{ params.json_files_paths }}",
         input_key="ner_stats",
         encoding="{{ params.encoding }}"
     )
@@ -143,7 +143,7 @@ with DAG(
     es_push_task = ElasticJsonPushOperator(
         task_id="elastic_push",
         fs_conn_id="{{ params.fs_conn_id }}",
-        json_file_path="{{ params.json_file_path }}",
+        json_files_paths="{{ params.json_files_paths }}",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}"

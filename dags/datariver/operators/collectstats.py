@@ -14,10 +14,10 @@ def _escape_text(text):
 
 
 class JsonSummaryMarkdownOperator(BaseOperator):
-    template_fields = ("output_dir","summary_filenames", "fs_conn_id", "json_file_path", "input_key", "encoding")
+    template_fields = ("output_dir","summary_filenames", "fs_conn_id", "json_files_paths", "input_key", "encoding")
 
     def __init__(self, *, summary_filenames, output_dir=".", fs_conn_id="fs_data",
-                 input_key, json_file_path, encoding="utf-8", **kwargs):
+                 input_key, json_files_paths, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
         self.summary_filenames = summary_filenames
@@ -25,7 +25,7 @@ class JsonSummaryMarkdownOperator(BaseOperator):
 
         self.input_key = input_key
         self.encoding = encoding
-        self.json_file_path = json_file_path
+        self.json_files_paths = json_files_paths
 
 
     def __render_item(self, data, level=0):
@@ -56,7 +56,7 @@ class JsonSummaryMarkdownOperator(BaseOperator):
         return text
 
     def execute(self, context):
-        for i, file_path in enumerate(self.json_file_path):
+        for i, file_path in enumerate(self.json_files_paths):
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             full_path = os.path.join(json_args.get_base_path(), self.output_dir, self.summary_filenames[i])
 

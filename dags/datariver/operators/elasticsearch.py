@@ -57,7 +57,7 @@ class ElasticSearchOperator(BaseOperator):
 
 
 class ElasticJsonPushOperator(BaseOperator):
-    template_fields = ("fs_conn_id", "json_file_path", "input_keys", "keys_to_skip", "encoding")
+    template_fields = ("fs_conn_id", "json_files_paths", "input_keys", "keys_to_skip", "encoding")
 
     def __init__(
         self,
@@ -65,7 +65,7 @@ class ElasticJsonPushOperator(BaseOperator):
         index,
         fs_conn_id="fs_data",
         es_conn_args={},
-        json_file_path,
+        json_files_paths,
         input_keys=[],
         encoding="utf-8",
         refresh=False,
@@ -77,7 +77,7 @@ class ElasticJsonPushOperator(BaseOperator):
         self.fs_conn_id = fs_conn_id
         self.index = index
         self.es_conn_args = es_conn_args
-        self.json_file_path = json_file_path
+        self.json_files_paths = json_files_paths
         self.input_keys = input_keys             #keys to push to es if present
         self.encoding = encoding
         self.refresh = refresh
@@ -89,7 +89,7 @@ class ElasticJsonPushOperator(BaseOperator):
     def execute(self, context):
         results = []
         from elasticsearch import Elasticsearch
-        for file_path in self.json_file_path:
+        for file_path in self.json_files_paths:
             json_args = JsonArgs(
                 self.fs_conn_id,
                 file_path,

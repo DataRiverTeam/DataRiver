@@ -3,12 +3,12 @@ from datariver.operators.json_tools import JsonArgs
 
 
 class NerJsonOperator(BaseOperator):
-    template_fields = ("json_file_path", "fs_conn_id", "input_key", "output_key", "encoding")
+    template_fields = ("json_files_paths", "fs_conn_id", "input_key", "output_key", "encoding")
 
-    def __init__(self, *, json_file_path, fs_conn_id="fs_data", model="en_core_web_sm", language="english",
+    def __init__(self, *, json_files_paths, fs_conn_id="fs_data", model="en_core_web_sm", language="english",
                  input_key="translated", output_key="ner", encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
-        self.json_file_path = json_file_path
+        self.json_files_paths = json_files_paths
         self.fs_conn_id = fs_conn_id
         self.model = model
         self.language = language
@@ -19,7 +19,7 @@ class NerJsonOperator(BaseOperator):
     def execute(self, context):
         import spacy
         import nltk
-        for file_path in self.json_file_path:
+        for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
             nlp = spacy.load(self.model)
