@@ -29,10 +29,11 @@ def retrigger_dag():
     c.trigger_dag(dag_id='mailbox', conf={})
 
 
-def parse_paths(paths):
+def parse_paths(paths, batch_size):
     def create_conf(path):
         return {
-            "path": path
+            "path": path,
+            "batch_size": batch_size
         }
 
     paths_list = paths.split(",")
@@ -53,6 +54,10 @@ with DAG(
         "filepath": Param(
             type="string",
             default="map/*.json"
+        ),
+        "batch_size": Param(
+            type="integer",
+            default="10"
         )
     },
 ) as dag:
@@ -99,7 +104,8 @@ with DAG(
         task_id='parse_paths',
         python_callable=parse_paths,
         op_kwargs={
-            "paths": "{{ task_instance.xcom_pull(task_ids='move_files')}}"
+            "paths": "{{ task_instance.xcom_pull(task_ids='move_files')}}",
+            "batch_size": "{{ params.batch_size }}"
         }
     )
 

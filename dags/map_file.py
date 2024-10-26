@@ -79,6 +79,10 @@ with DAG(
         ),
         "path": Param(
             type="string",
+        ),
+        "batch_size": Param(
+            type="integer",
+            default="10"
         )
     },
 ) as dag:
