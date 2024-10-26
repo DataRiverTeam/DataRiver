@@ -274,8 +274,7 @@ services:
       retries: 120
     env_file:
       - .env
-    profiles:
-      - elastic
+
   es01:
     depends_on:
       setup:
@@ -319,8 +318,6 @@ services:
       interval: 10s
       timeout: 10s
       retries: 120
-    profiles:
-      - elastic
 
   kibana:
     depends_on:
