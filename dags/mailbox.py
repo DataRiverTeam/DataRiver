@@ -18,11 +18,12 @@ default_args = {
 FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
 
 
-def parse_paths(paths, batch_size):
+def parse_paths(paths, **context):
     def create_conf(path):
         return {
             "path": path,
-            "batch_size": int(batch_size)
+            "batch_size": context['params']['batch_size'],
+            "encoding": context['params']['encoding']
         }
 
     paths_list = paths.split(",")
@@ -47,7 +48,11 @@ with DAG(
         "batch_size": Param(
             type="integer",
             default=10
-        )
+        ),
+        "encoding": Param(
+            type="string",
+            default="utf-8"
+        ),
     },
 ) as dag:
     detect_files_task = MultipleFilesSensor(
@@ -91,10 +96,7 @@ with DAG(
     parse_paths_task = PythonOperator(
         task_id='parse_paths',
         python_callable=parse_paths,
-        op_kwargs={
-            "paths": "{{ task_instance.xcom_pull(task_ids='move_files')}}",
-            "batch_size": "{{ params.batch_size }}"
-        }
+        op_kwargs={ "paths": "{{ task_instance.xcom_pull(task_ids='move_files')}}" }
     )
 
     trigger_map_file_task = TriggerDagRunOperator.partial(

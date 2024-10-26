@@ -65,15 +65,20 @@ with DAG(
         "fs_conn_id": Param(
             type="string",
             default="fs_data"
+        ),
+        "encoding": Param(
+            type="string",
+            default="utf-8"
         )
     },
 ) as dag:
     detect_language_task = JsonLangdetectOperator(
         task_id="detect_language",
-        json_file_path="{{params.json_file_path}}",
-        fs_conn_id="{{params.fs_conn_id}}",
+        json_file_path="{{ params.json_file_path }}",
+        fs_conn_id="{{ params.fs_conn_id }}",
         input_key="content",
         output_key="language",
+        encoding="{{ params.encoding }}",
     )
 
     decide_about_translation = BranchPythonOperator(
@@ -88,7 +93,8 @@ with DAG(
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="content",
         output_key="translated",
-        output_language="en"
+        output_language="en",
+        encoding="{{ params.encoding }}"
     )
 
     ner_task = NerJsonOperator(
@@ -98,24 +104,27 @@ with DAG(
         json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_translation") }}',
         input_key="translated",
         output_key="ner",
-        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED
+        trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,
+        encoding="{{ params.encoding }}"
     )
 
     ner_without_translation_task = NerJsonOperator(
         task_id="detect_entities_without_translation",
         model="en_core_web_md",
-        fs_conn_id="{{params.fs_conn_id}}",
+        fs_conn_id="{{ params.fs_conn_id }}",
         json_file_path='{{ ti.xcom_pull(task_ids="branch", key="json_file_path_no_translation") }}',
         input_key="content",
-        output_key="ner"
+        output_key="ner",
+        encoding="{{ params.encoding }}"
     )
 
     stats_task = NerJsonStatisticsOperator(
         task_id="generate_stats",
-        json_file_path="{{params.json_file_path}}",
-        fs_conn_id="{{params.fs_conn_id}}",
+        json_file_path="{{ params.json_file_path }}",
+        fs_conn_id="{{ params.fs_conn_id }}",
         input_key="ner",
         output_key="ner_stats",
+        encoding="{{ params.encoding }}"
     )
 
     summary_task = JsonSummaryMarkdownOperator(
@@ -126,16 +135,18 @@ with DAG(
         # this method works too, might be useful if we pull data with different xcom keys
         # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
 
-        json_file_path="{{params.json_file_path}}",
+        json_file_path="{{ params.json_file_path }}",
         input_key="ner_stats",
+        encoding="{{ params.encoding }}"
     )
 
     es_push_task = ElasticJsonPushOperator(
         task_id="elastic_push",
-        fs_conn_id="{{params.fs_conn_id}}",
-        json_file_path="{{params.json_file_path}}",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        json_file_path="{{ params.json_file_path }}",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
+        encoding="{{ params.encoding }}"
     )
 
     es_search_task = ElasticSearchOperator(
