@@ -131,7 +131,7 @@ class SummaryMarkdownOperator(BaseOperator):
 
 
 class JsonSummaryMarkdownOperator(BaseOperator):
-    template_fields = ("output_dir", "fs_conn_id", "json_file_path", "input_key", "encoding")
+    template_fields = ("output_dir","summary_filename", "fs_conn_id", "json_file_path", "input_key", "encoding")
 
     def __init__(self, *, summary_filename, output_dir=".", fs_conn_id="fs_data",
                  input_key, json_file_path, encoding="utf-8", **kwargs):
@@ -153,7 +153,7 @@ class JsonSummaryMarkdownOperator(BaseOperator):
         elif type_ is float or type_ is int:
             return str(data) + "\n"
         elif type_ is dict:
-            return "\n" + self.__render_dict(data, level + 1)
+            return self.__render_dict(data, level + 1)
         elif type_ is list or type_ is tuple:
             return "\n" + self.__render_list(data, level + 1)
 
@@ -168,7 +168,7 @@ class JsonSummaryMarkdownOperator(BaseOperator):
     def __render_dict(self, data, level=0):
         text = ""
         for key, value in data.items():
-            text += (level * "\t") + f"- {key}: " + self.__render_item(value, level + 1)
+            text += (level * "\t") + f"{key}: " + self.__render_item(value, level + 1)
 
         return text
 

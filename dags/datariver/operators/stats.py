@@ -80,11 +80,14 @@ class NerJsonStatisticsOperator(BaseOperator):
                 else:
                     entity_counter[entity] = 1
 
+        labels = [{"value": value,"count": count} for value, count in label_counter.items()]
+        entities = [{"value": value,"count": count} for value, count in entity_counter.items()]
+
         stats = {
             "title": "NER statistics",
             "stats": {
-                "labels": label_counter,
-                "entities": entity_counter
+                "labels": labels,
+                "entities": entities
             }
         }
 
