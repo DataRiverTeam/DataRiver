@@ -17,14 +17,14 @@ default_args = {
 }
 
 
-def map_paths(paths, **context):
-    def create_conf(path):
+def map_paths(paths, batch_size, **context):
+    def create_conf(paths, start_index):
         return {
             "fs_conn_id": context['params']['fs_conn_id'],
-            "json_file_path": path,
+            "json_file_path": paths[start_index:start_index+batch_size],
         }
-
-    return list(map(create_conf, [path for path in paths if path is not None]))
+    clear_paths = [path for path in paths if path is not None]
+    return [create_conf(clear_paths, i) for i in range(0, len(clear_paths), batch_size)]
 
 
 def copy_item_to_file(item, context):
@@ -102,7 +102,10 @@ with DAG(
     create_confs_task = PythonOperator(
         task_id="create_confs",
         python_callable=map_paths,
-        op_kwargs={"paths": "{{task_instance.xcom_pull(task_ids='map_json')}}"}
+        op_kwargs={
+            "paths": "{{ task_instance.xcom_pull(task_ids='map_json') }}",
+            "batch_size": "{{ params.batch_size }}"
+        }
     )
 
     trigger_ner_task = TriggerDagRunOperator.partial(
