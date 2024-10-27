@@ -21,7 +21,6 @@ class NerJsonOperator(BaseOperator):
         import nltk
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            nltk.download("punkt")  # download sentence tokenizer used for splitting text to sentences
             nlp = spacy.load(self.model)
 
             detected = []
