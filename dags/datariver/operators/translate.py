@@ -1,9 +1,5 @@
 from airflow.models.baseoperator import BaseOperator
-from deep_translator import GoogleTranslator
-from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
-import os
-import shutil
 from datariver.operators.json_tools import JsonArgs
 
 # TODO:
@@ -45,6 +41,8 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
 
     def execute(self, context):
         import nltk
+        from deep_translator import GoogleTranslator
+        translators = {}
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
 
@@ -52,11 +50,13 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
             lang = json_args.get_value("language")
             ## todo add error handling
             if text is None:
-                return
+                continue
             if lang == self.output_language:
                 translated_text = text
             else:
-                translator = GoogleTranslator(source=lang, target="en")
+                if lang not in translators:
+                    translators[lang] = GoogleTranslator(source=lang, target="en")
+                translator = translators[lang]
                 print(f"Translating {json_args.get_full_path()} from {lang} to {self.output_language}")
 
                 translated_text = ""
