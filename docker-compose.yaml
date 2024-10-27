@@ -347,21 +347,26 @@ services:
       - debug
   ui:
     build: ./webserver
-    working_dir: /usr/src/webserver/ui
-    command: bash -c '''
-      if [[ "$MODE" == dev ]]; then
-        npm run build;
-        cd /usr/src/webserver;
-        npm run start;
-      else
-        echo "run ui on production";
-      fi
+    command: >
+      bash -c '''
+        if [[ "$MODE" == dev ]]; then
+          echo "fill with commands"
+        else
+          cd /usr/src/webserver/ui
+          npm run build
+          cd /usr/src/webserver
+          npm run start
+        fi
       '''
     ports:
     - "5173:5173"
     - "3000:3000"
+    volumes:
+      - webserver:/usr/src/webserver
 volumes:
   postgres-db-volume:
+    driver: local
+  webserver:
     driver: local
   certs:
     driver: local
