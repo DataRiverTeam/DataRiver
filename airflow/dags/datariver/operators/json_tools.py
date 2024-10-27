@@ -1,6 +1,4 @@
 import json
-from collections.abc import Callable
-from typing import Any
 
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
