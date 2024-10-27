@@ -64,6 +64,7 @@ x-airflow-common:
     - ./airflow/dags:/opt/airflow/dags
     - ./airflow/logs:/opt/airflow/logs
     - ./airflow/data:/opt/airflow/data
+    - certs:/usr/share/elasticsearch/config/certs
   user: "0:0"
   # user: "${AIRFLOW_UID:-50000}:0"
   depends_on:
