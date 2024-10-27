@@ -273,7 +273,7 @@ services:
       timeout: 5s
       retries: 120
     env_file:
-      - .env
+      - airflow/.env
   es01:
     depends_on:
       setup:

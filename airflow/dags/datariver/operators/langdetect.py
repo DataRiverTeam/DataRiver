@@ -1,7 +1,5 @@
 from airflow.models.baseoperator import BaseOperator
-from airflow.hooks.filesystem import FSHook
 from datariver.operators.json_tools import JsonArgs
-import os
 
 
 class JsonLangdetectOperator(BaseOperator):
