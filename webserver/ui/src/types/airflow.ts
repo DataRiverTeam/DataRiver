@@ -1,0 +1,24 @@
+export type TDag = {
+    dag_display_name: string;
+    dag_id: string;
+    default_view: string;
+    description: null;
+    file_token: string;
+    fileloc: string;
+    has_import_errors: boolean;
+    has_task_concurrency_limits: boolean;
+    is_active: boolean;
+    is_paused: boolean;
+    is_subdag: boolean;
+    last_parsed_time: string;
+    max_active_runs: number;
+    max_active_tasks: number;
+    max_consecutive_failed_dag_runs: number;
+    owners: string[];
+    pickle_id: null;
+    root_dag_id: null;
+    schedule_interval: null;
+    scheduler_lock: null;
+    tags: string[];
+    timetable_description: string;
+};
