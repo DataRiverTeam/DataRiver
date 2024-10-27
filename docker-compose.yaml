@@ -350,7 +350,10 @@ services:
     command: >
       bash -c '''
         if [[ "$MODE" == dev ]]; then
-          echo "fill with commands"
+          cd /usr/src/webserver/ui
+          npm run dev &
+          cd /usr/src/webserver
+          nodemon index.js
         else
           cd /usr/src/webserver/ui
           npm run build
