@@ -19,9 +19,9 @@ class NerJsonOperator(BaseOperator):
     def execute(self, context):
         import spacy
         import nltk
+        nlp = spacy.load(self.model)
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            nlp = spacy.load(self.model)
 
             detected = []
             text = json_args.get_value(self.input_key)
