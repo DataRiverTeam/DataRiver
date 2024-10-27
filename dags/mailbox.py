@@ -5,8 +5,6 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
-
-
 from datariver.sensors.filesystem import MultipleFilesSensor
 
 default_args = {
@@ -20,19 +18,12 @@ default_args = {
 FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
 
 
-def retrigger_dag():
-    from airflow.api.client.local_client import Client
-    print("restarting dag")
-    import time
-    time.sleep(5)
-    c = Client("None", None)
-    c.trigger_dag(dag_id='mailbox', conf={})
-
-
-def parse_paths(paths):
+def parse_paths(paths, **context):
     def create_conf(path):
         return {
-            "path": path
+            "path": path,
+            "batch_size": context['params']['batch_size'],
+            "encoding": context['params']['encoding']
         }
 
     paths_list = paths.split(",")
@@ -53,7 +44,15 @@ with DAG(
         "filepath": Param(
             type="string",
             default="map/*.json"
-        )
+        ),
+        "batch_size": Param(
+            type="integer",
+            default=10
+        ),
+        "encoding": Param(
+            type="string",
+            default="utf-8"
+        ),
     },
 ) as dag:
     detect_files_task = MultipleFilesSensor(
@@ -62,8 +61,7 @@ with DAG(
         filepath="{{params.filepath}}",
         poke_interval=60,
         mode="reschedule",
-        timeout=timedelta(minutes=60),
-        on_success_callback=retrigger_dag
+        timeout=timedelta(minutes=60)
     )
 
     move_files_task = BashOperator(
@@ -98,20 +96,19 @@ with DAG(
     parse_paths_task = PythonOperator(
         task_id='parse_paths',
         python_callable=parse_paths,
-        op_kwargs={
-            "paths": "{{ task_instance.xcom_pull(task_ids='move_files')}}"
-        }
-    )
-
-    trigger_mailbox = TriggerDagRunOperator(
-        task_id='trigger_mailbox',
-        trigger_dag_id='mailbox'
+        op_kwargs={ "paths": "{{ task_instance.xcom_pull(task_ids='move_files')}}" }
     )
 
     trigger_map_file_task = TriggerDagRunOperator.partial(
         task_id='trigger_map_file',
         trigger_dag_id='map_file'
     ).expand(conf=parse_paths_task.output)
+
+    trigger_mailbox = TriggerDagRunOperator(
+        task_id='trigger_mailbox',
+        trigger_dag_id='mailbox',
+        conf="{{ params }}" # noqa
+    )
 
 
 detect_files_task >> move_files_task >> parse_paths_task >> trigger_map_file_task >> trigger_mailbox

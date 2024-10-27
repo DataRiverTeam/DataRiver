@@ -1,5 +1,4 @@
 from airflow.models.baseoperator import BaseOperator
-
 from datariver.operators.json_tools import JsonArgs
 
 
@@ -58,7 +57,7 @@ class ElasticSearchOperator(BaseOperator):
 
 
 class ElasticJsonPushOperator(BaseOperator):
-    template_fields = ("fs_conn_id", "json_file_path", "input_keys", "keys_to_skip", "encoding")
+    template_fields = ("fs_conn_id", "json_files_paths", "input_keys", "keys_to_skip", "encoding")
 
     def __init__(
         self,
@@ -66,7 +65,7 @@ class ElasticJsonPushOperator(BaseOperator):
         index,
         fs_conn_id="fs_data",
         es_conn_args={},
-        json_file_path,
+        json_files_paths,
         input_keys=[],
         encoding="utf-8",
         refresh=False,
@@ -78,7 +77,7 @@ class ElasticJsonPushOperator(BaseOperator):
         self.fs_conn_id = fs_conn_id
         self.index = index
         self.es_conn_args = es_conn_args
-        self.json_file_path = json_file_path
+        self.json_files_paths = json_files_paths
         self.input_keys = input_keys             #keys to push to es if present
         self.encoding = encoding
         self.refresh = refresh
@@ -88,31 +87,29 @@ class ElasticJsonPushOperator(BaseOperator):
         # pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
 
     def execute(self, context):
-        from elasticsearch import Elasticsearch
-        json_args = JsonArgs(
-            self.fs_conn_id,
-            self.json_file_path,
-            self.encoding
-        )
-
-        document = {}
-        if self.input_keys:
-            document = json_args.get_values(self.input_keys)
-        else:
-            present_keys = json_args.get_keys()
-            keys = list(set(present_keys) - set(self.keys_to_skip))
-            document = json_args.get_values(keys)
-
+        from elasticsearch import Elasticsearch, helpers
         es = Elasticsearch(
             **self.es_conn_args
         )
+        document_list = []
+        for file_path in self.json_files_paths:
+            json_args = JsonArgs(
+                self.fs_conn_id,
+                file_path,
+                self.encoding
+            )
+            document = {}
+            if self.input_keys:
+                document = json_args.get_values(self.input_keys)
+            else:
+                present_keys = json_args.get_keys()
+                keys = list(set(present_keys) - set(self.keys_to_skip))
+                document = json_args.get_values(keys)
+            document_list.append(document)
 
-        response = es.index(
-            index=self.index,
-            document=document
-        )
-
+        results = []
+        for ok, response in helpers.streaming_bulk(es, document_list, index=self.index):
+            results.append(response['index'])
         if self.refresh:
             es.indices.refresh(index=self.index)
-
-        return response.body
+        return results
