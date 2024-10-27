@@ -9,19 +9,14 @@ In order to run the containers, you need [Docker](https://www.docker.com).
 
 Run Airflow with Elasticsearch (**Recommended way**) 
 ```
-docker compose --profile elastic up
-```
-
-#### Alternatively
-Launch only the Airflow containers \
-(*note: provided DAGs won't work without providing other Elasticsearch server in configuration*)
-```
 docker compose up
 ```
 
-Run with Elasticsearch cluster and Kibana dashboard
+#### Alternatively
+
+Run Airflow with Elasticsearch cluster and Kibana dashboard
 ```
-docker compose --profile elastic --profile debug up
+docker compose --profile debug up
 ```
 
 Rebuild base image (_required after modyfying the requirements.txt file_)
