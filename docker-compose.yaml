@@ -349,16 +349,21 @@ services:
     build: ./webserver
     command: >
       bash -c '''
-        if [[ "$MODE" == dev ]]; then
-          cd /usr/src/webserver/ui
-          npm run dev &
-          cd /usr/src/webserver
-          nodemon index.js
-        else
+        # if [[ "${WEBSERVER_MODE}" == dev ]]; then
+        #   echo "RUNNING UI IN DEV MODE"
+        #   # cd /usr/src/webserver/ui
+        #   # npm run dev &
+        #   # cd /usr/src/webserver
+        #   # npm run dev
+        #   sleep 3600
+        # else
+        #   echo "RUNNING UI IN PROD MODE"
+
           cd /usr/src/webserver/ui
           npm run build
           cd /usr/src/webserver
           npm run start
+          sleep 3600
         fi
       '''
     ports:
