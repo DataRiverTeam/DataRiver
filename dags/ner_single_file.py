@@ -79,6 +79,7 @@ with DAG(
         input_key="content",
         output_key="language",
         encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     decide_about_translation = BranchPythonOperator(
