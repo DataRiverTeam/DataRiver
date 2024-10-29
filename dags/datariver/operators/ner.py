@@ -1,12 +1,13 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.json_tools import JsonArgs
+from datariver.operators.exceptionmanaging import ErrorHandler
 
 
 class NerJsonOperator(BaseOperator):
-    template_fields = ("json_files_paths", "fs_conn_id", "input_key", "output_key", "encoding")
+    template_fields = ("json_files_paths", "fs_conn_id", "input_key", "output_key", "encoding", "error_key")
 
     def __init__(self, *, json_files_paths, fs_conn_id="fs_data", model="en_core_web_sm", language="english",
-                 input_key="translated", output_key="ner", encoding="utf-8", **kwargs):
+                 input_key="translated", output_key="ner", encoding="utf-8", error_key="error", **kwargs):
         super().__init__(**kwargs)
         self.json_files_paths = json_files_paths
         self.fs_conn_id = fs_conn_id
@@ -15,6 +16,7 @@ class NerJsonOperator(BaseOperator):
         self.input_key = input_key
         self.output_key = output_key
         self.encoding = encoding
+        self.error_key = error_key
 
     def execute(self, context):
         import spacy
@@ -22,19 +24,28 @@ class NerJsonOperator(BaseOperator):
         nlp = spacy.load(self.model)
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
+            error_handler = ErrorHandler(
+                file_path,
+                self.fs_conn_id,
+                self.error_key,
+                self.encoding
+            )
 
             detected = []
-            text = json_args.get_value(self.input_key)
+            if error_handler.is_file_error_free():
+                text = json_args.get_value(self.input_key)
 
-            sentences = nltk.tokenize.sent_tokenize(text, self.language)
-            for s in sentences:
-                doc = nlp(s)
+                sentences = nltk.tokenize.sent_tokenize(text, self.language)
+                for s in sentences:
+                    doc = nlp(s)
 
-                detected.append(
-                    doc.to_json())  # I'm not convinced if we should return all the data in JSON format specifically
+                    detected.append(
+                        doc.to_json())  # I'm not convinced if we should return all the data in JSON format specifically
 
-                # .ent - named entity detected by nlp
-                # .ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
-                # .sent - sentence including given entity
+                    # .ent - named entity detected by nlp
+                    # .ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
+                    # .sent - sentence including given entity
 
-            json_args.add_value(self.output_key, detected)
+                json_args.add_value(self.output_key, detected)
+            else:
+                self.log.info("Found error from previous task for file %s", file_path)

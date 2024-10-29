@@ -2,13 +2,13 @@ from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 from datariver.operators.json_tools import JsonArgs
 import os
-
 from datariver.operators.exceptionmanaging import ErrorHandler
+
 
 class JsonLangdetectOperator(BaseOperator):
     template_fields = ("json_files_paths", "fs_conn_id", "input_key", "output_key", "encoding", "error_key")
 
-    def __init__(self, *, json_files_paths, fs_conn_id="fs_data", input_key, output_key, error_key, encoding="utf-8", **kwargs):
+    def __init__(self, *, json_files_paths, fs_conn_id="fs_data", input_key, output_key, encoding="utf-8", error_key, **kwargs):
         super().__init__(**kwargs)
         self.json_files_paths = json_files_paths
         self.fs_conn_id = fs_conn_id

@@ -1,5 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.json_tools import JsonArgs
+from datariver.operators.exceptionmanaging import ErrorHandler
 
 
 class ElasticPushOperator(BaseOperator):
@@ -57,7 +58,7 @@ class ElasticSearchOperator(BaseOperator):
 
 
 class ElasticJsonPushOperator(BaseOperator):
-    template_fields = ("fs_conn_id", "json_files_paths", "input_keys", "keys_to_skip", "encoding")
+    template_fields = ("fs_conn_id", "json_files_paths", "input_keys", "keys_to_skip", "encoding", "error_key")
 
     def __init__(
         self,
@@ -70,6 +71,7 @@ class ElasticJsonPushOperator(BaseOperator):
         encoding="utf-8",
         refresh=False,
         keys_to_skip=[],
+        error_key,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -83,7 +85,7 @@ class ElasticJsonPushOperator(BaseOperator):
         self.refresh = refresh
         self.keys_to_skip = keys_to_skip         #if input_keys are empty, full document is pushed with exception of keys_to_skip
                                                  #when both are empty, all keys are pushed
-
+        self.error_key = error_key
         # pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
 
     def execute(self, context):
@@ -98,14 +100,23 @@ class ElasticJsonPushOperator(BaseOperator):
                 file_path,
                 self.encoding
             )
+            error_handler = ErrorHandler(
+                file_path,
+                self.fs_conn_id,
+                self.error_key,
+                self.encoding
+            )
             document = {}
-            if self.input_keys:
-                document = json_args.get_values(self.input_keys)
+            if error_handler.is_file_error_free():
+                if self.input_keys:
+                    document = json_args.get_values(self.input_keys)
+                else:
+                    present_keys = json_args.get_keys()
+                    keys = list(set(present_keys) - set(self.keys_to_skip))
+                    document = json_args.get_values(keys)
+                document_list.append(document)
             else:
-                present_keys = json_args.get_keys()
-                keys = list(set(present_keys) - set(self.keys_to_skip))
-                document = json_args.get_values(keys)
-            document_list.append(document)
+                self.log.info("Found error from previous task for file %s", file_path)
 
         results = []
         for ok, response in helpers.streaming_bulk(es, document_list, index=self.index):

@@ -95,7 +95,8 @@ with DAG(
         input_key="content",
         output_key="translated",
         output_language="en",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key = "error"
     )
 
     ner_task = NerJsonOperator(
@@ -106,7 +107,8 @@ with DAG(
         input_key="translated",
         output_key="ner",
         trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     ner_without_translation_task = NerJsonOperator(
@@ -116,7 +118,8 @@ with DAG(
         json_files_paths='{{ ti.xcom_pull(task_ids="branch", key="json_files_paths_no_translation") }}',
         input_key="content",
         output_key="ner",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     stats_task = NerJsonStatisticsOperator(
@@ -125,7 +128,8 @@ with DAG(
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="ner",
         output_key="ner_stats",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     summary_task = JsonSummaryMarkdownOperator(
@@ -138,7 +142,8 @@ with DAG(
 
         json_files_paths="{{ params.json_files_paths }}",
         input_key="ner_stats",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     es_push_task = ElasticJsonPushOperator(
@@ -147,7 +152,8 @@ with DAG(
         json_files_paths="{{ params.json_files_paths }}",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     es_search_task = ElasticSearchOperator(
