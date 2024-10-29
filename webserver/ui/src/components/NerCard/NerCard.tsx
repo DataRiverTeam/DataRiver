@@ -57,7 +57,7 @@ function NerCard({ item }: NerCardProps) {
                     Named Entities
                 </AccordionSummary>
                 <AccordionDetails>
-                    <pre className={s.code}>
+                    <pre className="code">
                         {JSON.stringify(item.ner, null, 2)}
                     </pre>
                 </AccordionDetails>
@@ -71,7 +71,7 @@ function NerCard({ item }: NerCardProps) {
                     Statistics
                 </AccordionSummary>
                 <AccordionDetails>
-                    <pre className={s.code}>
+                    <pre className="code">
                         {JSON.stringify(item.ner_stats, null, 2)}
                     </pre>
                 </AccordionDetails>

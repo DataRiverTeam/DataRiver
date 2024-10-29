@@ -44,7 +44,7 @@ app.get("/api/dags", async (req, res) => {
     })
         .then((resp) => resp.json())
         .then((data) => {
-            res.json(data);
+            res.json({ status: 200, ...data });
         })
         .catch((_err) => {
             res.status(500).json({ status: 500 });
@@ -60,24 +60,13 @@ app.get("/api/dagruns/:dagid", async (req, res) => {
     )
         .then((data) => data.json())
         .then((data) => {
-            res.json(data);
+            res.json({ status: 200, ...data });
         })
         .catch((_err) => {
             res.status(500).json({
                 status: 500,
             });
         });
-});
-
-app.post("/api/dagruns/:dagid", async (req, res) => {
-    const dags = await fetch(
-        `${process.env.AIRFLOW_SERVER}/api/v1/dags/${req.params["dagid"]}/dagRuns`,
-        {
-            headers: airflowUtil.getAirflowHeaders(),
-        }
-    ).then((res) => res.json());
-
-    res.json(dags);
 });
 
 app.get("/api/ner/docs", async (req, res) => {

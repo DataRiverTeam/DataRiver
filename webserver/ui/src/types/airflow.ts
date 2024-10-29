@@ -22,3 +22,26 @@ export type TDag = {
     tags: string[];
     timetable_description: string;
 };
+
+export type TDagRunCollection = {
+    dag_runs: TDagRun[];
+    total_entries: number;
+};
+
+export type TDagRun = {
+    conf: {
+        [key: string]: boolean | number | string | [] | object;
+    };
+    dag_id: string;
+    dag_run_id: string;
+    data_interval_end: string;
+    data_interval_start: string;
+    end_date: string;
+    external_trigger: boolean;
+    last_scheduling_decision: string;
+    logical_date: string;
+    note: string;
+    run_type: string;
+    start_date: string;
+    state: string;
+};
