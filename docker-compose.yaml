@@ -370,6 +370,9 @@ services:
     - "3000:3000"
     volumes:
       - webserver:/usr/src/webserver
+    environment:
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - AIRFLOW_HOST=http://airflow-webserver:8080
 volumes:
   postgres-db-volume:
     driver: local

@@ -16,9 +16,12 @@ const path = require("path");
 const app = express();
 const upload = multer({ dest: "uploads/" });
 
-const elasticClient = require("./utils/elastic");
-const airflowUtil = require("./utils/airflow");
+const { getElasticClient } = require("./utils/elastic");
+const ELASTIC_HOST = process.env.ELASTIC_HOST || "https://localhost:9200";
+const elasticClient = getElasticClient(ELASTIC_HOST);
 
+const AIRFLOW_HOST = process.env.AIRFLOW_HOST || "http://localhost:8080";
+const airflowUtil = require("./utils/airflow");
 const PORT = process.env.PORT || 3000;
 
 let schemas = {
@@ -39,30 +42,30 @@ app.use(express.static("ui/dist"));
 // app.post("/upload", upload.array("files", 10), (req, res, _next) => {});
 
 app.get("/api/dags", async (req, res) => {
-    await fetch(`${process.env.AIRFLOW_SERVER}/api/v1/dags`, {
+    fetch(`${AIRFLOW_HOST}/api/v1/dags`, {
         headers: airflowUtil.getAirflowHeaders(),
     })
         .then((resp) => resp.json())
         .then((data) => {
             res.json({ status: 200, ...data });
         })
-        .catch((_err) => {
+        .catch((err) => {
+            console.log(err);
             res.status(500).json({ status: 500 });
         });
 });
 
 app.get("/api/dagruns/:dagid", async (req, res) => {
-    fetch(
-        `${process.env.AIRFLOW_SERVER}/api/v1/dags/${req.params["dagid"]}/dagRuns`,
-        {
-            headers: airflowUtil.getAirflowHeaders(),
-        }
-    )
+    fetch(`${AIRFLOW_HOST}/api/v1/dags/${req.params["dagid"]}/dagRuns`, {
+        headers: airflowUtil.getAirflowHeaders(),
+    })
         .then((data) => data.json())
         .then((data) => {
             res.json({ status: 200, ...data });
         })
-        .catch((_err) => {
+        .catch((err) => {
+            console.log(err);
+
             res.status(500).json({
                 status: 500,
             });
@@ -97,7 +100,8 @@ app.get("/api/ner/docs", async (req, res) => {
         });
 
         res.json({ status: 200, ...result });
-    } catch {
+    } catch (error) {
+        console.log(error);
         res.status(500).json({ status: 500 });
     }
 });
