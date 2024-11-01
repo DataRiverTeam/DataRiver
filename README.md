@@ -48,6 +48,8 @@ The `mailbox` DAG uses a sensor to wait for files.
 In order to start processing the files, you need to put them in the directory specified in the DAG's configuration (default: `/opt/airflow/data/map/*.json`)
 
 ## Service access
+### Web UI
+- default URL: http://localhost:3000/
 
 ### Airflow webserver:
 
