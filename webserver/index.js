@@ -34,6 +34,14 @@ let schemas = {
             type: "string",
             default: "map/*.json",
         },
+        batch_size: {
+            type: "integer",
+            default: 10,
+        },
+        encoding: {
+            type: "string",
+            default: "utf-8",
+        },
     },
 };
 
