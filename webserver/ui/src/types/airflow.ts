@@ -45,3 +45,59 @@ export type TDagRun = {
     start_date: string;
     state: string;
 };
+
+export type TTaskInstance = {
+    dag_id: string;
+    dag_run_id: string;
+    duration: number;
+    end_date: string;
+    execution_date: string;
+    executor_config: string;
+    hostname: string;
+    map_index: number;
+    max_tries: number;
+    note: string;
+    operator: string;
+    pid: number;
+    pool: string;
+    pool_slots: number;
+    priority_weight: number;
+    queue: string;
+    queued_when: string;
+    rendered_fields: {};
+    rendered_map_index: string;
+    sla_miss: {
+        dag_id: string;
+        description: string;
+        email_sent: true;
+        execution_date: string;
+        notification_sent: true;
+        task_id: string;
+        timestamp: string;
+    };
+    start_date: string;
+    state: string | null;
+    task_display_name: string;
+    task_id: string;
+    trigger: {
+        classpath: string;
+        created_date: string;
+        id: number;
+        kwargs: string;
+        triggerer_id: number;
+    };
+    triggerer_job: {
+        dag_id: string;
+        end_date: string;
+        executor_class: string;
+        hostname: string;
+        id: number;
+        job_type: string;
+        latest_heartbeat: string;
+        start_date: string;
+        state: string;
+        unixname: string;
+    };
+    try_number: number;
+    unixname: string;
+};

@@ -3,24 +3,33 @@ import { useParams } from "react-router-dom";
 
 import { Link } from "react-router-dom";
 
-import { TDagRun } from "../../types/airflow";
+import { TDagRun, TTaskInstance } from "../../types/airflow";
 
 type TDagRunResponse = TDagRun & { status: number };
+type TTaskInstancesResponse = {
+    task_instances: TTaskInstance[];
+    status: number;
+    total_entries: number;
+};
 
 function DagRunDetails() {
     let { dagId, runId } = useParams();
+
     let [dagRun, setDagRun] = useState<TDagRun | null>(null);
     let [errorMessage, setErrorMessage] = useState("");
 
-    async function getData() {
+    let [tasks, setTasks] = useState<TTaskInstance[]>([]);
+    let [tasksErrorMessage, setTasksErrorMessage] = useState<string>("");
+
+    async function getDagRun() {
         try {
             const response = await fetch(`/api/dags/${dagId}/dagruns/${runId}`);
             const json: TDagRunResponse = await response.json();
-            const { status: statusCode, ...dagRunData } = json;
+            const { status, ...dagRunData } = json;
 
-            if (!statusCode.toString().startsWith("2")) {
+            if (!status.toString().startsWith("2")) {
                 throw new Error(
-                    `There was an error when handling request. Status code: ${statusCode}`
+                    `There was an error when handling request. Status code: ${status}`
                 );
             }
 
@@ -32,8 +41,30 @@ function DagRunDetails() {
         }
     }
 
+    async function getTasks() {
+        try {
+            const response = await fetch(
+                `/api/dags/${dagId}/dagruns/${runId}/taskInstances`
+            );
+            const json: TTaskInstancesResponse = await response.json();
+
+            if (!json.status.toString().startsWith("2")) {
+                throw new Error(
+                    `There was an error when handling request. Status code: ${json.status}`
+                );
+            }
+            console.log(json.task_instances);
+            setTasks(json.task_instances);
+        } catch (error) {
+            if (error instanceof Error) {
+                setTasksErrorMessage(error.message);
+            }
+        }
+    }
+
     useEffect(() => {
-        getData();
+        getDagRun();
+        getTasks();
     }, []);
 
     return (
@@ -47,6 +78,12 @@ function DagRunDetails() {
                 errorMessage
             ) : (
                 <pre>{JSON.stringify(dagRun, null, 2)}</pre>
+            )}
+            <h3>Tasks</h3>
+            {tasksErrorMessage ? (
+                tasksErrorMessage
+            ) : (
+                <pre>{JSON.stringify(tasks, null, 2)}</pre>
             )}
         </>
     );

@@ -96,16 +96,33 @@ app.get("/api/dags/:dagid/dagruns/:runid", async (req, res) => {
         });
 });
 
-// app.get("/api/dags/:dagid/dagruns/:runid/taskInstances", async (req, res) => {
-//     const response = await fetch(`${AIRFLOW_HOST}/dags/~/dagRuns/~/taskInstances/list`, {
-//         method: "POST",
-//         headers: {
-//             Accept: "application/json",
-//             "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({ }),
-//     });
-// });
+app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
+    const dagId = req.params["dagid"];
+    const runId = req.params["runid"];
+
+    try {
+        const response = await fetch(
+            `${AIRFLOW_HOST}/api/v1/dags/${dagId}/dagRuns/${runId}/taskInstances`,
+            {
+                headers: {
+                    ...airflowUtil.getAirflowHeaders(),
+                    Accept: "application/json",
+                },
+            }
+        );
+
+        // if (!response.status.toString().startsWith("2")) {
+        //     throw new Error("Internal error");
+        // }
+
+        const json = await response.json();
+
+        res.send({ status: 200, ...json });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ status: 500 });
+    }
+});
 
 app.get("/api/ner/docs", async (req, res) => {
     //execute match for text search
