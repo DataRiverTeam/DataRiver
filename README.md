@@ -7,9 +7,9 @@ In order to run the containers, you need [Docker](https://www.docker.com).
 
 ### Building Docker containers
 
-Run Airflow with Elasticsearch (**Recommended way**) 
+Run Airflow, Elasticsearch and UI (**Recommended way**) 
 ```
-docker compose up
+docker compose --profile ui up
 ```
 
 #### Alternatively

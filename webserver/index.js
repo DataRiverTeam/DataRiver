@@ -22,7 +22,7 @@ const elasticClient = getElasticClient(ELASTIC_HOST);
 
 const AIRFLOW_HOST = process.env.AIRFLOW_HOST || "http://localhost:8080";
 const airflowUtil = require("./utils/airflow");
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.UI_PORT || 3000;
 
 let schemas = {
     mailbox: {
@@ -84,7 +84,7 @@ app.get("/api/dags/:dagid/dagruns/:runid", async (req, res) => {
         headers: airflowUtil.getAirflowHeaders(),
     })
         .then((data) => data.json())
-        .then.then((data) => {
+        .then((data) => {
             res.json({ status: 200, ...data });
         })
         .catch((err) => {
@@ -150,6 +150,6 @@ app.get("/*", (req, res) => {
     res.sendFile(path.join(__dirname, "/ui/dist", "index.html"));
 });
 
-app.listen(3000, () => {
-    console.log("Server started");
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
