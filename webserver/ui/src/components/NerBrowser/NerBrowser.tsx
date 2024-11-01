@@ -57,6 +57,7 @@ function NerBrowser() {
                     <>
                         Found {docs.length} matching results.
                         {docs.map((item) => (
+                            //TODO: add a key for each doc!
                             <NerCard item={item} />
                         ))}
                     </>

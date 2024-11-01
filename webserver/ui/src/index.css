@@ -15,18 +15,19 @@
 
 body {
     margin: 0;
-    padding-top: 80px;
+    height: 100vh;
+    height: 100dvh;
 }
-/* 
-@media (prefers-color-scheme: light) {
-    :root {
-        color: #213547;
-        background-color: #ffffff;
-    }
-    a:hover {
-        color: #747bff;
-    }
-    button {
-        background-color: #f9f9f9;
-    }
-} */
+
+.content {
+    padding-top: 80px;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.code {
+    background: #222;
+    color: white;
+    padding: 2rem;
+    overflow: scroll;
+}
