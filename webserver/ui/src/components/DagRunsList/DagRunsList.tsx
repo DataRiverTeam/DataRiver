@@ -1,10 +1,9 @@
 import { TDagRun } from "../../types/airflow";
 
-import Card from "@mui/material/Card";
-import Accordion from "@mui/material/Accordion";
-import AccordionDetails from "@mui/material/AccordionDetails";
-import AccordionSummary from "@mui/material/AccordionSummary";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+import clsx from "clsx";
 
 import s from "./DagRunsList.module.css";
 
@@ -12,64 +11,73 @@ type TDagRunsListProps = {
     dagRuns: TDagRun[];
 };
 
+const NO_ITEMS_MSG = "No DAG runs to display.";
+
 function DagRunsList({ dagRuns }: TDagRunsListProps) {
     return (
-        <div className={s.list}>
-            {dagRuns.length
-                ? dagRuns.map((dagRun) => {
-                      let { conf, dag_run_id, state, start_date } = dagRun;
-                      let [date, time] = start_date.split("T");
+        <>
+            {dagRuns.length ? (
+                <div className={s.dagruns}>
+                    <div className={s.dagrunsCell}>DAG run ID</div>
+                    <div className={s.dagrunsCell}>Start date</div>
+                    <div className={s.dagrunsCell}>State</div>
+                    <div className={s.dagrunsCell}>Conf</div>
+                    {dagRuns.map((dagRun) => {
+                        let [confExpanded, setConfExpanded] =
+                            useState<boolean>(false);
 
-                      return (
-                          <Card key={dag_run_id}>
-                              <Accordion defaultExpanded>
-                                  <AccordionSummary
-                                      aria-controls="dagrun-details"
-                                      id="content-header"
-                                      expandIcon={<ArrowDropDownIcon />}
-                                  >
-                                      {dag_run_id}
-                                  </AccordionSummary>
-                                  <AccordionDetails>
-                                      <table>
-                                          <tr>
-                                              <td>Launched</td>
-                                              <td>{`${date}, ${time}`}</td>
-                                          </tr>
-                                          <tr>
-                                              <td>State</td>
-                                              <td>{`${state}`}</td>
-                                          </tr>
-                                      </table>
-                                      <Card>
-                                          <Accordion>
-                                              <AccordionSummary
-                                                  aria-controls="dagrun-conf"
-                                                  id="content-header"
-                                                  expandIcon={
-                                                      <ArrowDropDownIcon />
-                                                  }
-                                              >
-                                                  Parameters:
-                                              </AccordionSummary>
-                                              <AccordionDetails>
-                                                  <pre className="code">
-                                                      {JSON.stringify(
-                                                          conf,
-                                                          null,
-                                                          2
-                                                      )}
-                                                  </pre>
-                                              </AccordionDetails>
-                                          </Accordion>
-                                      </Card>
-                                  </AccordionDetails>
-                              </Accordion>
-                          </Card>
-                      );
-                  })
-                : "No DAG runs to display."}
-        </div>
+                        let toggleConfExpanded = () => {
+                            setConfExpanded(!confExpanded);
+                        };
+
+                        return (
+                            <>
+                                <div className={s.dagrunsCell}>
+                                    <Link to={`${dagRun.dag_run_id}`}>
+                                        {dagRun.dag_run_id}
+                                    </Link>
+                                </div>
+                                <div className={s.dagrunsCell}>
+                                    {dagRun.start_date}
+                                </div>
+                                <div className={s.dagrunsCell}>
+                                    {dagRun.state}
+                                </div>
+                                <div className={s.dagrunsCell}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "center",
+                                        }}
+                                    >
+                                        <button onClick={toggleConfExpanded}>
+                                            Display conf
+                                        </button>
+                                    </div>
+                                </div>
+                                <div
+                                    className={clsx(
+                                        s.dagrunConfCell,
+                                        s.dagrunConfCellActive
+                                    )}
+                                    style={{
+                                        display: confExpanded
+                                            ? "initial"
+                                            : "none",
+                                    }}
+                                >
+                                    <pre className="code">
+                                        {JSON.stringify(dagRun.conf, null, 2)}
+                                    </pre>
+                                </div>
+                            </>
+                        );
+                    })}
+                </div>
+            ) : (
+                { NO_ITEMS_MSG }
+            )}
+        </>
     );
 }
 

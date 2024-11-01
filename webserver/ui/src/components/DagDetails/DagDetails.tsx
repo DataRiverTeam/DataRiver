@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { TDagRun, TDagRunCollection } from "../../types/airflow";
 
 import DagRunsList from "../DagRunsList/DagRunsList";
@@ -18,7 +18,7 @@ function DagDetails() {
 
     let getDag = async () => {
         try {
-            const response = await fetch(`/api/dagruns/${dagId}`);
+            const response = await fetch(`/api/dags/${dagId}/dagruns`);
             const json: TDagRunResponse = await response.json();
 
             if (!json?.status.toString().startsWith("2")) {
@@ -42,6 +42,10 @@ function DagDetails() {
 
     return (
         <>
+            <Link to={".."} relative="path">
+                Back
+            </Link>
+
             <h1> {dagId} </h1>
             <h2> DAG runs </h2>
             <Tooltip title={"Trigger a DAG run"}>

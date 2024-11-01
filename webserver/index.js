@@ -41,6 +41,10 @@ app.use(express.static("ui/dist"));
 
 // app.post("/upload", upload.array("files", 10), (req, res, _next) => {});
 
+/*
+ API ENDPOINTS
+*/
+
 app.get("/api/dags", async (req, res) => {
     fetch(`${AIRFLOW_HOST}/api/v1/dags`, {
         headers: airflowUtil.getAirflowHeaders(),
@@ -55,7 +59,7 @@ app.get("/api/dags", async (req, res) => {
         });
 });
 
-app.get("/api/dagruns/:dagid", async (req, res) => {
+app.get("/api/dags/:dagid/dagruns", async (req, res) => {
     fetch(`${AIRFLOW_HOST}/api/v1/dags/${req.params["dagid"]}/dagRuns`, {
         headers: airflowUtil.getAirflowHeaders(),
     })
@@ -71,6 +75,37 @@ app.get("/api/dagruns/:dagid", async (req, res) => {
             });
         });
 });
+
+app.get("/api/dags/:dagid/dagruns/:runid", async (req, res) => {
+    const dagId = req.params["dagid"];
+    const runId = req.params["runid"];
+
+    fetch(`${AIRFLOW_HOST}/api/v1/dags/${dagId}/dagRuns/${runId}`, {
+        headers: airflowUtil.getAirflowHeaders(),
+    })
+        .then((data) => data.json())
+        .then.then((data) => {
+            res.json({ status: 200, ...data });
+        })
+        .catch((err) => {
+            console.log(err);
+
+            res.status(500).json({
+                status: 500,
+            });
+        });
+});
+
+// app.get("/api/dags/:dagid/dagruns/:runid/taskInstances", async (req, res) => {
+//     const response = await fetch(`${AIRFLOW_HOST}/dags/~/dagRuns/~/taskInstances/list`, {
+//         method: "POST",
+//         headers: {
+//             Accept: "application/json",
+//             "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({ }),
+//     });
+// });
 
 app.get("/api/ner/docs", async (req, res) => {
     //execute match for text search
@@ -104,6 +139,10 @@ app.get("/api/ner/docs", async (req, res) => {
         console.log(error);
         res.status(500).json({ status: 500 });
     }
+});
+
+app.get("/api/*", async (req, res) => {
+    res.status(403).send();
 });
 
 app.get("/*", (req, res) => {

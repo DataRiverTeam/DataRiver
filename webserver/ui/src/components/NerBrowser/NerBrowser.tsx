@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { TNerDoc } from "../../types/ner";
 import NerCard from "../NerCard/NerCard";
 
@@ -25,6 +26,9 @@ function NerBrowser() {
 
     return (
         <>
+            <Link to={".."} relative="path">
+                Back
+            </Link>
             <h1> Find documents </h1>
             <div id="filter-text" className={s.filters}>
                 <label htmlFor="textFragment">Searched phrase</label>

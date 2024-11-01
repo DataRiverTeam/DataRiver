@@ -9,6 +9,7 @@ import ListItemText from "@mui/material/ListItemText";
 import { TDag } from "../../types/airflow";
 
 function DagsList() {
+    let [isLoading, setIsLoading] = useState<boolean>(true);
     let [dags, setDags] = useState<TDag[]>([]);
     let [errorMessage, setErrorMessage] = useState("");
 
@@ -28,6 +29,8 @@ function DagsList() {
             setDags(json.dags);
         } catch (error) {
             if (error instanceof Error) setErrorMessage(error.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -44,9 +47,13 @@ function DagsList() {
 
     return (
         <>
+            <Link to={".."} relative="path">
+                Back
+            </Link>
             <h1> DAGs </h1>
-
-            {errorMessage ? (
+            {isLoading ? (
+                "Loading..."
+            ) : errorMessage ? (
                 errorMessage
             ) : dags.length ? (
                 <List>
