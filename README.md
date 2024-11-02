@@ -7,9 +7,9 @@ In order to run the containers, you need [Docker](https://www.docker.com).
 
 ### Building Docker containers
 
-Run Airflow with Elasticsearch (**Recommended way**) 
+Run Airflow, Elasticsearch and UI (**Recommended way**) 
 ```
-docker compose up
+docker compose --profile ui up
 ```
 
 #### Alternatively
@@ -48,6 +48,8 @@ The `mailbox` DAG uses a sensor to wait for files.
 In order to start processing the files, you need to put them in the directory specified in the DAG's configuration (default: `/opt/airflow/data/map/*.json`)
 
 ## Service access
+### Web UI
+- default URL: http://localhost:3000/
 
 ### Airflow webserver:
 

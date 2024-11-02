@@ -1,0 +1,30 @@
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dagruns {
+    min-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, auto);
+}
+
+.dagrunsRow {
+    display: grid;
+    columns: auto auto auto auto;
+}
+
+.dagrunsCell {
+    padding: 5px;
+    border: 1px solid rgba(120, 120, 120, 0.5);
+}
+
+.dagrunConfCell {
+    grid-column: 1 / 5;
+    transition: 1s height;
+}
+
+.dagrunConfCellActive {
+    height: auto;
+}

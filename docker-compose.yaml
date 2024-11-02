@@ -345,9 +345,38 @@ services:
       retries: 120
     profiles:
       - debug
+  ui:
+    build: ./webserver
+    command: >
+      bash -c '''
+        if [[ "${WEBSERVER_MODE}" == dev ]]; then
+          echo "RUNNING UI IN DEV MODE"
+          
+          cd /usr/src/webserver/ui
+          npm run dev &
+          cd /usr/src/webserver
+          npm run dev
+        else
+          echo "RUNNING UI IN PROD MODE"
 
+          cd /usr/src/webserver/ui
+          npm run build
+          cd /usr/src/webserver
+          npm run start
+        fi
+      '''
+    ports:
+    - "5173:5173"
+    - "3000:3000"
+    volumes:
+      - webserver:/usr/src/webserver
+    environment:
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - AIRFLOW_HOST=http://airflow-webserver:8080
 volumes:
   postgres-db-volume:
+    driver: local
+  webserver:
     driver: local
   certs:
     driver: local
