@@ -4,8 +4,11 @@ import { useParams } from "react-router-dom";
 import { Link } from "react-router-dom";
 
 import { TDagRun, TTaskInstance } from "../../types/airflow";
+import CodeBlock from "../CodeBlock/CodeBlock";
+// import { DataGrid } from "@mui/x-data-grid";
 
 type TDagRunResponse = TDagRun & { status: number };
+
 type TTaskInstancesResponse = {
     task_instances: TTaskInstance[];
     status: number;
@@ -72,19 +75,49 @@ function DagRunDetails() {
             <Link to={".."} relative="path">
                 Back
             </Link>
-            <h1>{dagId}</h1>
-            <h2> {runId} </h2>
+            <h1> {runId} </h1>
             {errorMessage ? (
                 errorMessage
-            ) : (
-                <pre>{JSON.stringify(dagRun, null, 2)}</pre>
-            )}
-            <h3>Tasks</h3>
+            ) : dagRun ? (
+                <>
+                    <p>start date - {dagRun.start_date}</p>
+                    {dagRun?.end_date ? (
+                        <p>end date - {dagRun.end_date}</p>
+                    ) : null}
+                    <p>state - {dagRun.state}</p>
+                </>
+            ) : null}
+            <h2>Tasks</h2>
             {tasksErrorMessage ? (
                 tasksErrorMessage
             ) : (
-                <pre>{JSON.stringify(tasks, null, 2)}</pre>
+                <table>
+                    <thead>
+                        <tr>
+                            <td>Task ID</td>
+                            <td>Map index</td>
+                            <td>State</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {tasks.map((task) => {
+                            return (
+                                <tr>
+                                    <td> {task.task_id}</td>
+                                    <td> {task.map_index}</td>
+                                    <td> {task.state || "-"}</td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
             )}
+            {dagRun ? (
+                <>
+                    <h2>Configuration</h2>
+                    <CodeBlock code={JSON.stringify(dagRun.conf, null, 2)} />
+                </>
+            ) : null}
         </>
     );
 }

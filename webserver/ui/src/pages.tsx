@@ -4,6 +4,7 @@ import NerBrowser from "./components/NerBrowser/NerBrowser";
 import DagsList from "./components/DagsList/DagsList";
 import DagDetails from "./components/DagDetails/DagDetails";
 import DagRunDetails from "./components/DagRunDetails/DagRunDetails";
+import DagTrigger from "./components/DagTrigger/DagTrigger";
 
 const pages: RouteObject[] = [
     {
@@ -22,6 +23,10 @@ const pages: RouteObject[] = [
             {
                 path: "dags/:dagId/:runId",
                 element: <DagRunDetails />,
+            },
+            {
+                path: "dags/:dagId/trigger",
+                element: <DagTrigger />,
             },
         ],
     },

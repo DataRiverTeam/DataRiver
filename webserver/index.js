@@ -1,20 +1,26 @@
 /*
     TODO:
-    - fetch task status for a DAGrun
-        -   use POST /dags/~/dagRuns/~/taskInstances/list to skip
-            fetching dagRunIds and fetching tasks separately for each ID
     - handle file upload for DAGS
     - display DAGs in better way
 */
 
 require("dotenv").config();
 
+const path = require("path");
+
 const express = require("express");
 const multer = require("multer");
-const path = require("path");
+const bodyParser = require("body-parser");
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
+
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// parse application/json
+app.use(express.json());
+app.use(express.static("ui/dist"));
 
 const { getElasticClient } = require("./utils/elastic");
 const ELASTIC_HOST = process.env.ELASTIC_HOST || "https://localhost:9200";
@@ -44,8 +50,6 @@ let schemas = {
         },
     },
 };
-
-app.use(express.static("ui/dist"));
 
 // app.post("/upload", upload.array("files", 10), (req, res, _next) => {});
 
@@ -82,6 +86,39 @@ app.get("/api/dags/:dagid/dagruns", async (req, res) => {
                 status: 500,
             });
         });
+});
+
+app.post("/api/dags/:dagid/dagruns", async (req, res) => {
+    const dagId = req.params["dagid"];
+
+    console.log(`Received request:
+        ${JSON.stringify(req.body, null, 1)}`);
+    try {
+        const response = await fetch(
+            `${AIRFLOW_HOST}/api/v1/dags/${dagId}/dagRuns`,
+            {
+                method: "POST",
+                body: JSON.stringify(req.body),
+                headers: {
+                    ...airflowUtil.getAirflowHeaders(),
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const data = await response.json();
+
+        res.status(response.status).send({
+            ...data,
+            status: response.status,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({
+            status: 500,
+        });
+    }
 });
 
 app.get("/api/dags/:dagid/dagruns/:runid", async (req, res) => {

@@ -1,6 +1,7 @@
 import { TDagRun } from "../../types/airflow";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
+
 import { Link } from "react-router-dom";
 
 import clsx from "clsx";
@@ -16,7 +17,7 @@ const NO_ITEMS_MSG = "No DAG runs to display.";
 function DagRunsList({ dagRuns }: TDagRunsListProps) {
     return (
         <>
-            {dagRuns.length ? (
+            {dagRuns?.length ? (
                 <div className={s.dagruns}>
                     <div className={s.dagrunsCell}>DAG run ID</div>
                     <div className={s.dagrunsCell}>Start date</div>
@@ -31,7 +32,7 @@ function DagRunsList({ dagRuns }: TDagRunsListProps) {
                         };
 
                         return (
-                            <>
+                            <Fragment key={dagRun.dag_run_id}>
                                 <div className={s.dagrunsCell}>
                                     <Link to={`${dagRun.dag_run_id}`}>
                                         {dagRun.dag_run_id}
@@ -70,12 +71,12 @@ function DagRunsList({ dagRuns }: TDagRunsListProps) {
                                         {JSON.stringify(dagRun.conf, null, 2)}
                                     </pre>
                                 </div>
-                            </>
+                            </Fragment>
                         );
                     })}
                 </div>
             ) : (
-                { NO_ITEMS_MSG }
+                <p>{NO_ITEMS_MSG}</p>
             )}
         </>
     );

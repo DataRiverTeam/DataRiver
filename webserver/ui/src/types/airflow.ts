@@ -46,6 +46,21 @@ export type TDagRun = {
     state: string;
 };
 
+export type TTaskInstanceStatus =
+    | "removed"
+    | "scheduled"
+    | "queued"
+    | "running"
+    | "success"
+    | "restarting"
+    | "failed"
+    | "up_for_retry"
+    | "up_for_reschedule"
+    | "upstream_failed"
+    | "skipped"
+    | "deferred"
+    | "shutdown";
+
 export type TTaskInstance = {
     dag_id: string;
     dag_run_id: string;
@@ -76,7 +91,7 @@ export type TTaskInstance = {
         timestamp: string;
     };
     start_date: string;
-    state: string | null;
+    state: TTaskInstanceStatus | null;
     task_display_name: string;
     task_id: string;
     trigger: {

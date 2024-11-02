@@ -59,11 +59,8 @@ function DagsList() {
                 <List>
                     {dags.map((dag) => {
                         return (
-                            <ListItem disablePadding>
-                                <Link
-                                    key={`link-${dag.dag_id}`}
-                                    to={`/dags/${dag.dag_id}`}
-                                >
+                            <ListItem key={`link-${dag.dag_id}`} disablePadding>
+                                <Link to={`/dags/${dag.dag_id}`}>
                                     <ListItemButton>
                                         <ListItemText
                                             primary={dag.dag_display_name}

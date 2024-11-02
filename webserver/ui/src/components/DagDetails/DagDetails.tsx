@@ -48,11 +48,17 @@ function DagDetails() {
 
             <h1> {dagId} </h1>
             <h2> DAG runs </h2>
-            <Tooltip title={"Trigger a DAG run"}>
-                <IconButton aria-label="trigger-dagrun" sx={{ color: "white" }}>
-                    <PlayArrowIcon />
-                </IconButton>
-            </Tooltip>
+            <Link relative="path" to={"./trigger"}>
+                <Tooltip title={"Trigger a DAG run"}>
+                    <IconButton
+                        aria-label="trigger-dagrun"
+                        sx={{ color: "white" }}
+                    >
+                        <PlayArrowIcon />
+                    </IconButton>
+                </Tooltip>
+            </Link>
+
             {isLoading ? (
                 "Loading..."
             ) : errorMessage ? (
