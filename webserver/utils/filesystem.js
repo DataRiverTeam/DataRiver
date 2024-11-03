@@ -7,8 +7,6 @@ async function getFiles(path) {
     });
 
     const mapped = files.map((item) => {
-        console.log(item);
-
         let newPath = item.parentPath.replaceAll("\\", "/");
 
         if (item.parentPath.startsWith("./")) {

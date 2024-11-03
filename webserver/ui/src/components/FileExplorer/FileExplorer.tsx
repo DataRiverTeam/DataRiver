@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import FileUploadForm from "../FileUploadForm/FileUpload";
+import FileUploadForm from "../FileUploadForm/FileUploadForm";
 
 type TFileType = "file" | "directory";
 
@@ -20,6 +20,10 @@ type TFileMap = {
 
 function addEntry(entryList: TFileMap, entry: Dirent) {
     const { parentPath } = entry;
+    if (entry.type === "directory") {
+        entryList[joinPaths(entry.parentPath, entry.name)] = [];
+    }
+
     if (!entryList.hasOwnProperty(parentPath)) {
         entryList[parentPath] = [];
     }
@@ -40,6 +44,10 @@ function getParentDir(path: string) {
     return segments.join("/");
 }
 
+function joinPaths(base: string, name: string) {
+    return base === "/" ? base + name : [base, name].join("/");
+}
+
 function FileExplorer() {
     let [files, setFiles] = useState<TFileMap>({});
     let [errorMessage, setErrorMessage] = useState("");
@@ -50,6 +58,7 @@ function FileExplorer() {
             const response = await fetch("/api/files");
             const data: Dirent[] = await response.json();
 
+            console.log(data);
             setFiles(data.reduce(addEntry, {}));
         } catch (error) {
             if (error instanceof Error) {
@@ -108,13 +117,10 @@ function FileExplorer() {
                                         item.type === "directory"
                                             ? () => {
                                                   changeDir(
-                                                      currentDir === "/"
-                                                          ? currentDir +
-                                                                item.name
-                                                          : [
-                                                                currentDir,
-                                                                item.name,
-                                                            ].join("/")
+                                                      joinPaths(
+                                                          currentDir,
+                                                          item.name
+                                                      )
                                                   );
                                               }
                                             : undefined
@@ -135,7 +141,11 @@ function FileExplorer() {
                 "No files found"
             )}
 
-            {errorMessage.length ? errorMessage : <FileUploadForm />}
+            {errorMessage.length ? (
+                errorMessage
+            ) : (
+                <FileUploadForm directory={currentDir} />
+            )}
         </>
     );
 }

@@ -19,10 +19,16 @@ body {
     height: 100dvh;
 }
 
+#root {
+    display: flex;
+    justify-content: center;
+}
+
 .content {
     padding-top: 80px;
     padding-left: 2rem;
     padding-right: 2rem;
+    width: 960px;
 }
 
 .code {

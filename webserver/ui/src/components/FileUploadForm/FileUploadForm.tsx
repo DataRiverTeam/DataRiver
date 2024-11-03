@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-function FileUploadForm() {
+type TFileUploadFormProps = {
+    directory?: string | null;
+};
+
+function FileUploadForm({ directory = null }: TFileUploadFormProps) {
     let [files, setFiles] = useState<FileList | null>(null);
 
     const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -9,6 +13,14 @@ function FileUploadForm() {
         const formData = new FormData();
 
         if (files) {
+            // TODO/FIXME: investigate potential path traversal vulnerability
+            // related to relative directory path
+            if (directory) {
+                console.log("directory", directory);
+                formData.append("directory", directory);
+            }
+
+            // note: files need to be put into body always as the last field
             for (let i = 0; i < files.length; i++) {
                 const file = files.item(i)!;
                 formData.append("files", file, file.name);
@@ -37,6 +49,7 @@ function FileUploadForm() {
 
     return (
         <form onSubmit={handleUpload}>
+            <h3> Upload to {directory} </h3>
             <input type="file" multiple onChange={handleChange} />
             <input type="submit" value="Upload" />
         </form>

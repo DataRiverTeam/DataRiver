@@ -7,9 +7,26 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 
 const app = express();
-const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploads";
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// parse application/json
+app.use(express.json());
+
+app.use(express.static("ui/dist"));
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploaded";
 const storage = multer.diskStorage({
-    destination: UPLOAD_DIR,
+    destination: (req, file, cb) => {
+        let basePath = UPLOAD_DIR;
+        let providedDir = req.body.directory
+        if (providedDir && typeof providedDir === "string") {
+            basePath = path.join(basePath, providedDir);
+            console.log("BASEPATH:", basePath);
+        }
+        
+        return cb(null, basePath);
+    },
     filename: function (req, file, cb) {
         const fragments = file.originalname.split(".");
 
@@ -24,12 +41,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
 
-// parse application/json
-app.use(express.json());
-app.use(express.static("ui/dist"));
 
 const { getElasticClient } = require("./utils/elastic");
 const ELASTIC_HOST = process.env.ELASTIC_HOST || "https://localhost:9200";
@@ -158,17 +170,6 @@ app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
 });
 
 app.get("/api/ner/docs", async (req, res) => {
-    //execute match for text search
-    //execute term search for looking for exact value (like product_id)
-
-    // EXAMPLE QUERY
-    // GET /ner/_search/
-    // {
-    //   "query":{
-    //     "match": { "document.text": "Kharkiv" } // normally, the key should be "text", not "document.text"
-    //   }
-    // }
-
     const textFragment = req.query.text;
     const id = req.query.id;
     if (!textFragment && !id) {
