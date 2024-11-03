@@ -1,9 +1,3 @@
-/*
-    TODO:
-    - handle file upload for DAGS
-    - display DAGs in better way
-*/
-
 require("dotenv").config();
 
 const path = require("path");
@@ -13,7 +7,22 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 
 const app = express();
-const upload = multer({ dest: "uploads/" });
+const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploads";
+const storage = multer.diskStorage({
+    destination: UPLOAD_DIR,
+    filename: function (req, file, cb) {
+        const fragments = file.originalname.split(".");
+
+        const extension =
+            !file.originalname.startsWith(".") && fragments.length > 1
+                ? fragments.pop()
+                : "";
+
+        cb(null, `${fragments.join(".")}-${Date.now()}.${extension}`);
+    },
+});
+
+const upload = multer({ storage: storage });
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -30,28 +39,7 @@ const AIRFLOW_HOST = process.env.AIRFLOW_HOST || "http://localhost:8080";
 const airflowUtil = require("./utils/airflow");
 const PORT = process.env.UI_PORT || 3000;
 
-let schemas = {
-    mailbox: {
-        fs_conn_id: {
-            type: "string",
-            default: "fs_data",
-        },
-        filepath: {
-            type: "string",
-            default: "map/*.json",
-        },
-        batch_size: {
-            type: "integer",
-            default: 10,
-        },
-        encoding: {
-            type: "string",
-            default: "utf-8",
-        },
-    },
-};
-
-// app.post("/upload", upload.array("files", 10), (req, res, _next) => {});
+const fsUtils = require("./utils/filesystem");
 
 /*
  API ENDPOINTS
@@ -203,8 +191,37 @@ app.get("/api/ner/docs", async (req, res) => {
     }
 });
 
+app.get("/api/files", async (req, res) => {
+    const files = await fsUtils.getFiles(UPLOAD_DIR);
+
+    res.json(
+        files.map((item) => ({
+            ...item,
+            parentPath: item.parentPath.replace(
+                new RegExp(`${UPLOAD_DIR}\/?`),
+                "/"
+            ),
+        }))
+    );
+});
+
 app.get("/api/*", async (req, res) => {
     res.status(403).send();
+});
+
+/* 
+    FILE UPLOAD
+*/
+
+app.post("/files", upload.array("files", 10), (req, res, _next) => {
+    try {
+        res.json({
+            status: 200,
+            files: req.files.map((file) => file.filename),
+        });
+    } catch (error) {
+        res.status(500).json({ status: 500 });
+    }
 });
 
 app.get("/*", (req, res) => {

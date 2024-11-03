@@ -30,7 +30,7 @@ function DagDetails() {
             setDagRuns(json.dag_runs);
         } catch (error) {
             if (error instanceof Error) setErrorMessage(error.message);
-            console.log(error);
+            console.error(error);
         } finally {
             setIsLoading(false);
         }

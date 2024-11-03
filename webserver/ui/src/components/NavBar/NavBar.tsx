@@ -14,6 +14,11 @@ function NavBar() {
                     </Link>
                 </Button>
                 <Button variant="text">
+                    <Link to={"/fileexplorer"} className={s.link}>
+                        Files
+                    </Link>
+                </Button>
+                <Button variant="text">
                     <Link to={"/ner"} className={s.link}>
                         Browse documents
                     </Link>

@@ -56,7 +56,6 @@ function DagRunDetails() {
                     `There was an error when handling request. Status code: ${json.status}`
                 );
             }
-            console.log(json.task_instances);
             setTasks(json.task_instances);
         } catch (error) {
             if (error instanceof Error) {
