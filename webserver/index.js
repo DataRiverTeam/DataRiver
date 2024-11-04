@@ -19,12 +19,12 @@ const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploaded";
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         let basePath = UPLOAD_DIR;
-        let providedDir = req.body.directory
+        let providedDir = req.body.directory;
         if (providedDir && typeof providedDir === "string") {
             basePath = path.join(basePath, providedDir);
             console.log("BASEPATH:", basePath);
         }
-        
+
         return cb(null, basePath);
     },
     filename: function (req, file, cb) {
@@ -40,8 +40,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
-
 
 const { getElasticClient } = require("./utils/elastic");
 const ELASTIC_HOST = process.env.ELASTIC_HOST || "https://localhost:9200";
@@ -107,6 +105,10 @@ app.post("/api/dags/:dagid/dagruns", async (req, res) => {
             }
         );
 
+        // FIXME: if user-provided parameters have wrong type
+        // (e.g. user providers "10" instead of 10)
+        // Airflow server returns HTML page instead of valid JSON
+        // what obviously fails
         const data = await response.json();
 
         res.status(response.status).send({

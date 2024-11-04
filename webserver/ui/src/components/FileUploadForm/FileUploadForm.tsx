@@ -13,26 +13,28 @@ function FileUploadForm({ directory = null }: TFileUploadFormProps) {
         const formData = new FormData();
 
         if (files) {
-            // TODO/FIXME: investigate potential path traversal vulnerability
-            // related to relative directory path
-            if (directory) {
-                console.log("directory", directory);
-                formData.append("directory", directory);
-            }
-
-            // note: files need to be put into body always as the last field
-            for (let i = 0; i < files.length; i++) {
-                const file = files.item(i)!;
-                formData.append("files", file, file.name);
-            }
-
-            let response = await fetch(`/files`, {
-                method: "POST",
-                body: formData,
-            });
-
             try {
-                console.log(await response.json());
+                // TODO/FIXME: investigate potential path traversal vulnerability
+                // related to relative directory path
+                if (directory) {
+                    console.log("directory", directory);
+                    formData.append("directory", directory);
+                }
+
+                // note: files need to be put into body always as the last field
+                for (let i = 0; i < files.length; i++) {
+                    const file = files.item(i)!;
+                    formData.append("files", file, file.name);
+                }
+
+                let response = await fetch(`/files`, {
+                    method: "POST",
+                    body: formData,
+                });
+
+                if (response.status.toString() === "200") {
+                    alert("File upload successful!");
+                }
             } catch (error) {
                 console.error(error);
             }
