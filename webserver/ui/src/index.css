@@ -11,6 +11,8 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    --border-table: 1px solid rgba(127, 127, 127, 0.3);
 }
 
 body {
@@ -36,4 +38,9 @@ body {
     color: white;
     padding: 2rem;
     overflow: scroll;
+    box-sizing: border-box;
+}
+
+.navbar {
+    padding: 0 2rem;
 }

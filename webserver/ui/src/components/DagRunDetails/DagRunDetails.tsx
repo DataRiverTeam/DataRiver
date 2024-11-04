@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-
-import { Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 
 import { TDagRun, TTaskInstance } from "../../types/airflow";
 import CodeBlock from "../CodeBlock/CodeBlock";
-// import { DataGrid } from "@mui/x-data-grid";
+
+import s from "./DagRunDetails.module.css";
 
 type TDagRunResponse = TDagRun & { status: number };
 
@@ -90,7 +89,7 @@ function DagRunDetails() {
             {tasksErrorMessage ? (
                 tasksErrorMessage
             ) : (
-                <table>
+                <table className={s.tasks}>
                     <thead>
                         <tr>
                             <td>Task ID</td>
@@ -101,7 +100,7 @@ function DagRunDetails() {
                     <tbody>
                         {tasks.map((task) => {
                             return (
-                                <tr>
+                                <tr key={task.task_id}>
                                     <td> {task.task_id}</td>
                                     <td> {task.map_index}</td>
                                     <td> {task.state || "-"}</td>

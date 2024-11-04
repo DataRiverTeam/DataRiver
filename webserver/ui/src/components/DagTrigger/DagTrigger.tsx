@@ -1,5 +1,10 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
+import clsx from "clsx";
+
+import Button from "@mui/material/Button";
+
+import s from "./DagTrigger.module.css";
 
 function DagTrigger() {
     const [conf, setConf] = useState<string>("{}");
@@ -44,15 +49,28 @@ function DagTrigger() {
             </Link>
             <h1> {dagId} </h1>
             <h2> Trigger a new DAG run</h2>
+            <div className={s.triggerFormWrapper}>
+                <label>Configuration</label>
+                <textarea
+                    name="conf"
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        resize: "vertical",
+                    }}
+                    value={conf}
+                    onChange={handleInput}
+                    className="code"
+                />
+                <Button
+                    onClick={handleSubmit}
+                    variant="text"
+                    className={clsx(s.submitButton)}
+                >
+                    Confirm
+                </Button>
+            </div>
             {/* <CodeBlock code="" editable onInput={handleKey} /> */}
-            <label>Configuration</label>
-            <textarea
-                name="conf"
-                style={{ display: "block" }}
-                value={conf}
-                onChange={handleInput}
-            />
-            <button onClick={handleSubmit}> Confirm </button>
         </>
     );
 }

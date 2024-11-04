@@ -6,7 +6,7 @@ import s from "./NavBar.module.css";
 
 function NavBar() {
     return (
-        <AppBar>
+        <AppBar className="navbar">
             <Toolbar disableGutters>
                 <Button variant="text">
                     <Link to={"/dags"} className={s.link}>

@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
+
+import Button from "@mui/material/Button";
+import RefreshIcon from "@mui/icons-material/Refresh";
+
 import FileUploadForm from "../FileUploadForm/FileUploadForm";
+import s from "./FileExplorer.module.css";
+import { Tooltip } from "@mui/material";
 
 type TFileType = "file" | "directory";
 
@@ -49,21 +55,23 @@ function joinPaths(base: string, name: string) {
 }
 
 function FileExplorer() {
+    let [isLoading, setIsLoading] = useState<boolean>(true);
     let [files, setFiles] = useState<TFileMap>({});
-    let [errorMessage, setErrorMessage] = useState("");
+    let [errorMessage, setErrorMessage] = useState<string>("");
     let [currentDir, setCurrentDir] = useState<string>("");
 
     const fetchFiles = async () => {
         try {
+            setIsLoading(() => true);
             const response = await fetch("/api/files");
             const data: Dirent[] = await response.json();
-
-            console.log(data);
             setFiles(data.reduce(addEntry, {}));
         } catch (error) {
             if (error instanceof Error) {
                 setErrorMessage(error.message);
             }
+        } finally {
+            setIsLoading(() => false);
         }
     };
 
@@ -88,12 +96,23 @@ function FileExplorer() {
     return (
         <>
             <h1> Browse files</h1>
-            <button onClick={fetchFiles}>Refresh</button>
+            <Tooltip title="Refresh file explorer">
+                <Button
+                    onClick={fetchFiles}
+                    className={s.button}
+                    disabled={isLoading}
+                >
+                    <RefreshIcon />
+                </Button>
+            </Tooltip>
             <h2> {currentDir} </h2>
-            {Object.keys(files).length > 0 ? (
-                <table>
+            {/* TODO: move the table to separate component */}
+            {isLoading ? (
+                "Loading..."
+            ) : Object.keys(files).length > 0 ? (
+                <table className={s.fileList}>
                     <thead>
-                        <tr>
+                        <tr className={s.fileListHead}>
                             <td>Name</td>
                             <td>type</td>
                         </tr>
@@ -101,12 +120,15 @@ function FileExplorer() {
                     <tbody>
                         {currentDir !== "/" ? (
                             <tr>
-                                <td
-                                    onClick={() => {
-                                        changeDir(getParentDir(currentDir));
-                                    }}
-                                >
-                                    <a href="#">..</a>
+                                <td>
+                                    <a
+                                        href="#"
+                                        onClick={() => {
+                                            changeDir(getParentDir(currentDir));
+                                        }}
+                                    >
+                                        ..
+                                    </a>
                                 </td>
                             </tr>
                         ) : null}

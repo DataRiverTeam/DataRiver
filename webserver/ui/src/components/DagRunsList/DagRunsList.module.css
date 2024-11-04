@@ -20,6 +20,35 @@
     border: 1px solid rgba(120, 120, 120, 0.5);
 }
 
+.status {
+    font-weight: bold;
+    text-align: center;
+}
+
+.statusSuccess {
+    background-color: #008000;
+    color: white;
+}
+
+.statusFailed {
+    background-color: #ff0000;
+    color: white;
+}
+
+.statusRunning {
+    background-color: #00ff00;
+    color: white;
+}
+
+.statusUpstreamFailed {
+    background-color: #ffa500;
+    color: white;
+}
+.statusUpstreamFailed {
+    background-color: turquoise;
+    color: white;
+}
+
 .dagrunConfCell {
     grid-column: 1 / 5;
     transition: 1s height;
