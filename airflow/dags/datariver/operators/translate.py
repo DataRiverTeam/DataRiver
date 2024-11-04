@@ -57,43 +57,46 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
             )
 
             if error_handler.is_file_error_free():
-                #it would be helpful to somehow get info from json_args if there was error when opening file
-                text = json_args.get_value(self.input_key)
-                lang = json_args.get_value("language")
-                if text is None:
-                    error_handler.save_error_to_file(f"Value stored under key {self.input_key} could not be read",
-                                                     self.task_id)
-                    continue
-                if lang == self.output_language:
-                    translated_text = text
-                else:
-                    if lang not in translators:
-                        translators[lang] = GoogleTranslator(source=lang, target="en")
-                    translator = translators[lang]
-                    print(f"Translating {json_args.get_full_path()} from {lang} to {self.output_language}")
+                try:
+                    #it would be helpful to somehow get info from json_args if there was error when opening file
+                    text = json_args.get_value(self.input_key)
+                    lang = json_args.get_value("language")
+                    if text is None:
+                        error_handler.save_error_to_file(f"Value stored under key {self.input_key} could not be read",
+                                                         self.task_id)
+                        continue
+                    if lang == self.output_language:
+                        translated_text = text
+                    else:
+                        if lang not in translators:
+                            translators[lang] = GoogleTranslator(source=lang, target="en")
+                        translator = translators[lang]
+                        print(f"Translating {json_args.get_full_path()} from {lang} to {self.output_language}")
 
-                    translated_text = ""
-                    # split text to sentences, so we can translate only a fragment instead of the whole file
-                    sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
+                        translated_text = ""
+                        # split text to sentences, so we can translate only a fragment instead of the whole file
+                        sentences = nltk.tokenize.sent_tokenize(text, language=language_names[lang])
 
-                    l = 0
-                    r = 0
-                    total_length = 0
-                    while r < len(sentences):
-                        if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
-                            total_length += len(sentences[r])
+                        l = 0
+                        r = 0
+                        total_length = 0
+                        while r < len(sentences):
+                            if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
+                                total_length += len(sentences[r])
+                            else:
+                                to_translate = " ".join(sentences[l: r + 1])
+                                translation = translator.translate(to_translate)
+                                translated_text += translation  # perhaps we should make sure that we use proper char encoding when writing to file?
+                                l = r + 1
+                                total_length = 0
+                            r += 1
                         else:
                             to_translate = " ".join(sentences[l: r + 1])
                             translation = translator.translate(to_translate)
-                            translated_text += translation  # perhaps we should make sure that we use proper char encoding when writing to file?
-                            l = r + 1
-                            total_length = 0
-                        r += 1
-                    else:
-                        to_translate = " ".join(sentences[l: r + 1])
-                        translation = translator.translate(to_translate)
-                        translated_text += translation
+                            translated_text += translation
 
-                json_args.add_value(self.output_key, translated_text)
+                    json_args.add_value(self.output_key, translated_text)
+                except ConnectionError as e:
+                    error_handler.save_error_to_file(e, self.task_id)
             else:
                 self.log.info("Found error from previous task for file %s", file_path)
