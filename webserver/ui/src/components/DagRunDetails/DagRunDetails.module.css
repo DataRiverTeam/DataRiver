@@ -1,0 +1,9 @@
+.tasks {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tasks td {
+    border: var(--border-table);
+    padding: 0.4rem;
+}

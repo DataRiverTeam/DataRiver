@@ -1,0 +1,15 @@
+.fileList {
+    width: 100%;
+    padding: 0.8rem;
+    border: var(--border-table);
+}
+
+.fileListHead {
+    font-weight: bold;
+    border: var(--border-table);
+}
+
+:global(.MuiButton-root).button {
+    border: var(--border-table);
+    color: white;
+}

@@ -28,6 +28,8 @@ export type TDagRunCollection = {
     total_entries: number;
 };
 
+export type TDagState = "queued" | "running" | "success" | "failed";
+
 export type TDagRun = {
     conf: {
         [key: string]: boolean | number | string | [] | object;
@@ -43,7 +45,7 @@ export type TDagRun = {
     note: string;
     run_type: string;
     start_date: string;
-    state: string;
+    state: TDagState;
 };
 
 export type TTaskInstanceStatus =

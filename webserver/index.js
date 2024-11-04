@@ -1,9 +1,3 @@
-/*
-    TODO:
-    - handle file upload for DAGS
-    - display DAGs in better way
-*/
-
 require("dotenv").config();
 
 const path = require("path");
@@ -13,14 +7,39 @@ const multer = require("multer");
 const bodyParser = require("body-parser");
 
 const app = express();
-const upload = multer({ dest: "uploads/" });
-
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // parse application/json
 app.use(express.json());
+
 app.use(express.static("ui/dist"));
+
+const UPLOAD_DIR = process.env.UPLOAD_DIR || "uploaded";
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        let basePath = UPLOAD_DIR;
+        let providedDir = req.body.directory;
+        if (providedDir && typeof providedDir === "string") {
+            basePath = path.join(basePath, providedDir);
+            console.log("BASEPATH:", basePath);
+        }
+
+        return cb(null, basePath);
+    },
+    filename: function (req, file, cb) {
+        const fragments = file.originalname.split(".");
+
+        const extension =
+            !file.originalname.startsWith(".") && fragments.length > 1
+                ? fragments.pop()
+                : "";
+
+        cb(null, `${fragments.join(".")}-${Date.now()}.${extension}`);
+    },
+});
+
+const upload = multer({ storage: storage });
 
 const { getElasticClient } = require("./utils/elastic");
 const ELASTIC_HOST = process.env.ELASTIC_HOST || "https://localhost:9200";
@@ -30,28 +49,7 @@ const AIRFLOW_HOST = process.env.AIRFLOW_HOST || "http://localhost:8080";
 const airflowUtil = require("./utils/airflow");
 const PORT = process.env.UI_PORT || 3000;
 
-let schemas = {
-    mailbox: {
-        fs_conn_id: {
-            type: "string",
-            default: "fs_data",
-        },
-        filepath: {
-            type: "string",
-            default: "map/*.json",
-        },
-        batch_size: {
-            type: "integer",
-            default: 10,
-        },
-        encoding: {
-            type: "string",
-            default: "utf-8",
-        },
-    },
-};
-
-// app.post("/upload", upload.array("files", 10), (req, res, _next) => {});
+const fsUtils = require("./utils/filesystem");
 
 /*
  API ENDPOINTS
@@ -107,6 +105,10 @@ app.post("/api/dags/:dagid/dagruns", async (req, res) => {
             }
         );
 
+        // FIXME: if user-provided parameters have wrong type
+        // (e.g. user providers "10" instead of 10)
+        // Airflow server returns HTML page instead of valid JSON
+        // what obviously fails
         const data = await response.json();
 
         res.status(response.status).send({
@@ -170,17 +172,6 @@ app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
 });
 
 app.get("/api/ner/docs", async (req, res) => {
-    //execute match for text search
-    //execute term search for looking for exact value (like product_id)
-
-    // EXAMPLE QUERY
-    // GET /ner/_search/
-    // {
-    //   "query":{
-    //     "match": { "document.text": "Kharkiv" } // normally, the key should be "text", not "document.text"
-    //   }
-    // }
-
     const textFragment = req.query.text;
     const id = req.query.id;
     if (!textFragment && !id) {
@@ -203,8 +194,37 @@ app.get("/api/ner/docs", async (req, res) => {
     }
 });
 
+app.get("/api/files", async (req, res) => {
+    const files = await fsUtils.getFiles(UPLOAD_DIR);
+
+    res.json(
+        files.map((item) => ({
+            ...item,
+            parentPath: item.parentPath.replace(
+                new RegExp(`${UPLOAD_DIR}\/?`),
+                "/"
+            ),
+        }))
+    );
+});
+
 app.get("/api/*", async (req, res) => {
     res.status(403).send();
+});
+
+/* 
+    FILE UPLOAD
+*/
+
+app.post("/files", upload.array("files", 10), (req, res, _next) => {
+    try {
+        res.json({
+            status: 200,
+            files: req.files.map((file) => file.filename),
+        });
+    } catch (error) {
+        res.status(500).json({ status: 500 });
+    }
 });
 
 app.get("/*", (req, res) => {

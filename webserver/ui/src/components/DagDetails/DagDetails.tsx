@@ -5,7 +5,7 @@ import { TDagRun, TDagRunCollection } from "../../types/airflow";
 import DagRunsList from "../DagRunsList/DagRunsList";
 
 import Tooltip from "@mui/material/Tooltip";
-import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 type TDagRunResponse = TDagRunCollection & { status: number };
@@ -30,7 +30,7 @@ function DagDetails() {
             setDagRuns(json.dag_runs);
         } catch (error) {
             if (error instanceof Error) setErrorMessage(error.message);
-            console.log(error);
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
@@ -48,16 +48,21 @@ function DagDetails() {
 
             <h1> {dagId} </h1>
             <h2> DAG runs </h2>
-            <Link relative="path" to={"./trigger"}>
-                <Tooltip title={"Trigger a DAG run"}>
-                    <IconButton
-                        aria-label="trigger-dagrun"
-                        sx={{ color: "white" }}
-                    >
-                        <PlayArrowIcon />
-                    </IconButton>
-                </Tooltip>
-            </Link>
+            <div style={{ marginBottom: "1rem" }}>
+                <Link relative="path" to={"./trigger"}>
+                    <Tooltip title={"Trigger a DAG run"}>
+                        <Button
+                            sx={{
+                                color: "white",
+                                border: "1px solid rgba(127, 127, 127, 0.3)",
+                            }}
+                            aria-label="trigger-dagrun"
+                        >
+                            <PlayArrowIcon />
+                        </Button>
+                    </Tooltip>
+                </Link>
+            </div>
 
             {isLoading ? (
                 "Loading..."

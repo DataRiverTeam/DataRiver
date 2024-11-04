@@ -370,6 +370,7 @@ services:
     - "3000:3000"
     volumes:
       - webserver:/usr/src/webserver
+      - ./airflow/data:/usr/src/webserver/uploaded
     environment:
       - ELASTIC_HOST=${ELASTIC_HOST}
       - AIRFLOW_HOST=http://airflow-webserver:8080

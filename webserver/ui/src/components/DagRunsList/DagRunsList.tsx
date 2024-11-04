@@ -41,7 +41,16 @@ function DagRunsList({ dagRuns }: TDagRunsListProps) {
                                 <div className={s.dagrunsCell}>
                                     {dagRun.start_date}
                                 </div>
-                                <div className={s.dagrunsCell}>
+                                <div
+                                    className={clsx(s.dagrunsCell, s.status, {
+                                        [s.statusSuccess]:
+                                            dagRun.state === "success",
+                                        [s.statusFailed]:
+                                            dagRun.state === "failed",
+                                        [s.statusRunning]:
+                                            dagRun.state === "running",
+                                    })}
+                                >
                                     {dagRun.state}
                                 </div>
                                 <div className={s.dagrunsCell}>
