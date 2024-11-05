@@ -1,4 +1,5 @@
 from calendar import error
+import requests
 
 from airflow.models.baseoperator import BaseOperator
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -96,7 +97,12 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
                             translated_text += translation
 
                     json_args.add_value(self.output_key, translated_text)
-                except ConnectionError as e:
-                    error_handler.save_error_to_file(e, self.task_id)
+                except requests.exceptions.ConnectionError as e:
+                    error_handler.save_error_to_file(f"Connection error: {e} ", self.task_id)
+                except requests.exceptions.HTTPError as e:
+                    error_handler.save_error_to_file(f"HTTP error: {e} ", self.task_id)
+                except requests.exceptions.RequestException as e:
+                    error_handler.save_error_to_file(f"Request error: {e} ", self.task_id)
+
             else:
                 self.log.info("Found error from previous task for file %s", file_path)
