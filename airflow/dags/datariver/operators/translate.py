@@ -54,17 +54,17 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
                 file_path,
                 self.fs_conn_id,
                 self.error_key,
+                self.task_id,
                 self.encoding
             )
 
-            if error_handler.is_file_error_free():
+            if error_handler.are_previous_tasks_error_free():
                 try:
                     #it would be helpful to somehow get info from json_args if there was error when opening file
                     text = json_args.get_value(self.input_key)
                     lang = json_args.get_value("language")
                     if text is None:
-                        error_handler.save_error_to_file(f"Value stored under key {self.input_key} could not be read",
-                                                         self.task_id)
+                        error_handler.save_error_to_file(f"Value stored under key {self.input_key} could not be read")
                         continue
                     if lang == self.output_language:
                         translated_text = text
@@ -98,11 +98,11 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
 
                     json_args.add_value(self.output_key, translated_text)
                 except requests.exceptions.ConnectionError as e:
-                    error_handler.save_error_to_file(f"Connection error: {e} ", self.task_id)
+                    error_handler.save_error_to_file(f"Connection error: {e} ")
                 except requests.exceptions.HTTPError as e:
-                    error_handler.save_error_to_file(f"HTTP error: {e} ", self.task_id)
+                    error_handler.save_error_to_file(f"HTTP error: {e} ")
                 except requests.exceptions.RequestException as e:
-                    error_handler.save_error_to_file(f"Request error: {e} ", self.task_id)
+                    error_handler.save_error_to_file(f"Request error: {e} ")
 
             else:
                 self.log.info("Found error from previous task for file %s", file_path)

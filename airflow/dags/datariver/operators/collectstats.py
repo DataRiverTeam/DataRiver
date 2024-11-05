@@ -65,9 +65,10 @@ class JsonSummaryMarkdownOperator(BaseOperator):
                 file_path,
                 self.fs_conn_id,
                 self.error_key,
+		        self.task_id,
                 self.encoding
             )
-            if error_handler.is_file_error_free():
+            if error_handler.are_previous_tasks_error_free():
                 os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
                 try:

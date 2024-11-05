@@ -24,13 +24,14 @@ class JsonLangdetectOperator(BaseOperator):
                 file_path,
                 self.fs_conn_id,
                 self.error_key,
+                self.task_id,
                 self.encoding
             )
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             text = json_args.get_value(self.input_key)
             # if text does not contain key, language cannot be detected
             if text is None:
-                error_handler.save_error_to_file(f"Value stored under key {self.input_key} could not be read", self.task_id)
+                error_handler.save_error_to_file(f"Value stored under key {self.input_key} could not be read")
                 #now it's time to look for that error in another tasks and do nothing for that specified file if found
             else:
                 lang = langdetect.detect(text)

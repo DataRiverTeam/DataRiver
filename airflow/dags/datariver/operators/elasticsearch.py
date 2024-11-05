@@ -104,10 +104,11 @@ class ElasticJsonPushOperator(BaseOperator):
                 file_path,
                 self.fs_conn_id,
                 self.error_key,
+                self.task_id,
                 self.encoding
             )
             document = {}
-            if error_handler.is_file_error_free():
+            if error_handler.are_previous_tasks_error_free():
                 if self.input_keys:
                     document = json_args.get_values(self.input_keys)
                 else:
