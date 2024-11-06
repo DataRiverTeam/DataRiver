@@ -7,7 +7,7 @@ from datariver.operators.json_tools import JsonArgs
 from datariver.operators.langdetect import JsonLangdetectOperator
 from datariver.operators.translate import JsonTranslateOperator
 from datariver.operators.ner import NerJsonOperator
-from datariver.operators.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
+from datariver.operators.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator, ElasticErrorListPushOperator
 from datariver.operators.stats import NerJsonStatisticsOperator
 from datariver.operators.collectstats import JsonSummaryMarkdownOperator
 
@@ -156,6 +156,16 @@ with DAG(
         error_key="error"
     )
 
+    error_push_task = ElasticErrorListPushOperator(
+        task_id="error_push",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        json_files_paths="{{ params.json_files_paths }}",
+        index="errors",
+        es_conn_args=ES_CONN_ARGS,
+        encoding="{{ params.encoding }}",
+        error_key="error"
+    )
+
     es_search_task = ElasticSearchOperator(
         task_id="elastic_get",
         index="ner",
@@ -165,4 +175,4 @@ with DAG(
 
 detect_language_task >> decide_about_translation >> [translate_task, ner_without_translation_task]
 translate_task >> ner_task
-[ner_without_translation_task, ner_task] >> stats_task >> summary_task >> es_push_task >> es_search_task
+[ner_without_translation_task, ner_task] >> stats_task >> summary_task >> es_push_task >> error_push_task >> es_search_task
