@@ -166,14 +166,15 @@ with DAG(
         pre_execute=filter_errors
     )
 
-    error_push_task = ElasticErrorListPushOperator(
-        task_id="error_push",
+    error_push_task = ElasticJsonPushOperator(
+        task_id="elastic_error_push",
         fs_conn_id="{{ params.fs_conn_id }}",
         json_files_paths="{{ params.json_files_paths }}",
         index="errors",
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
+        pre_execute=get_errors
     )
 
     es_search_task = ElasticSearchOperator(
