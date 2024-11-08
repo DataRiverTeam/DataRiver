@@ -374,6 +374,8 @@ services:
     environment:
       - ELASTIC_HOST=${ELASTIC_HOST}
       - AIRFLOW_HOST=http://airflow-webserver:8080
+    profiles:
+      - ui
 volumes:
   postgres-db-volume:
     driver: local
