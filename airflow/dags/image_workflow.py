@@ -1,7 +1,8 @@
 from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
-from airflow.operators.dummy import DummyOperator
+from datariver.operators.extract_metadata import JsonExtractMetadata
+
 import os
 
 default_args = {
@@ -41,6 +42,13 @@ with DAG(
         )
     },
 ) as dag:
-    dummy_op = DummyOperator(task_id="dummy_op")
+    extract_metadata_task = JsonExtractMetadata(
+        task_id="extract_metadata",
+        json_files_paths="{{ params.json_files_paths }}",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        input_key="image_path",
+        output_key="exif",
+        encoding="{{ params.encoding }}",
+    )
 
-dummy_op
+extract_metadata_task

@@ -100,5 +100,6 @@ class JsonArgs(LoggingMixin):
     def generate_full_path(file_path, fs_conn_id):
         hook = FSHook(fs_conn_id)
         basepath = hook.get_path()
+        file_path = file_path.removeprefix("./")
         full_path = os.path.join(basepath, file_path)
         return full_path
