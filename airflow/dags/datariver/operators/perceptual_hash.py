@@ -23,7 +23,7 @@ class JsonPerceptualHash(BaseOperator):
         self.encoding = encoding
         if hash_type not in HashType:
             # todo add error handling here someheow
-            raise AttributeError(f"unsupported ExifType {hash_type}")
+            raise AttributeError(f"unsupported HashType {hash_type}")
         self.hash_type: HashType = HashType(hash_type)
 
     def execute(self, context):
@@ -45,9 +45,9 @@ class JsonPerceptualHash(BaseOperator):
     def p_hash(self, image_path: str):
         import cv2
         img = cv2.imread(image_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        hash = cv2.img_hash.pHash(img)  # 8-byte hash
-        hash_int = int.from_bytes(hash.tobytes(), byteorder='big', signed=False)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # should it be converted to Gray?
+        hash_value = cv2.img_hash.pHash(img)  # 8-byte hash
+        hash_int = int.from_bytes(hash_value.tobytes(), byteorder='big', signed=False)
         return hash_int
 
     def block_mean_hash(self, image_path):
