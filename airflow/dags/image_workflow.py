@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.extract_metadata import JsonExtractMetadata
+from datariver.operators.perceptual_hash import JsonPerceptualHash
 
 import os
 
@@ -42,13 +43,13 @@ with DAG(
         )
     },
 ) as dag:
-    extract_metadata_task = JsonExtractMetadata(
+    perceptual_hash_task = JsonPerceptualHash(
         task_id="extract_metadata",
         json_files_paths="{{ params.json_files_paths }}",
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="image_path",
-        output_key="exif",
+        output_key="hash",
         encoding="{{ params.encoding }}",
     )
 
-extract_metadata_task
+perceptual_hash_task
