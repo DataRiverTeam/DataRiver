@@ -65,7 +65,7 @@ class JsonSummaryMarkdownOperator(BaseOperator):
                 file_path,
                 self.fs_conn_id,
                 self.error_key,
-		        self.task_id,
+                self.task_id,
                 self.encoding
             )
             if error_handler.are_previous_tasks_error_free():

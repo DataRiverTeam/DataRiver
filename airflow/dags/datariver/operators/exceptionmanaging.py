@@ -21,10 +21,7 @@ class ErrorHandler:
 
 #this approach to error handling may be not fully effective due to relying on files, but it supports batching
     def is_file_error_free(self):
-        if self.error_key in self.json_args.get_keys():
-            return False
-        else:
-            return True
+        return self.error_key not in self.json_args.get_keys()
 
     def are_previous_tasks_error_free(self):
         if self.error_key in self.json_args.get_keys():
