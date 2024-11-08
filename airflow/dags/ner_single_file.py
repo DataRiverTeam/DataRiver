@@ -3,11 +3,12 @@ from airflow import DAG
 from airflow.operators.python import BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
+from datariver.operators.exceptionmanaging import ErrorHandler
 from datariver.operators.json_tools import JsonArgs
 from datariver.operators.langdetect import JsonLangdetectOperator
 from datariver.operators.translate import JsonTranslateOperator
 from datariver.operators.ner import NerJsonOperator
-from datariver.operators.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator, ElasticErrorListPushOperator
+from datariver.operators.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerJsonStatisticsOperator
 from datariver.operators.collectstats import JsonSummaryMarkdownOperator
 
@@ -28,7 +29,15 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
-
+def _filter_errors(context, exclude):
+    task=context['task']
+    task_id=context['task_instance'].task_id
+    result=[json_file for json_file in task.json_files_paths if exclude==ErrorHandler(json_file, task.fs_conn_id, task.error_key, task_id, task.encoding).is_file_error_free()]
+    setattr(context["task"], "json_files_paths", result)
+def filter_errors(context):
+    _filter_errors(context, True)
+def get_errors(context):
+    _filter_errors(context, False)
 
 def decide_about_translation(ti, **context):
     fs_conn_id = context["params"]["fs_conn_id"]
@@ -153,17 +162,19 @@ with DAG(
         index="ner",
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
+        pre_execute=filter_errors
     )
 
-    error_push_task = ElasticErrorListPushOperator(
-        task_id="error_push",
+    error_push_task = ElasticJsonPushOperator(
+        task_id="elastic_error_push",
         fs_conn_id="{{ params.fs_conn_id }}",
         json_files_paths="{{ params.json_files_paths }}",
         index="errors",
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
+        pre_execute=get_errors
     )
 
     es_search_task = ElasticSearchOperator(

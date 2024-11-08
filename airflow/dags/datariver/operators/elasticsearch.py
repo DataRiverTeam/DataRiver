@@ -110,73 +110,17 @@ class ElasticJsonPushOperator(BaseOperator):
                 self.encoding
             )
             document = {}
-            if error_handler.are_previous_tasks_error_free():
-                if self.input_keys:
-                    document = json_args.get_values(self.input_keys)
-                else:
-                    present_keys = json_args.get_keys()
-                    keys = list(set(present_keys) - set(self.keys_to_skip))
-                    document = json_args.get_values(keys)
-                document_list.append(document)
+
+            if self.input_keys:
+                document = json_args.get_values(self.input_keys)
             else:
-                self.log.info("Found error from previous task for file %s", file_path)
+                present_keys = json_args.get_keys()
+                keys = list(set(present_keys) - set(self.keys_to_skip))
+                document = json_args.get_values(keys)
+            document_list.append(document)
 
         results = []
         for ok, response in helpers.streaming_bulk(es, document_list, index=self.index):
-            results.append(response['index'])
-        if self.refresh:
-            es.indices.refresh(index=self.index)
-        return results
-
-
-class ElasticErrorListPushOperator(BaseOperator):
-    template_fields = ("fs_conn_id", "json_files_paths", "encoding", "error_key")
-
-    def __init__(
-        self,
-        *,
-        index,
-        fs_conn_id="fs_data",
-        es_conn_args={},
-        json_files_paths,
-        encoding="utf-8",
-        refresh=False,
-        error_key,
-        **kwargs
-    ):
-        super().__init__(**kwargs)
-
-        self.fs_conn_id = fs_conn_id
-        self.index = index
-        self.es_conn_args = es_conn_args
-        self.json_files_paths = json_files_paths
-        self.encoding = encoding
-        self.refresh = refresh
-        self.error_key = error_key
-
-    def execute(self, context):
-        from elasticsearch import Elasticsearch, helpers
-        es = Elasticsearch(
-            **self.es_conn_args
-        )
-        error_data = []
-        for file_path in self.json_files_paths:
-            error_handler = ErrorHandler(
-                file_path,
-                self.fs_conn_id,
-                self.error_key,
-                self.task_id,
-                self.encoding
-            )
-            if not error_handler.are_previous_tasks_error_free():
-                error_dict = error_handler.get_error_from_file()
-                task_id = next(iter(error_dict))
-                error_string = f"{task_id} - {error_dict[task_id]}"
-                file_name = os.path.basename(file_path)
-                error_data.append({file_name: error_string})
-
-        results = []
-        for ok, response in helpers.streaming_bulk(es, error_data, index=self.index):
             results.append(response['index'])
         if self.refresh:
             es.indices.refresh(index=self.index)
