@@ -50,7 +50,7 @@ class JsonPerceptualHash(BaseOperator):
         hash_int = int.from_bytes(hash_value.tobytes(), byteorder='big', signed=False)
         return hash_int
 
-    def block_mean_hash(self, image_path):
+    def block_mean_hash(self, image_path: str):
         import cv2
         img = cv2.imread(image_path)
         block_mean_hash = cv2.img_hash.BlockMeanHash_create()
