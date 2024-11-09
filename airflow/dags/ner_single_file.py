@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.operators.python import BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
+from datariver.operators.exceptionmanaging import ErrorHandler
 from datariver.operators.common.json_tools import JsonArgs
 from datariver.operators.common.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
 from datariver.operators.texts.langdetect import JsonLangdetectOperator
@@ -28,7 +29,15 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
-
+def _filter_errors(context, exclude):
+    task=context['task']
+    task_id=context['task_instance'].task_id
+    result=[json_file for json_file in task.json_files_paths if exclude==ErrorHandler(json_file, task.fs_conn_id, task.error_key, task_id, task.encoding).is_file_error_free()]
+    setattr(context["task"], "json_files_paths", result)
+def filter_errors(context):
+    _filter_errors(context, True)
+def get_errors(context):
+    _filter_errors(context, False)
 
 def decide_about_translation(ti, **context):
     fs_conn_id = context["params"]["fs_conn_id"]
@@ -79,6 +88,7 @@ with DAG(
         input_key="content",
         output_key="language",
         encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     decide_about_translation = BranchPythonOperator(
@@ -94,7 +104,8 @@ with DAG(
         input_key="content",
         output_key="translated",
         output_language="en",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key = "error"
     )
 
     ner_task = NerJsonOperator(
@@ -105,7 +116,8 @@ with DAG(
         input_key="translated",
         output_key="ner",
         trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     ner_without_translation_task = NerJsonOperator(
@@ -115,7 +127,8 @@ with DAG(
         json_files_paths='{{ ti.xcom_pull(task_ids="branch", key="json_files_paths_no_translation") }}',
         input_key="content",
         output_key="ner",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     stats_task = NerJsonStatisticsOperator(
@@ -124,7 +137,8 @@ with DAG(
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="ner",
         output_key="ner_stats",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     summary_task = JsonSummaryMarkdownOperator(
@@ -137,7 +151,8 @@ with DAG(
 
         json_files_paths="{{ params.json_files_paths }}",
         input_key="ner_stats",
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error"
     )
 
     es_push_task = ElasticJsonPushOperator(
@@ -146,7 +161,20 @@ with DAG(
         json_files_paths="{{ params.json_files_paths }}",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
-        encoding="{{ params.encoding }}"
+        encoding="{{ params.encoding }}",
+        error_key="error",
+        pre_execute=filter_errors
+    )
+
+    error_push_task = ElasticJsonPushOperator(
+        task_id="elastic_error_push",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        json_files_paths="{{ params.json_files_paths }}",
+        index="errors",
+        es_conn_args=ES_CONN_ARGS,
+        encoding="{{ params.encoding }}",
+        error_key="error",
+        pre_execute=get_errors
     )
 
     es_search_task = ElasticSearchOperator(
@@ -158,4 +186,4 @@ with DAG(
 
 detect_language_task >> decide_about_translation >> [translate_task, ner_without_translation_task]
 translate_task >> ner_task
-[ner_without_translation_task, ner_task] >> stats_task >> summary_task >> es_push_task >> es_search_task
+[ner_without_translation_task, ner_task] >> stats_task >> summary_task >> es_push_task >> error_push_task >> es_search_task
