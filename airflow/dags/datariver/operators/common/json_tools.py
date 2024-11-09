@@ -106,4 +106,4 @@ class JsonArgs(LoggingMixin):
 
     @staticmethod
     def generate_absolute_path(base_path: str, path: str) -> str:
-        return os.path.normpath(os.path.join(base_path, path))
+        return os.path.normpath(os.path.join(os.path.dirname(base_path), path))
