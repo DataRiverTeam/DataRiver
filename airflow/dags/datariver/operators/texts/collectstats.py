@@ -1,6 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 import os
-from datariver.operators.exceptionmanaging import ErrorHandler
+from datariver.operators.common.exception_managing import ErrorHandler
 from datariver.operators.common.json_tools import JsonArgs
 
 

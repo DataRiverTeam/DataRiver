@@ -1,6 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
-from datariver.operators.exceptionmanaging import ErrorHandler
+from datariver.operators.common.exception_managing import ErrorHandler
 
 
 class ElasticPushOperator(BaseOperator):

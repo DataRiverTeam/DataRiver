@@ -2,7 +2,7 @@ from airflow.models.baseoperator import BaseOperator
 import ast
 import json
 from datariver.operators.common.json_tools import JsonArgs
-from datariver.operators.exceptionmanaging import ErrorHandler
+from datariver.operators.common.exception_managing import ErrorHandler
 
 
 class NerJsonStatisticsOperator(BaseOperator):
