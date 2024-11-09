@@ -1,10 +1,8 @@
 from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
-from datariver.operators.images.extract_metadata import JsonExtractMetadata
 from datariver.operators.images.perceptual_hash import JsonPerceptualHash
 from datariver.operators.images.descript_image import JsonDescriptImage
-
 import os
 
 default_args = {
@@ -37,10 +35,6 @@ with DAG(
         "fs_conn_id": Param(
             type="string",
             default="fs_data"
-        ),
-        "encoding": Param(
-            type="string",
-            default="utf-8"
         )
     },
 ) as dag:
@@ -50,7 +44,6 @@ with DAG(
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="image_path",
         output_key="hash",
-        encoding="{{ params.encoding }}",
     )
     descript_image_task = JsonDescriptImage(
         task_id="descript_image",
@@ -58,5 +51,4 @@ with DAG(
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="image_path",
         output_key="description",
-        encoding="{{ params.encoding }}",
     )
