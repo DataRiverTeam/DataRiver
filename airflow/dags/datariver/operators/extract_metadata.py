@@ -2,7 +2,7 @@ from airflow.models.baseoperator import BaseOperator
 from datariver.operators.json_tools import JsonArgs
 from enum import StrEnum
 
-
+# This operator doesn't work
 class ExifType(StrEnum):
     exif = 'exif'
     pillow = 'pillow'
@@ -35,14 +35,6 @@ class JsonExtractMetadata(BaseOperator):
         self.exif_type: ExifType = ExifType(exif_type)
 
     def execute(self, context):
-        # match self.exif_type:
-        #     case ExifType.exif:
-        #         from exif import Image as ExifImage
-        #     case ExifType.pillow:
-        #         from PIL import Image as PillowImage
-        #         from PIL import ExifTags
-        #     case _:
-        #         raise AttributeError()
         from PIL import Image as PillowImage
         from PIL import ExifTags
 

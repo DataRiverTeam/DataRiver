@@ -45,7 +45,7 @@ with DAG(
     },
 ) as dag:
     perceptual_hash_task = JsonPerceptualHash(
-        task_id="extract_metadata",
+        task_id="perceptual_hash",
         json_files_paths="{{ params.json_files_paths }}",
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="image_path",
