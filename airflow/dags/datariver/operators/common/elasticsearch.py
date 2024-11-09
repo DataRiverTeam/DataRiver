@@ -1,6 +1,5 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
-from datariver.operators.common.exception_managing import ErrorHandler
 
 
 class ElasticPushOperator(BaseOperator):
@@ -98,13 +97,6 @@ class ElasticJsonPushOperator(BaseOperator):
             json_args = JsonArgs(
                 self.fs_conn_id,
                 file_path,
-                self.encoding
-            )
-            error_handler = ErrorHandler(
-                file_path,
-                self.fs_conn_id,
-                self.error_key,
-                self.task_id,
                 self.encoding
             )
             document = {}
