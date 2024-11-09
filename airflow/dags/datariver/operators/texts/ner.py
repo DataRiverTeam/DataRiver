@@ -1,5 +1,5 @@
 from airflow.models.baseoperator import BaseOperator
-from datariver.operators.json_tools import JsonArgs
+from datariver.operators.common.json_tools import JsonArgs
 
 
 class NerJsonOperator(BaseOperator):

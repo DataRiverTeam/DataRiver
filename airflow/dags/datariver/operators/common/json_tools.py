@@ -1,11 +1,42 @@
 import json
-
+import ijson
+import os
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
-import ijson
-import os
+from typing import Callable, Any
+from airflow.utils.context import Context
 
+
+class MapJsonFile(BaseOperator):
+    template_fields = ("fs_conn_id", "path")
+
+    def __init__(
+        self,
+        *,
+        fs_conn_id="fs_data",
+        path,
+        python_callable: Callable[[dict, Context], Any],
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.path = path
+        self.fs_conn_id = fs_conn_id
+        self.python_callable = python_callable
+
+    def execute(self, context):
+        hook = FSHook(self.fs_conn_id)
+        basepath = hook.get_path()
+
+        full_path = os.path.join(basepath, self.path)
+
+        mapped = []
+        with open(full_path, "rb") as f:
+            for record in ijson.items(f, "item"):
+
+                mapped.append(self.python_callable(record, context))
+
+        return mapped
 
 #I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
 class JsonArgs(LoggingMixin):

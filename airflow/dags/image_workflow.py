@@ -1,9 +1,9 @@
 from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
-from datariver.operators.extract_metadata import JsonExtractMetadata
-from datariver.operators.perceptual_hash import JsonPerceptualHash
-from datariver.operators.descript_image import JsonDescriptImage
+from datariver.operators.images.extract_metadata import JsonExtractMetadata
+from datariver.operators.images.perceptual_hash import JsonPerceptualHash
+from datariver.operators.images.descript_image import JsonDescriptImage
 
 import os
 
