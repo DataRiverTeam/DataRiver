@@ -6,29 +6,6 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 import ijson
 import os
 
-class MapJsonFile(BaseOperator):
-
-    def __init__(self, *, fs_conn_id="fs_data", path, python_callable, **kwargs):
-        super().__init__(**kwargs)
-        self.path=path
-        self.fs_conn_id=fs_conn_id
-        self.python_callable=python_callable
-
-
-    def execute(self, context):
-        hook = FSHook(self.fs_conn_id)
-        basepath = hook.get_path()
-
-        full_path = os.path.join(basepath, self.path)
-
-        mapped = []
-        with open(full_path, "rb") as f:
-            for record in ijson.items(f, "item"):
-                
-                mapped.append(self.python_callable(record))
-
-        return mapped
-
 
 #I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
 class JsonArgs(LoggingMixin):
