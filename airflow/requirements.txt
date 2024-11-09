@@ -11,4 +11,6 @@ exif==1.6.0
 pillow==11.0.0
 opencv-python-headless==4.10.0.84
 opencv-contrib-python-headless==4.10.0.84
+transformers==4.46.2
+torch==2.5.1
 https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.7.1/en_core_web_md-3.7.1.tar.gz

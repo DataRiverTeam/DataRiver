@@ -3,6 +3,7 @@ from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.extract_metadata import JsonExtractMetadata
 from datariver.operators.perceptual_hash import JsonPerceptualHash
+from datariver.operators.descript_image import JsonDescriptImage
 
 import os
 
@@ -51,5 +52,11 @@ with DAG(
         output_key="hash",
         encoding="{{ params.encoding }}",
     )
-
-perceptual_hash_task
+    descript_image_task = JsonDescriptImage(
+        task_id="descript_image",
+        json_files_paths="{{ params.json_files_paths }}",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        input_key="image_path",
+        output_key="description",
+        encoding="{{ params.encoding }}",
+    )
