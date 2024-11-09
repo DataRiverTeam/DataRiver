@@ -27,7 +27,6 @@ class JsonPerceptualHash(BaseOperator):
         self.hash_type: HashType = HashType(hash_type)
 
     def execute(self, context):
-        import cv2
 
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
@@ -40,13 +39,13 @@ class JsonPerceptualHash(BaseOperator):
                     hash_value = self.block_mean_hash(image_full_path)
                 case _:
                     raise AttributeError()
-            json_args.add_value(self.output_key, hash_value)
+            json_args.add_value(self.output_key, {self.hash_type: hash_value})
 
     def p_hash(self, image_path: str):
         import cv2
         img = cv2.imread(image_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) # should it be converted to Gray?
-        hash_value = cv2.img_hash.pHash(img)  # 8-byte hash
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        hash_value = cv2.img_hash.pHash(img)
         hash_int = int.from_bytes(hash_value.tobytes(), byteorder='big', signed=False)
         return hash_int
 
