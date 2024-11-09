@@ -32,7 +32,7 @@ class JsonPerceptualHash(BaseOperator):
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image_path = json_args.get_value(self.input_key)
-            image_full_path = JsonArgs.generate_full_path(image_path, self.fs_conn_id)
+            image_full_path = JsonArgs.generate_absolute_path(json_args.get_full_path(), image_path)
             match self.hash_type:
                 case HashType.p_hash:
                     hash_value = self.p_hash(image_full_path)
