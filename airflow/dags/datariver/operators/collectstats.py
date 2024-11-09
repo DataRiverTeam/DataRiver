@@ -1,8 +1,9 @@
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 import os
-
+from datariver.operators.exceptionmanaging import ErrorHandler
 from datariver.operators.json_tools import JsonArgs
+
 
 def write_dict_to_file(dictionary, file):
     sorted_dict = dict(sorted(dictionary.items(), key=lambda item: item[1], reverse=True))
@@ -14,10 +15,10 @@ def _escape_text(text):
 
 
 class JsonSummaryMarkdownOperator(BaseOperator):
-    template_fields = ("output_dir","summary_filenames", "fs_conn_id", "json_files_paths", "input_key", "encoding")
+    template_fields = ("output_dir", "summary_filenames", "fs_conn_id", "json_files_paths", "input_key", "encoding", "error_key")
 
     def __init__(self, *, summary_filenames, output_dir=".", fs_conn_id="fs_data",
-                 input_key, json_files_paths, encoding="utf-8", **kwargs):
+                 input_key, json_files_paths, encoding="utf-8", error_key="error", **kwargs):
         super().__init__(**kwargs)
         self.fs_conn_id = fs_conn_id
         self.summary_filenames = summary_filenames
@@ -26,6 +27,7 @@ class JsonSummaryMarkdownOperator(BaseOperator):
         self.input_key = input_key
         self.encoding = encoding
         self.json_files_paths = json_files_paths
+        self.error_key = error_key
 
 
     def __render_item(self, data, level=0):
@@ -59,27 +61,36 @@ class JsonSummaryMarkdownOperator(BaseOperator):
         for i, file_path in enumerate(self.json_files_paths):
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             full_path = os.path.join(json_args.get_base_path(), self.output_dir, self.summary_filenames[i])
+            error_handler = ErrorHandler(
+                file_path,
+                self.fs_conn_id,
+                self.error_key,
+                self.task_id,
+                self.encoding
+            )
+            if error_handler.are_previous_tasks_error_free():
+                os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
-            os.makedirs(os.path.dirname(full_path), exist_ok=True)
+                try:
+                    with open(full_path, "w") as file:
+                        file.write("# Summary statistics of dag run:\n")
 
-            try:
-                with open(full_path, "w") as file:
-                    file.write("# Summary statistics of dag run:\n")
+                        #temporary solution until collecting translate task does not work
+                        stats = []
+                        stats.append(json_args.get_value(self.input_key))
+                        for stat in stats:
+                            if stat["title"]:
+                                file.write(f"## {stat['title']}\n")
 
-                    #temporary solution until collecting translate task does not work
-                    stats = []
-                    stats.append(json_args.get_value(self.input_key))
-                    for stat in stats:
-                        if stat["title"]:
-                            file.write(f"## {stat['title']}\n")
+                            for key, value in stat["stats"].items():
+                                rendered = ""
+                                rendered += f"- {key}: "
 
-                        for key, value in stat["stats"].items():
-                            rendered = ""
-                            rendered += f"- {key}: "
+                                rendered += self.__render_item(value)
 
-                            rendered += self.__render_item(value)
+                                file.write(rendered)
 
-                            file.write(rendered)
-
-            except IOError as e:
-                raise Exception(f"Couldn't open {full_path} ({str(e)})!")
+                except IOError as e:
+                    raise Exception(f"Couldn't open {full_path} ({str(e)})!")
+            else:
+                self.log.info("Found error from previous task for file %s", file_path)
