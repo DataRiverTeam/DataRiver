@@ -8,7 +8,8 @@ from datariver.operators.json_tools import JsonArgs
 from datariver.operators.langdetect import JsonLangdetectOperator
 from datariver.operators.translate import JsonTranslateOperator
 from datariver.operators.ner import NerJsonOperator
-from datariver.operators.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
+from datariver.operators.elasticsearch \
+    import ElasticJsonPushOperator, ElasticSearchOperator
 from datariver.operators.stats import NerJsonStatisticsOperator
 from datariver.operators.collectstats import JsonSummaryMarkdownOperator
 
@@ -30,15 +31,22 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
+
+
 def _filter_errors(context, exclude):
-    task=context['task']
-    task_id=context['task_instance'].task_id
-    result=[json_file for json_file in task.json_files_paths if exclude==ErrorHandler(json_file, task.fs_conn_id, task.error_key, task_id, task.encoding).is_file_error_free()]
+    task = context['task']
+    task_id = context['task_instance'].task_id
+    result = [json_file for json_file in task.json_files_paths if exclude == ErrorHandler(json_file, task.fs_conn_id, task.error_key, task_id, task.encoding).is_file_error_free()]
     setattr(context["task"], "json_files_paths", result)
+
+
 def filter_errors(context):
     _filter_errors(context, True)
+
+
 def get_errors(context):
     _filter_errors(context, False)
+
 
 def decide_about_translation(ti, **context):
     fs_conn_id = context["params"]["fs_conn_id"]
@@ -56,11 +64,18 @@ def decide_about_translation(ti, **context):
     branches = []
     if len(translation) > 0:
         branches.append("translate")
-        ti.xcom_push(key="json_files_paths_translation", value=translation)
+        ti.xcom_push(
+            key="json_files_paths_translation",
+            value=translation
+        )
     if len(no_translation) > 0:
         branches.append("detect_entities_without_translation")
-        ti.xcom_push(key="json_files_paths_no_translation", value=no_translation)
+        ti.xcom_push(
+            key="json_files_paths_no_translation",
+            value=no_translation
+        )
     return branches
+
 
 def add_pre_run_information(**context):
     fs_conn_id = context["params"]["fs_conn_id"]
@@ -72,6 +87,7 @@ def add_pre_run_information(**context):
         json_args.add_value("dag_start_date", date)
         json_args.add_value("dag_run_id", run_id)
 
+
 def add_post_run_information(**context):
     fs_conn_id = context["params"]["fs_conn_id"]
     json_files_paths = context["params"]["json_files_paths"]
@@ -79,6 +95,7 @@ def add_post_run_information(**context):
     for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
         json_args.add_value("dag_processed_date", date)
+
 
 with DAG(
     'ner_single_file',
@@ -100,7 +117,7 @@ with DAG(
         )
     },
 ) as dag:
-    add_pre_run_information = PythonOperator(
+    add_pre_run_information_task = PythonOperator(
         task_id='add_pre_run_information',
         python_callable=add_pre_run_information,
         provide_context=True
@@ -130,7 +147,7 @@ with DAG(
         output_key="translated",
         output_language="en",
         encoding="{{ params.encoding }}",
-        error_key = "error"
+        error_key="error"
     )
 
     ner_task = NerJsonOperator(
@@ -180,7 +197,7 @@ with DAG(
         error_key="error"
     )
 
-    add_post_run_information = PythonOperator(
+    add_post_run_information_task = PythonOperator(
         task_id='add_post_run_information',
         python_callable=add_post_run_information,
         provide_context=True
@@ -215,6 +232,10 @@ with DAG(
         es_conn_args=ES_CONN_ARGS,
     )
 
-detect_language_task >> decide_about_translation >> [translate_task, ner_without_translation_task]
+add_pre_run_information_task >> detect_language_task\
+    >> decide_about_translation \
+    >> [translate_task, ner_without_translation_task]
 translate_task >> ner_task
-[ner_without_translation_task, ner_task] >> stats_task >> summary_task >> es_push_task >> error_push_task >> es_search_task
+[ner_without_translation_task, ner_task] >> stats_task >> summary_task \
+    >> add_post_run_information_task \
+    >> es_push_task >> error_push_task >> es_search_task
