@@ -1,6 +1,6 @@
 from airflow import DAG
 
-from airflow.operators.python import BranchPythonOperator
+from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.exceptionmanaging import ErrorHandler
@@ -13,6 +13,7 @@ from datariver.operators.stats import NerJsonStatisticsOperator
 from datariver.operators.collectstats import JsonSummaryMarkdownOperator
 
 import os
+import datetime
 
 default_args = {
     'owner': 'airflow',
@@ -61,6 +62,24 @@ def decide_about_translation(ti, **context):
         ti.xcom_push(key="json_files_paths_no_translation", value=no_translation)
     return branches
 
+def add_pre_run_information(**context):
+    fs_conn_id = context["params"]["fs_conn_id"]
+    json_files_paths = context["params"]["json_files_paths"]
+    date = datetime.datetime.now().replace(microsecond=0).isoformat()
+    run_id = context['dag_run'].run_id
+    for file_path in json_files_paths:
+        json_args = JsonArgs(fs_conn_id, file_path)
+        json_args.add_value("dag_start_date", date)
+        json_args.add_value("dag_run_id", run_id)
+
+def add_post_run_information(**context):
+    fs_conn_id = context["params"]["fs_conn_id"]
+    json_files_paths = context["params"]["json_files_paths"]
+    date = datetime.datetime.now().replace(microsecond=0).isoformat()
+    for file_path in json_files_paths:
+        json_args = JsonArgs(fs_conn_id, file_path)
+        json_args.add_value("dag_processed_date", date)
+
 with DAG(
     'ner_single_file',
     default_args=default_args,
@@ -81,6 +100,12 @@ with DAG(
         )
     },
 ) as dag:
+    add_pre_run_information = PythonOperator(
+        task_id='add_pre_run_information',
+        python_callable=add_pre_run_information,
+        provide_context=True
+    )
+
     detect_language_task = JsonLangdetectOperator(
         task_id="detect_language",
         json_files_paths="{{ params.json_files_paths }}",
@@ -153,6 +178,12 @@ with DAG(
         input_key="ner_stats",
         encoding="{{ params.encoding }}",
         error_key="error"
+    )
+
+    add_post_run_information = PythonOperator(
+        task_id='add_post_run_information',
+        python_callable=add_post_run_information,
+        provide_context=True
     )
 
     es_push_task = ElasticJsonPushOperator(
