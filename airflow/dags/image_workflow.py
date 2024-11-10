@@ -4,6 +4,7 @@ from airflow.models.param import Param
 from datariver.operators.images.perceptual_hash import JsonPerceptualHash
 from datariver.operators.images.describe_image import JsonDescribeImage
 from datariver.operators.images.thumbnail import JsonThumbnailImage
+from datariver.operators.images.extract_metadata import JsonExtractMetadata
 from datariver.operators.common.elasticsearch import (
     ElasticJsonPushOperator,
     ElasticSearchOperator,
@@ -47,6 +48,13 @@ with DAG(
         input_key="image_path",
         output_key="hash",
     )
+    extract_metadata_task = JsonExtractMetadata(
+        task_id="extract_metadata",
+        json_files_paths="{{ params.json_files_paths }}",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        input_key="image_path",
+        output_key="metadata",
+    )
     thumbnail_task = JsonThumbnailImage(
         task_id="thumbnail",
         json_files_paths="{{ params.json_files_paths }}",
@@ -82,7 +90,7 @@ with DAG(
     )
 
 (
-    [thumbnail_task, perceptual_hash_task, descript_image_task]
+    [thumbnail_task, perceptual_hash_task, descript_image_task, extract_metadata_task]
     >> es_push_task
     >> es_search_task
 )
