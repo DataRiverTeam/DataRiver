@@ -190,6 +190,16 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/data:/opt/airflow/data
 
+  format:
+    build: ./airflow
+    entrypoint: /bin/bash
+    user: "0:0"
+    command: ["-c", "black /opt/airflow/dags"]
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    profiles:
+      - format
+
   airflow-cli:
     <<: *airflow-common
     profiles:
