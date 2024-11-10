@@ -17,7 +17,7 @@ class MapJsonFile(BaseOperator):
         fs_conn_id="fs_data",
         path,
         python_callable: Callable[[dict, Context], Any],
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.path = path
@@ -38,7 +38,8 @@ class MapJsonFile(BaseOperator):
 
         return mapped
 
-#I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
+
+# I see here a huge room for improvement - many fields from operators working with json may have common fields described here?
 class JsonArgs(LoggingMixin):
     def __init__(self, fs_conn_id, json_file_path, encoding="utf-8", **kwargs):
         super().__init__(**kwargs)
@@ -62,7 +63,9 @@ class JsonArgs(LoggingMixin):
                 data = json.load(f)
                 value = data.get(key)
                 if value is None:
-                    self.log.error(f"{self.get_full_path()} does not contain key {key}!")
+                    self.log.error(
+                        f"{self.get_full_path()} does not contain key {key}!"
+                    )
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return value
@@ -87,7 +90,9 @@ class JsonArgs(LoggingMixin):
                 for key in keys:
                     value = data.get(key)
                     if value is None:
-                        self.log.error(f"{self.get_full_path()} does not contain key {key}!")
+                        self.log.error(
+                            f"{self.get_full_path()} does not contain key {key}!"
+                        )
                     else:
                         values[key] = value
         except IOError as e:
@@ -95,7 +100,7 @@ class JsonArgs(LoggingMixin):
         return values
 
     def get_keys(self):
-        keys=[]
+        keys = []
         try:
             with open(self.get_full_path(), "r", encoding=self.encoding) as f:
                 data = json.load(f)

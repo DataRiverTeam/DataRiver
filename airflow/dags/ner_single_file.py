@@ -5,7 +5,10 @@ from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.common.exception_managing import ErrorHandler
 from datariver.operators.common.json_tools import JsonArgs
-from datariver.operators.common.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
+from datariver.operators.common.elasticsearch import (
+    ElasticJsonPushOperator,
+    ElasticSearchOperator,
+)
 from datariver.operators.texts.langdetect import JsonLangdetectOperator
 from datariver.operators.texts.translate import JsonTranslateOperator
 from datariver.operators.texts.ner import NerJsonOperator
@@ -16,12 +19,12 @@ import os
 import datetime
 
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'trigger_rule': TriggerRule.NONE_FAILED
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "trigger_rule": TriggerRule.NONE_FAILED,
 }
 
 ES_CONN_ARGS = {
@@ -33,9 +36,16 @@ ES_CONN_ARGS = {
 
 
 def _filter_errors(context, exclude):
-    task = context['task']
-    task_id = context['task_instance'].task_id
-    result = [json_file for json_file in task.json_files_paths if exclude == ErrorHandler(json_file, task.fs_conn_id, task.error_key, task_id, task.encoding).is_file_error_free()]
+    task = context["task"]
+    task_id = context["task_instance"].task_id
+    result = [
+        json_file
+        for json_file in task.json_files_paths
+        if exclude
+        == ErrorHandler(
+            json_file, task.fs_conn_id, task.error_key, task_id, task.encoding
+        ).is_file_error_free()
+    ]
     setattr(context["task"], "json_files_paths", result)
 
 
@@ -63,16 +73,10 @@ def decide_about_translation(ti, **context):
     branches = []
     if len(translation) > 0:
         branches.append("translate")
-        ti.xcom_push(
-            key="json_files_paths_translation",
-            value=translation
-        )
+        ti.xcom_push(key="json_files_paths_translation", value=translation)
     if len(no_translation) > 0:
         branches.append("detect_entities_without_translation")
-        ti.xcom_push(
-            key="json_files_paths_no_translation",
-            value=no_translation
-        )
+        ti.xcom_push(key="json_files_paths_no_translation", value=no_translation)
     return branches
 
 
@@ -80,7 +84,7 @@ def add_pre_run_information(**context):
     fs_conn_id = context["params"]["fs_conn_id"]
     json_files_paths = context["params"]["json_files_paths"]
     date = datetime.datetime.now().replace(microsecond=0).isoformat()
-    run_id = context['dag_run'].run_id
+    run_id = context["dag_run"].run_id
     for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
         json_args.add_value("dag_start_date", date)
@@ -97,7 +101,7 @@ def add_post_run_information(**context):
 
 
 with DAG(
-    'ner_single_file',
+    "ner_single_file",
     default_args=default_args,
     schedule_interval=None,
     # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
@@ -106,20 +110,14 @@ with DAG(
         "json_files_paths": Param(
             type="array",
         ),
-        "fs_conn_id": Param(
-            type="string",
-            default="fs_data"
-        ),
-        "encoding": Param(
-            type="string",
-            default="utf-8"
-        )
+        "fs_conn_id": Param(type="string", default="fs_data"),
+        "encoding": Param(type="string", default="utf-8"),
     },
 ) as dag:
     add_pre_run_information_task = PythonOperator(
-        task_id='add_pre_run_information',
+        task_id="add_pre_run_information",
         python_callable=add_pre_run_information,
-        provide_context=True
+        provide_context=True,
     )
 
     detect_language_task = JsonLangdetectOperator(
@@ -129,13 +127,11 @@ with DAG(
         input_key="content",
         output_key="language",
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
     )
 
     decide_about_translation = BranchPythonOperator(
-        task_id="branch",
-        python_callable=decide_about_translation,
-        provide_context=True
+        task_id="branch", python_callable=decide_about_translation, provide_context=True
     )
 
     translate_task = JsonTranslateOperator(
@@ -146,7 +142,7 @@ with DAG(
         output_key="translated",
         output_language="en",
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
     )
 
     ner_task = NerJsonOperator(
@@ -158,7 +154,7 @@ with DAG(
         output_key="ner",
         trigger_rule=TriggerRule.NONE_FAILED_OR_SKIPPED,
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
     )
 
     ner_without_translation_task = NerJsonOperator(
@@ -169,7 +165,7 @@ with DAG(
         input_key="content",
         output_key="ner",
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
     )
 
     stats_task = NerJsonStatisticsOperator(
@@ -179,27 +175,25 @@ with DAG(
         input_key="ner",
         output_key="ner_stats",
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
     )
 
     summary_task = JsonSummaryMarkdownOperator(
         task_id="summary",
         summary_filenames='{{ params.json_files_paths|replace(".json",".md") }}',
         fs_conn_id="{{params.fs_conn_id}}",
-
         # this method works too, might be useful if we pull data with different xcom keys
         # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
-
         json_files_paths="{{ params.json_files_paths }}",
         input_key="ner_stats",
         encoding="{{ params.encoding }}",
-        error_key="error"
+        error_key="error",
     )
 
     add_post_run_information_task = PythonOperator(
-        task_id='add_post_run_information',
+        task_id="add_post_run_information",
         python_callable=add_post_run_information,
-        provide_context=True
+        provide_context=True,
     )
 
     es_push_task = ElasticJsonPushOperator(
@@ -210,7 +204,7 @@ with DAG(
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
         error_key="error",
-        pre_execute=filter_errors
+        pre_execute=filter_errors,
     )
 
     error_push_task = ElasticJsonPushOperator(
@@ -221,20 +215,33 @@ with DAG(
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
         error_key="error",
-        pre_execute=get_errors
+        pre_execute=get_errors,
     )
 
     es_search_task = ElasticSearchOperator(
         task_id="elastic_get",
         index="ner",
-        query={"terms": {"_id": "{{ task_instance.xcom_pull('elastic_push') | selectattr('_id') | list }}"}},
+        query={
+            "terms": {
+                "_id": "{{ task_instance.xcom_pull('elastic_push') | selectattr('_id') | list }}"
+            }
+        },
         es_conn_args=ES_CONN_ARGS,
     )
 
-add_pre_run_information_task >> detect_language_task\
-    >> decide_about_translation \
+(
+    add_pre_run_information_task
+    >> detect_language_task
+    >> decide_about_translation
     >> [translate_task, ner_without_translation_task]
+)
 translate_task >> ner_task
-[ner_without_translation_task, ner_task] >> stats_task >> summary_task \
-    >> add_post_run_information_task \
-    >> es_push_task >> error_push_task >> es_search_task
+(
+    [ner_without_translation_task, ner_task]
+    >> stats_task
+    >> summary_task
+    >> add_post_run_information_task
+    >> es_push_task
+    >> error_push_task
+    >> es_search_task
+)

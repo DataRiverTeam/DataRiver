@@ -3,16 +3,18 @@ import os
 from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
 
-from datariver.operators.elasticsearch import \
-    ElasticJsonPushOperator, ElasticSearchOperator
+from datariver.operators.elasticsearch import (
+    ElasticJsonPushOperator,
+    ElasticSearchOperator,
+)
 
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'trigger_rule': TriggerRule.NONE_FAILED
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "trigger_rule": TriggerRule.NONE_FAILED,
 }
 
 
@@ -24,7 +26,7 @@ ES_CONN_ARGS = {
 }
 
 with DAG(
-    'elastic_index_and_get',
+    "elastic_index_and_get",
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,

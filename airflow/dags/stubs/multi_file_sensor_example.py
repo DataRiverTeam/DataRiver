@@ -7,17 +7,17 @@ from airflow.hooks.filesystem import FSHook
 
 from datariver.sensors.filesystem import MultipleFilesSensor
 
-FS_CONN_ID = "fs_data"    #id of connection defined in Airflow UI
+FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
 
 
 FILE_NAME = "*.zip"
 
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
 }
 
 
@@ -32,23 +32,27 @@ def load_file(ti):
     print(ti.xcom_pull(key="return_value", task_ids="wait_for_files"))
 
 
-with DAG('multi_file_sensor_test', default_args=default_args, schedule_interval=None) as dag:
-    
+with DAG(
+    "multi_file_sensor_test", default_args=default_args, schedule_interval=None
+) as dag:
+
     wait_for_files = MultipleFilesSensor(
         task_id="wait_for_files",
         #   fs_conn_id="fs_data",          # if you don't specify other fs_conn_id, the default one is fs_data which points to "/"
-        fs_conn_id=FS_CONN_ID,              
-        filepath=FILE_NAME,                 # FILEPATH IS RELATIVE TO BASE DIR OF CONNECTION!!!
-        poke_interval=30,                   # interval between probing if the file with given path exists,
-        mode="reschedule",                  # frees the worker slot after unsuccessful poke, so other DAGs can run in the meantime
-        timeout=timedelta(minutes=60),       # marked the task as 'failed' if the file isn't detected in 60 minutes since the first poke
+        fs_conn_id=FS_CONN_ID,
+        filepath=FILE_NAME,  # FILEPATH IS RELATIVE TO BASE DIR OF CONNECTION!!!
+        poke_interval=30,  # interval between probing if the file with given path exists,
+        mode="reschedule",  # frees the worker slot after unsuccessful poke, so other DAGs can run in the meantime
+        timeout=timedelta(
+            minutes=60
+        ),  # marked the task as 'failed' if the file isn't detected in 60 minutes since the first poke
         # deferrable=True
     )
 
     # wait_for_file = FileSensor(
     #     task_id='wait_for_file',
     #     # fs_conn_id="fs_data",          # if you don't specify other fs_conn_id, the default one is fs_data which points to "/"
-    #     fs_conn_id=FS_CONN_ID,              
+    #     fs_conn_id=FS_CONN_ID,
     #     filepath=FILE_NAME,                 # FILEPATH IS RELATIVE TO BASE DIR OF CONNECTION!!!
     #     poke_interval=30,                   # interval between probing if the file with given path exists,
     #     mode="reschedule",                  # frees the worker slot after unsuccessful poke, so other DAGs can run in the meantime
