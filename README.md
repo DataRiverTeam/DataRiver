@@ -68,6 +68,12 @@ In order to start processing the files, you need to put them in the directory sp
 
 - default URL: http://es01:9200/
 
+### Formatter 
+You can format code with
+```
+docker compose up format
+```
+
 ## Troubleshooting
 
 If something doesn't work it is worth to try adding current system user to docker group

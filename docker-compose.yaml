@@ -186,8 +186,17 @@ services:
       - ./airflow/logs:/opt/airflow/logs
       - ./airflow/data:/opt/airflow/data
 
+  format:
+    image: pyfound/black
+    entrypoint: /bin/bash
+    user: "0:0"
+    command: ["-c", "black /opt/airflow/dags"]
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    profiles:
+      - format
 
-# -------------- elastic -------------------
+  # -------------- elastic -------------------
 
   setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:${STACK_VERSION}

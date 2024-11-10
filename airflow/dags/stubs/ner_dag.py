@@ -3,13 +3,14 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.amazon.aws.sensors.s3 import S3KeySensor
+
 # Needed to import airflow variables defined in http://.../variable/list/
 from airflow.models import Variable
 
 
-minio_url = Variable.get("minio_api_url")               # variables are defined through Airflow panel
-minio_access_key = Variable.get('minio_access_key') 
-minio_secret_key = Variable.get('minio_secret_key')
+minio_url = Variable.get("minio_api_url")  # variables are defined through Airflow panel
+minio_access_key = Variable.get("minio_access_key")
+minio_secret_key = Variable.get("minio_secret_key")
 
 
 text = "Google LLC is an American multinational corporation and technology company focusing on online advertising, search engine technology, cloud computing, computer software, quantum computing, e-commerce, consumer electronics, and artificial intelligence (AI). It has been referred to as \"the most powerful company in the world\" and is one of the world's most valuable brands due to its market dominance, data collection, and technological advantages in the field of AI. Google's parent company, Alphabet Inc. is one of the five Big Tech companies, alongside Amazon, Apple, Meta, and Microsoft.\
@@ -22,14 +23,12 @@ def recognize_entities():
     from minio import Minio
     import spacy
 
-
     client = Minio(
         minio_url,
         access_key=minio_access_key,
         secret_key=minio_secret_key,
-        secure=False
+        secure=False,
     )
-
 
     download_path = "data/example_file.txt"
     # second argument - object_name, perhaps should be passed from previous tasks
@@ -42,18 +41,17 @@ def recognize_entities():
     # TODO:
     # We shouldn't load all data at once - perhaps we need to format it properly in previous tasks, or split data to separate files and read them one by one.
     try:
-        with open(download_path, "r") as f: 
+        with open(download_path, "r") as f:
             doc = nlp(f.read())
 
             for ent in doc.ents:
                 print(ent.text + " | " + str(ent.label_) + " | " + str(ent.sent))
 
-
             # TODO:
             # pass data from this task further, so we can store it in database
     except IOError:
         raise Exception("Given file doesn't exist!")
-    
+
 
 with DAG(
     dag_id="minio_test",
@@ -76,12 +74,9 @@ with DAG(
         task_id="file_sensor",
         bucket_name="airflow-bucket",
         bucket_key="data.csv",
-        aws_conn_id="sensor_minio_s3"
-    ) 
-
-    ner_task = PythonOperator(
-        task_id="ner_task",
-        python_callable=recognize_entities
+        aws_conn_id="sensor_minio_s3",
     )
+
+    ner_task = PythonOperator(task_id="ner_task", python_callable=recognize_entities)
 
 sensor_task >> ner_task

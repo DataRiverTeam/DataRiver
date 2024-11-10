@@ -12,12 +12,13 @@ from datariver.operators.collectstats import SummaryMarkdownOperator
 import os
 
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
 }
+
 
 def get_translated_path(path):
     parts = path.split("/")
@@ -34,12 +35,19 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
+
+
 def validate_params(**context):
-    if "params" not in context or "file_path" not in context["params"] or "fs_conn_id" not in context["params"]:
+    if (
+        "params" not in context
+        or "file_path" not in context["params"]
+        or "fs_conn_id" not in context["params"]
+    ):
         raise AirflowConfigException("No params defined")
 
+
 with DAG(
-    'ner_workflow_multiple_files',
+    "ner_workflow_multiple_files",
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,  # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
@@ -47,21 +55,17 @@ with DAG(
         "file_path": Param(
             type="string",
         ),
-        "fs_conn_id": Param(
-            type="string",
-            default="fs_data"
-        )
+        "fs_conn_id": Param(type="string", default="fs_data"),
     },
 ) as dag:
     validate_params_task = PythonOperator(
-        task_id="validate_params",
-        python_callable=validate_params
+        task_id="validate_params", python_callable=validate_params
     )
 
     translate_path_task = PythonOperator(
         task_id="translate_path",
         python_callable=get_translated_path,
-        op_kwargs = {"path": "{{params.file_path}}"}
+        op_kwargs={"path": "{{params.file_path}}"},
     )
 
     translate_task = DeepTranslatorOperator(
@@ -69,14 +73,14 @@ with DAG(
         file_path="{{params.file_path}}",
         fs_conn_id="{{params.fs_conn_id}}",
         translated_file_path="{{task_instance.xcom_pull('translate_path')}}",
-        output_language="en"
+        output_language="en",
     )
 
     ner_task = NerOperator(
         task_id="detect_entities",
         model="en_core_web_md",
         fs_conn_id="{{params.fs_conn_id}}",
-        path="{{task_instance.xcom_pull('translate_path')}}"
+        path="{{task_instance.xcom_pull('translate_path')}}",
     )
 
     es_push_task = ElasticPushOperator(
@@ -85,12 +89,16 @@ with DAG(
         index="ner",
         document={},
         es_conn_args=ES_CONN_ARGS,
-        pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
+        pre_execute=lambda self: setattr(
+            self["task"],
+            "document",
+            {"document": list(self["task_instance"].xcom_pull("detect_entities"))},
+        ),
     )
 
     stats_task = NerStatisticsOperator(
         task_id="generate_stats",
-        json_data="{{task_instance.xcom_pull('detect_entities')}}"
+        json_data="{{task_instance.xcom_pull('detect_entities')}}",
     )
 
     es_search_task = ElasticSearchOperator(
@@ -101,17 +109,23 @@ with DAG(
         es_conn_args=ES_CONN_ARGS,
     )
 
-
     summary_task = SummaryMarkdownOperator(
         task_id="summary",
         summary_filename="summary.md",
         output_dir='{{ "/".join(params["file_path"].split("/")[:-1] + ["summary"])}}',
         fs_conn_id="{{params.fs_conn_id}}",
-
         # this method works too, might be useful if we pull data with different xcom keys
         # stats="[{{task_instance.xcom_pull(task_ids = 'generate_stats', key = 'stats')}}, {{task_instance.xcom_pull(task_ids = 'translate', key = 'stats')}}]"
-
-        stats="{{task_instance.xcom_pull(task_ids = ['generate_stats','translate'], key = 'stats')}}"
+        stats="{{task_instance.xcom_pull(task_ids = ['generate_stats','translate'], key = 'stats')}}",
     )
 
-validate_params_task >> translate_path_task >> translate_task >> ner_task >> stats_task >> summary_task >> es_push_task >> es_search_task
+(
+    validate_params_task
+    >> translate_path_task
+    >> translate_task
+    >> ner_task
+    >> stats_task
+    >> summary_task
+    >> es_push_task
+    >> es_search_task
+)

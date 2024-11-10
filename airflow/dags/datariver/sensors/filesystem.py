@@ -39,9 +39,7 @@ class MultipleFilesSensor(BaseSensorOperator):
         fs_conn_id="fs_data",
         recursive=False,
         deferrable: bool = conf.getboolean(
-            "operators",
-            "default_deferrable",
-            fallback=False
+            "operators", "default_deferrable", fallback=False
         ),
         **kwargs,
     ):
@@ -66,15 +64,11 @@ class MultipleFilesSensor(BaseSensorOperator):
         detected_files = []
         for path in glob(self.path, recursive=self.recursive):
             if os.path.isfile(path):
-                mod_time = datetime.datetime \
-                    .fromtimestamp(os.path.getmtime(path)) \
-                    .strftime("%Y%m%d%H%M%S")
+                mod_time = datetime.datetime.fromtimestamp(
+                    os.path.getmtime(path)
+                ).strftime("%Y%m%d%H%M%S")
 
-                self.log.info(
-                    "Found File %s last modified: %s",
-                    path,
-                    mod_time
-                )
+                self.log.info("Found File %s last modified: %s", path, mod_time)
 
                 detected_files.append(path)
 
@@ -109,15 +103,11 @@ class MultipleFilesSensor(BaseSensorOperator):
         # pushing files list do Xcom so next tasks can use it
         return self.detected_files
 
-    def execute_complete(
-        self,
-        context: Context,
-        event: bool | None = None
-    ) -> None:
+    def execute_complete(self, context: Context, event: bool | None = None) -> None:
         if not event:
             raise AirflowException(
-                "%s task failed as %s not found.",
-                self.task_id,
-                self.filepath
+                "%s task failed as %s not found.", self.task_id, self.filepath
             )
-        self.log.info("%s completed successfully as %s found.", self.task_id, self.filepath)
+        self.log.info(
+            "%s completed successfully as %s found.", self.task_id, self.filepath
+        )

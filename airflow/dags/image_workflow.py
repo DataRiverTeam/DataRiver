@@ -3,16 +3,19 @@ from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.images.perceptual_hash import JsonPerceptualHash
 from datariver.operators.images.descript_image import JsonDescribeImage
-from datariver.operators.common.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
+from datariver.operators.common.elasticsearch import (
+    ElasticJsonPushOperator,
+    ElasticSearchOperator,
+)
 import os
 
 default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'email_on_failure': False,
-    'email_on_retry': False,
-    'retries': 1,
-    'trigger_rule': TriggerRule.NONE_FAILED
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": False,
+    "email_on_retry": False,
+    "retries": 1,
+    "trigger_rule": TriggerRule.NONE_FAILED,
 }
 
 ES_CONN_ARGS = {
@@ -24,7 +27,7 @@ ES_CONN_ARGS = {
 
 
 with DAG(
-    'image_workflow',
+    "image_workflow",
     default_args=default_args,
     schedule_interval=None,
     # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
@@ -33,10 +36,7 @@ with DAG(
         "json_files_paths": Param(
             type="array",
         ),
-        "fs_conn_id": Param(
-            type="string",
-            default="fs_data"
-        )
+        "fs_conn_id": Param(type="string", default="fs_data"),
     },
 ) as dag:
     perceptual_hash_task = JsonPerceptualHash(
@@ -59,13 +59,17 @@ with DAG(
         json_files_paths="{{ params.json_files_paths }}",
         index="image_processing",
         es_conn_args=ES_CONN_ARGS,
-        error_key="error"
+        error_key="error",
     )
 
     es_search_task = ElasticSearchOperator(
         task_id="elastic_get",
         index="image_processing",
-        query={"terms": {"_id": "{{ task_instance.xcom_pull('elastic_push') | selectattr('_id') | list }}"}},
+        query={
+            "terms": {
+                "_id": "{{ task_instance.xcom_pull('elastic_push') | selectattr('_id') | list }}"
+            }
+        },
         es_conn_args=ES_CONN_ARGS,
     )
 
