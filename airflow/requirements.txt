@@ -7,4 +7,5 @@ deep_translator==1.11.4
 nltk==3.8.1
 spacy==3.7.4
 ijson==3.3.0
+black
 https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.7.1/en_core_web_md-3.7.1.tar.gz
