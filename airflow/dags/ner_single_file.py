@@ -3,15 +3,14 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
-from datariver.operators.exceptionmanaging import ErrorHandler
-from datariver.operators.json_tools import JsonArgs
-from datariver.operators.langdetect import JsonLangdetectOperator
-from datariver.operators.translate import JsonTranslateOperator
-from datariver.operators.ner import NerJsonOperator
-from datariver.operators.elasticsearch \
-    import ElasticJsonPushOperator, ElasticSearchOperator
-from datariver.operators.stats import NerJsonStatisticsOperator
-from datariver.operators.collectstats import JsonSummaryMarkdownOperator
+from datariver.operators.common.exception_managing import ErrorHandler
+from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
+from datariver.operators.texts.langdetect import JsonLangdetectOperator
+from datariver.operators.texts.translate import JsonTranslateOperator
+from datariver.operators.texts.ner import NerJsonOperator
+from datariver.operators.texts.stats import NerJsonStatisticsOperator
+from datariver.operators.texts.collectstats import JsonSummaryMarkdownOperator
 
 import os
 import datetime

@@ -1,8 +1,7 @@
 from airflow.models.baseoperator import BaseOperator
-from airflow.hooks.filesystem import FSHook
 import os
-from datariver.operators.exceptionmanaging import ErrorHandler
-from datariver.operators.json_tools import JsonArgs
+from datariver.operators.common.exception_managing import ErrorHandler
+from datariver.operators.common.json_tools import JsonArgs
 
 
 def write_dict_to_file(dictionary, file):

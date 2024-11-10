@@ -1,8 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
-from airflow.hooks.filesystem import FSHook
-from datariver.operators.json_tools import JsonArgs
-import os
-from datariver.operators.exceptionmanaging import ErrorHandler
+from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.exception_managing import ErrorHandler
 
 
 class JsonLangdetectOperator(BaseOperator):

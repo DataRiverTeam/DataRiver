@@ -1,10 +1,8 @@
-from calendar import error
 import requests
-
 from airflow.models.baseoperator import BaseOperator
 from airflow.utils.log.logging_mixin import LoggingMixin
-from datariver.operators.json_tools import JsonArgs
-from datariver.operators.exceptionmanaging import ErrorHandler
+from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.exception_managing import ErrorHandler
 
 # TODO:
 # Perhaps we should make the operator more universal?
