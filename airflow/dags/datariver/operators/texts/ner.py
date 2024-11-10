@@ -47,21 +47,26 @@ class NerJsonOperator(BaseOperator):
                 file_path, self.fs_conn_id, self.error_key, self.task_id, self.encoding
             )
 
-            detected = []
             if error_handler.are_previous_tasks_error_free():
                 text = json_args.get_value(self.input_key)
 
                 sentences = nltk.tokenize.sent_tokenize(text, self.language)
+                detected = []
+
                 for s in sentences:
                     doc = nlp(s)
 
                     detected.append(
-                        doc.to_json()
-                    )  # I'm not convinced if we should return all the data in JSON format specifically
-
-                    # .ent - named entity detected by nlp
-                    # .ent.label_ - label assigned to text fragment (e.g. Google -> Company, 30 -> Cardinal)
-                    # .sent - sentence including given entity
+                        {
+                            "sentence": s,
+                            "ents": list(
+                                map(
+                                    lambda ent: {"text": ent.text, "label": ent.label_},
+                                    doc.ents,
+                                )
+                            ),
+                        }
+                    )
 
                 json_args.add_value(self.output_key, detected)
             else:
