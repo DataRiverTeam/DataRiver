@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.images.perceptual_hash import JsonPerceptualHash
-from datariver.operators.images.descript_image import JsonDescribeImage
+from datariver.operators.images.describe_image import JsonDescribeImage
 from datariver.operators.common.elasticsearch import (
     ElasticJsonPushOperator,
     ElasticSearchOperator,
