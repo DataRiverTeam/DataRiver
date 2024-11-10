@@ -5,7 +5,8 @@ from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.common.exception_managing import ErrorHandler
 from datariver.operators.common.json_tools import JsonArgs
-from datariver.operators.common.elasticsearch import (    ElasticJsonPushOperator,
+from datariver.operators.common.elasticsearch import (
+    ElasticJsonPushOperator,
     ElasticSearchOperator,
 )
 from datariver.operators.texts.langdetect import JsonLangdetectOperator
