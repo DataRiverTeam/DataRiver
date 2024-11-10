@@ -4,9 +4,7 @@ from airflow import DAG
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
-
-
-from datariver.operators.json import MapJsonFile
+from datariver.operators.common.json_tools import MapJsonFile
 
 default_args = {
     'owner': 'airflow',
