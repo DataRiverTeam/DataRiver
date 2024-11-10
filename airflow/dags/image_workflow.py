@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
 from datariver.operators.images.perceptual_hash import JsonPerceptualHash
-from datariver.operators.images.descript_image import JsonDescriptImage
+from datariver.operators.images.descript_image import JsonDescribeImage
 from datariver.operators.common.elasticsearch import ElasticJsonPushOperator, ElasticSearchOperator
 import os
 
@@ -46,7 +46,7 @@ with DAG(
         input_key="image_path",
         output_key="hash",
     )
-    descript_image_task = JsonDescriptImage(
+    descript_image_task = JsonDescribeImage(
         task_id="descript_image",
         json_files_paths="{{ params.json_files_paths }}",
         fs_conn_id="{{ params.fs_conn_id }}",

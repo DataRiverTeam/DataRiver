@@ -2,7 +2,7 @@ from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
 
 
-class JsonDescriptImage(BaseOperator):
+class JsonDescribeImage(BaseOperator):
     template_fields = ("json_files_paths", "fs_conn_id", "input_key", "output_key", "encoding")
 
     def __init__(self, *, json_files_paths, fs_conn_id="fs_data", input_key, output_key, encoding="utf-8", **kwargs):
