@@ -177,11 +177,10 @@ app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
 });
 
 app.get("/api/ner/docs", async (req, res) => {
-    const SIZE = 20;
+    const SIZE = 10;
 
     // query params
     const start = req.query["start"] || 0;
-
     const textFragment = req.query["text"] || null;
     const dagRunId = req.query["dag-run-id"] || null;
     const lang = req.query["lang"] || null;
@@ -226,7 +225,7 @@ app.get("/api/ner/docs", async (req, res) => {
     try {
         const result = await elasticClient.search({
             index: "ner",
-            size: 10,
+            size: SIZE,
             from: start,
             query: query,
         });

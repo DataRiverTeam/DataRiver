@@ -20,4 +20,7 @@ export type TNerDoc = {
             entities: TNerStat[];
         };
     };
+    dag_run_id: string;
+    dag_start_date?: string;
+    dag_processed_date?: string;
 };

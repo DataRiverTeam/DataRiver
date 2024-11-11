@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
 
+import Pagination from "@mui/material/Pagination";
+
 import { TNerDoc } from "../../types/ner";
 import NerCard from "../NerCard/NerCard";
 
@@ -20,35 +22,37 @@ type TNerFormFields = {
 function NerBrowser() {
     let [docs, setDocs] = useState<TNerDoc[]>([]);
     let [totalFound, setTotalFound] = useState<number>(0);
-
+    let [page, setPage] = useState<number>(1);
     let [isLoading, setIsLoading] = useState(false);
     let [_errorMessage, setErrorMessage] = useState("");
+
+    let [currentFormData, setCurrentFormData] = useState<TNerFormFields | null>(
+        null
+    );
 
     let { register, handleSubmit, control } = useForm<TNerFormFields>();
     let { fields, append, remove } = useFieldArray({
         control,
         name: "ners",
     });
-
     let onSubmit: SubmitHandler<TNerFormFields> = (data) => {
-        setIsLoading(true);
-        getDocs(data);
+        setPage((_) => 1);
+        setCurrentFormData(data);
+        getDocs(data, 1);
     };
 
-    useEffect(() => {
-        getDocs(null);
-    }, []);
-
-    async function getDocs(data: TNerFormFields | null) {
+    async function getDocs(data: TNerFormFields | null, pageNumber: number) {
         setErrorMessage("");
         setIsLoading(true);
         try {
-            let queryString;
+            let queryObject = {
+                start: ((pageNumber - 1) * 10).toString(),
+            };
 
             if (data) {
                 let { content, ners, lang, dagRunId } = data;
 
-                queryString = new URLSearchParams({
+                Object.assign(queryObject, {
                     ...(content.trim().length > 0 ? { text: content } : null),
                     ...(dagRunId.trim().length > 0
                         ? { "dag-run-id": dagRunId }
@@ -62,10 +66,12 @@ function NerBrowser() {
                                   .join(","),
                           }
                         : null),
-                }).toString();
-            } else {
-                queryString = "";
+                });
             }
+
+            let queryString = new URLSearchParams(queryObject).toString();
+
+            console.log(queryString);
 
             const response = await fetch(`/api/ner/docs?${queryString}`);
 
@@ -91,6 +97,18 @@ function NerBrowser() {
             setIsLoading(false);
         }
     }
+
+    useEffect(() => {
+        getDocs(null, 1);
+    }, []);
+
+    const handlePageChange = (
+        _event: React.ChangeEvent<unknown>,
+        value: number
+    ) => {
+        setPage((_) => value);
+        getDocs(currentFormData, value);
+    };
 
     return (
         <>
@@ -156,12 +174,38 @@ function NerBrowser() {
                 ) : (
                     <>
                         Found {totalFound} matching results.
+                        {totalFound > 0 ? (
+                            <>
+                                <Pagination
+                                    classes={{
+                                        ul: s.paginatorList,
+                                    }}
+                                    color="primary"
+                                    count={Math.ceil(totalFound / 10)}
+                                    page={page}
+                                    onChange={handlePageChange}
+                                />
+                            </>
+                        ) : null}
                         {docs.map((item) => (
-                            //TODO: add a key for each doc!
                             <NerCard key={item.id} item={item} />
                         ))}
                     </>
                 )}
+
+                {totalFound > 0 ? (
+                    <>
+                        <Pagination
+                            classes={{
+                                ul: s.paginatorList,
+                            }}
+                            color="primary"
+                            count={Math.ceil(totalFound / 10)}
+                            page={page}
+                            onChange={handlePageChange}
+                        />
+                    </>
+                ) : null}
             </div>
         </>
     );

@@ -1,5 +1,6 @@
-// import { BarChart } from "@mui/x-charts/BarChart";
 import s from "./NerChart.module.css";
+import Paper from "@mui/material/Paper";
+import { BarChart } from "@mui/x-charts/BarChart";
 
 type TNerChartProps = {
     labels: string[];
@@ -9,31 +10,29 @@ type TNerChartProps = {
 function NerChart({ labels, values }: TNerChartProps) {
     return (
         <div className={s.graphWrapper}>
-            {/* <BarChart
-                sx={{ marginBottom: "4rem" }}
-                width={800}
-                height={400}
-                series={[
-                    {
-                        data: values,
-                        id: "cId",
-                    },
-                ]}
-                xAxis={[
-                    {
-                        data: labels,
-                        scaleType: "band",
+            <Paper sx={{ width: "800px", height: "400px" }} elevation={1}>
+                <BarChart
+                    xAxis={[
+                        {
+                            data: labels,
+                            scaleType: "band",
 
-                        tickLabelStyle: {
-                            angle: 90,
-                            textAnchor: "start",
-                            fontSize: 10,
+                            tickLabelStyle: {
+                                angle: 90,
+                                textAnchor: "start",
+                                fontSize: 10,
+                            },
                         },
-                    },
-                ]}
-            /> */}
-            {JSON.stringify(labels)}
-            {JSON.stringify(values)}
+                    ]}
+                    series={[
+                        {
+                            data: values,
+                            id: "cId",
+                            type: "bar",
+                        },
+                    ]}
+                />
+            </Paper>
         </div>
     );
 }

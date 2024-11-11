@@ -13,3 +13,7 @@
     justify-content: space-between;
     width: 300px;
 }
+
+.paginatorList :global(.MuiPaginationItem-root) {
+    color: white;
+}
