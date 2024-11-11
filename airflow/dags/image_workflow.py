@@ -68,6 +68,7 @@ with DAG(
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="image_path",
         output_key="description",
+        local_model_path="/home/airflow/.local/BLIP",
     )
     es_push_task = ElasticJsonPushOperator(
         task_id="elastic_push",

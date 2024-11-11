@@ -9,6 +9,7 @@ class JsonDescribeImage(BaseOperator):
         "input_key",
         "output_key",
         "encoding",
+        "local_model_path",
     )
 
     def __init__(
@@ -19,6 +20,7 @@ class JsonDescribeImage(BaseOperator):
         input_key,
         output_key,
         encoding="utf-8",
+        local_model_path=None,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -27,18 +29,19 @@ class JsonDescribeImage(BaseOperator):
         self.input_key = input_key
         self.output_key = output_key
         self.encoding = encoding
+        self.local_model_path = local_model_path
 
     def execute(self, context):
         from transformers import BlipProcessor, BlipForConditionalGeneration
         from PIL import Image
 
         # Load the pre-trained BLIP model and processor
-        model = BlipForConditionalGeneration.from_pretrained(
-            "Salesforce/blip-image-captioning-base"
-        )
-        processor = BlipProcessor.from_pretrained(
-            "Salesforce/blip-image-captioning-base"
-        )
+        if self.local_model_path is None:
+            model_source = "Salesforce/blip-image-captioning-base"
+        else:
+            model_source = self.local_model_path
+        model = BlipForConditionalGeneration.from_pretrained(model_source)
+        processor = BlipProcessor.from_pretrained(model_source)
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image_path = json_args.get_value(self.input_key)
