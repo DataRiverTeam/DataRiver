@@ -20,7 +20,7 @@ def map_paths(paths, **context):
     def create_conf(paths, start_index):
         return {
             "fs_conn_id": context["params"]["fs_conn_id"],
-            "json_files_paths": paths[start_index : start_index + batch_size]
+            "json_files_paths": paths[start_index : start_index + batch_size],
         }
 
     clear_paths = [path for path in paths if path is not None]
@@ -30,6 +30,7 @@ def map_paths(paths, **context):
 def copy_item_to_file(item, context):
     import json
     from airflow.hooks.filesystem import FSHook
+
     hook = FSHook(context["params"]["fs_conn_id"])
     input_path = context["params"]["path"]
 
@@ -40,13 +41,12 @@ def copy_item_to_file(item, context):
         context["ti"].run_id,
     )
     os.makedirs(dir_path, exist_ok=True)
-    full_path = os.path.join(
-        dir_path, f'{os.path.basename(item).split(".")[0]}.json'
-    )
+    full_path = os.path.join(dir_path, f'{os.path.basename(item).split(".")[0]}.json')
 
     with open(full_path, "w") as file:
         file.write(json.dumps({"image_path": f"../{item}"}, indent=2))
     return full_path
+
 
 with DAG(
     "map_file_images",
