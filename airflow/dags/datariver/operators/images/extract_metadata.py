@@ -41,10 +41,11 @@ class JsonExtractMetadata(BaseOperator):
             image = Image.open(image_full_path)
             exif_info = image._getexif()
             metadata = []
-            for tag, value in exif_info.items():
-                if isinstance(value, bytes):
-                    value = value.decode(encoding=json.detect_encoding(value))
-                else:
-                    value = str(value)
-                metadata.append({ExifTags.TAGS.get(tag): value})
+            if exif_info is not None:
+                for tag, value in exif_info.items():
+                    if isinstance(value, bytes):
+                        value = value.decode(encoding=json.detect_encoding(value))
+                    else:
+                        value = str(value)
+                    metadata.append({ExifTags.TAGS.get(tag): value})
             json_args.add_value(self.output_key, metadata)
