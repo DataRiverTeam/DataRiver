@@ -1,6 +1,6 @@
 import json
 import ijson
-import os
+import os, fcntl
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -59,8 +59,10 @@ class JsonArgs(LoggingMixin):
     def get_value(self, key):
         value = None
         try:
-            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
-                data = json.load(f)
+            with open(self.get_full_path(), "r", encoding=self.encoding) as file:
+                fcntl.flock(file.fileno(), fcntl.LOCK_SH)
+                data = json.load(file)
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
                 value = data.get(key)
                 if value is None:
                     self.log.error(
@@ -72,12 +74,14 @@ class JsonArgs(LoggingMixin):
 
     def add_value(self, key, value):
         try:
-            with open(self.get_full_path(), "r+", encoding=self.encoding) as f:
-                data = json.load(f)
-                f.seek(0)
-                f.truncate(0)
+            with open(self.get_full_path(), "r+", encoding=self.encoding) as file:
+                fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+                data = json.load(file)
+                file.seek(0)
+                file.truncate(0)
                 data[key] = value
-                json.dump(data, f, ensure_ascii=False, indent=2)
+                json.dump(data, file, ensure_ascii=False, indent=2)
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
 
@@ -85,8 +89,10 @@ class JsonArgs(LoggingMixin):
         value = None
         values = {}
         try:
-            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
-                data = json.load(f)
+            with open(self.get_full_path(), "r", encoding=self.encoding) as file:
+                fcntl.flock(file.fileno(), fcntl.LOCK_SH)
+                data = json.load(file)
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
                 for key in keys:
                     value = data.get(key)
                     if value is None:
@@ -102,8 +108,10 @@ class JsonArgs(LoggingMixin):
     def get_keys(self):
         keys = []
         try:
-            with open(self.get_full_path(), "r", encoding=self.encoding) as f:
-                data = json.load(f)
+            with open(self.get_full_path(), "r", encoding=self.encoding) as file:
+                fcntl.flock(file.fileno(), fcntl.LOCK_SH)
+                data = json.load(file)
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
                 keys = data.keys()
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
