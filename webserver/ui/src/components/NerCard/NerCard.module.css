@@ -1,3 +1,26 @@
 .quote {
     font-style: italic;
 }
+
+.statTable {
+    border-collapse: collapse;
+    width: 600px;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+}
+
+.statTable td {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+}
+
+.statTable .statLabel {
+    width: 60%;
+}
+
+.nerWrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}

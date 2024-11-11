@@ -5,9 +5,12 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import CardContent from "@mui/material/CardContent";
+// import ToggleButton from "@mui/material/ToggleButton";
+// import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 
 import { TNerDoc } from "../../types/ner";
 import s from "./NerCard.module.css";
+import NerChart from "./components/NerChart/NerChart";
 
 type NerCardProps = {
     item: TNerDoc;
@@ -22,7 +25,7 @@ function NerCard({ item }: NerCardProps) {
         >
             <CardHeader title={item.title} />
             <CardContent>Language: {item.language}</CardContent>
-            <Accordion defaultExpanded>
+            <Accordion defaultExpanded disableGutters>
                 <AccordionSummary
                     aria-controls="content-details"
                     id="content-header"
@@ -35,7 +38,7 @@ function NerCard({ item }: NerCardProps) {
                 </AccordionDetails>
             </Accordion>
             {item.translated ? (
-                <Accordion>
+                <Accordion disableGutters>
                     <AccordionSummary
                         aria-controls="translation-details"
                         id="translation-header"
@@ -48,7 +51,7 @@ function NerCard({ item }: NerCardProps) {
                     </AccordionDetails>
                 </Accordion>
             ) : null}
-            <Accordion>
+            <Accordion disableGutters>
                 <AccordionSummary
                     aria-controls="ner-details"
                     id="ner-header"
@@ -57,12 +60,38 @@ function NerCard({ item }: NerCardProps) {
                     Named Entities
                 </AccordionSummary>
                 <AccordionDetails>
-                    <pre className="code">
-                        {JSON.stringify(item.ner, null, 2)}
-                    </pre>
+                    <div className={s.nerWrapper}>
+                        {item.ner.map((ner) => (
+                            <div>
+                                <blockquote className={s.quote}>
+                                    {ner.sentence}
+                                </blockquote>
+                                {ner.ents.length > 0 ? (
+                                    <table className={s.statTable}>
+                                        {ner.ents.map((ent) => {
+                                            return (
+                                                <tr
+                                                    key={`${item.id}-ents-${ent.text}-${ent.label}`}
+                                                >
+                                                    <td className={s.statLabel}>
+                                                        {ent.text}
+                                                    </td>
+                                                    <td> {ent.label} </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </table>
+                                ) : (
+                                    <p style={{ textAlign: "center" }}>
+                                        No entities detected.
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </AccordionDetails>
             </Accordion>
-            <Accordion>
+            <Accordion disableGutters>
                 <AccordionSummary
                     aria-controls="stats-details"
                     id="stats-header"
@@ -71,9 +100,67 @@ function NerCard({ item }: NerCardProps) {
                     Statistics
                 </AccordionSummary>
                 <AccordionDetails>
-                    <pre className="code">
-                        {JSON.stringify(item.ner_stats, null, 2)}
-                    </pre>
+                    {/* <ToggleButtonGroup
+                        value={alignment}
+                        exclusive
+                        onChange={handleAlignment}
+                        aria-label="text alignment"
+                    ></ToggleButtonGroup> */}
+
+                    <NerChart
+                        labels={item.ner_stats.stats.labels.map(
+                            (label) => label.value
+                        )}
+                        values={item.ner_stats.stats.labels.map(
+                            (label) => label.count
+                        )}
+                    />
+
+                    <table className={s.statTable}>
+                        <thead>
+                            <tr>
+                                <th className={s.statLabel}>Label</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {item.ner_stats.stats.labels.map((label) => (
+                                <tr key={`ner-state-${label.value}`}>
+                                    <td className={s.statLabel}>
+                                        {label.value}
+                                    </td>
+                                    <td>{label.count}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+
+                    <NerChart
+                        labels={item.ner_stats.stats.entities.map(
+                            (label) => label.value
+                        )}
+                        values={item.ner_stats.stats.entities.map(
+                            (label) => label.count
+                        )}
+                    />
+                    <table className={s.statTable}>
+                        <thead>
+                            <tr>
+                                <th>Entity</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {item.ner_stats.stats.entities.map((entity) => (
+                                <tr key={`entity-${entity.value}`}>
+                                    <td className={s.statLabel}>
+                                        {entity.value}
+                                    </td>
+                                    <td>{entity.count}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </AccordionDetails>
             </Accordion>
         </Card>

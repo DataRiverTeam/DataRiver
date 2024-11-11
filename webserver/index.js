@@ -70,20 +70,25 @@ app.get("/api/dags", async (req, res) => {
 });
 
 app.get("/api/dags/:dagid/dagruns", async (req, res) => {
-    fetch(`${AIRFLOW_HOST}/api/v1/dags/${req.params["dagid"]}/dagRuns`, {
-        headers: airflowUtil.getAirflowHeaders(),
-    })
-        .then((data) => data.json())
-        .then((data) => {
-            res.json({ status: 200, ...data });
-        })
-        .catch((err) => {
-            console.log(err);
+    try {
+        const dagId = req.params["dagid"];
+        const options = {
+            headers: airflowUtil.getAirflowHeaders(),
+        };
 
-            res.status(500).json({
-                status: 500,
-            });
+        const dagRuns = await fetch(
+            `${AIRFLOW_HOST}/api/v1/dags/${dagId}/dagRuns`,
+            options
+        ).then((data) => data.json());
+
+        res.json({
+            status: 200,
+            ...dagRuns,
         });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: 500 });
+    }
 });
 
 app.post("/api/dags/:dagid/dagruns", async (req, res) => {
@@ -172,19 +177,58 @@ app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
 });
 
 app.get("/api/ner/docs", async (req, res) => {
-    const textFragment = req.query.text;
-    const id = req.query.id;
-    if (!textFragment && !id) {
-        res.status(400).send({ status: 400 });
-        return;
+    const SIZE = 20;
+
+    // query params
+    const start = req.query["start"] || 0;
+
+    const textFragment = req.query["text"] || null;
+    const dagRunId = req.query["dag-run-id"] || null;
+    const lang = req.query["lang"] || null;
+    const ners = req.query["ners"]
+        ? req.query["ners"].split(",").map((item) => item.trim())
+        : [];
+
+    const mustClauses = [];
+    if (textFragment) {
+        mustClauses.push({ match: { content: textFragment } });
     }
+
+    // NOTE:
+    // We give up on searching by dag_rund_id's substring.
+    // It is possible, to search it using wildcard query,
+    // but it can result in performance issues
+    //
+    // Looking for exact match might be enough
+    if (dagRunId) {
+        mustClauses.push({ match: { "dag_run_id.keyword": dagRunId } });
+    }
+
+    if (lang) {
+        mustClauses.push({ term: { "language.keyword": lang } });
+    }
+
+    ners.forEach((ner) => {
+        mustClauses.push({
+            match: { "ner.ents.text": ner },
+        });
+    });
+
+    const query = {
+        bool: {
+            must: mustClauses,
+        },
+    };
+
+    console.log("Sending query:");
+    console.log(JSON.stringify(query, null, 2));
+
     try {
         const result = await elasticClient.search({
             index: "ner",
-            query: {
-                // match_phrase: { text: "..." },
-                match: { content: textFragment },
-            },
+            size: 10,
+            from: start,
+            query: query,
         });
 
         res.json({ status: 200, ...result });

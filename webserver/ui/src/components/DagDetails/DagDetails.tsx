@@ -19,13 +19,14 @@ function DagDetails() {
     let getDag = async () => {
         try {
             const response = await fetch(`/api/dags/${dagId}/dagruns`);
-            const json: TDagRunResponse = await response.json();
 
-            if (!json?.status.toString().startsWith("2")) {
+            if (!response?.status.toString().startsWith("2")) {
                 throw new Error(
-                    `There was an error when handling request. Status code: ${json.status}`
+                    `There was an error when handling request. Status code: ${response.status}`
                 );
             }
+
+            const json: TDagRunResponse = await response.json();
 
             setDagRuns(json.dag_runs);
         } catch (error) {
