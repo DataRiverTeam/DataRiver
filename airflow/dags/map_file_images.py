@@ -17,10 +17,10 @@ default_args = {
 def map_paths(paths, **context):
     batch_size = context["params"]["batch_size"]
 
-    def create_conf(paths, start_index):
+    def create_conf(json_paths, start_index):
         return {
             "fs_conn_id": context["params"]["fs_conn_id"],
-            "json_files_paths": paths[start_index : start_index + batch_size],
+            "json_files_paths": json_paths[start_index : start_index + batch_size],
         }
 
     clear_paths = [path for path in paths if path is not None]
