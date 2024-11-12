@@ -4,25 +4,14 @@ export type TNerStat = {
 };
 
 export type TNerDoc = {
+    id: string;
     content: string;
     title: string;
     translated?: string;
     language: string;
     ner: {
-        text: string;
-        ents: { start: number; end: number; label: string[] };
-        sents: { start: number; end: number }[];
-        tokens: {
-            id: number;
-            start: number;
-            end: number;
-            tag: string;
-            pos: string;
-            morph: string;
-            lemma: string;
-            dep: string;
-            head: 0;
-        }[];
+        sentence: string;
+        ents: { text: string; label: string }[];
     }[];
     ner_stats: {
         title: string;
@@ -31,4 +20,7 @@ export type TNerDoc = {
             entities: TNerStat[];
         };
     };
+    dag_run_id: string;
+    dag_start_date?: string;
+    dag_processed_date?: string;
 };

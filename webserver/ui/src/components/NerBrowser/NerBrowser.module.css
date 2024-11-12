@@ -1,6 +1,19 @@
 .filters {
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
     padding: 12px;
-    gap: 4px;
+    gap: 0.8rem;
+}
+
+.filtersItem {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 300px;
+}
+
+.paginatorList :global(.MuiPaginationItem-root) {
+    color: white;
 }
