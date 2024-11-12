@@ -19,7 +19,7 @@ Run Airflow with Elasticsearch cluster and Kibana dashboard
 docker compose --profile debug up
 ```
 
-Rebuild base image (_required after modyfying the requirements.txt file_)
+Rebuild base image (_required after modifying the requirements.txt file_)
 ```
 docker compose build
 ```
