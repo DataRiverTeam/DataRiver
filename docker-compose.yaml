@@ -181,7 +181,7 @@ services:
       _AIRFLOW_WWW_USER_USERNAME: ${_AIRFLOW_WWW_USER_USERNAME:-airflow}
       _AIRFLOW_WWW_USER_PASSWORD: ${_AIRFLOW_WWW_USER_PASSWORD:-airflow}
       _PIP_ADDITIONAL_REQUIREMENTS: ''
-      RECREATE: "false"
+      RECREATE: "true"
     user: "0:0"
     volumes:
       - ./airflow/dags:/opt/airflow/dags
