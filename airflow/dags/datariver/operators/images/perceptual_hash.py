@@ -59,7 +59,7 @@ class JsonPerceptualHash(BaseOperator):
                     hash_value = self.block_mean_hash(image_full_path)
                 case _:
                     raise AttributeError()
-            json_args.add_value(self.output_key, {self.hash_type: hash_value})
+            json_args.add_value(self.output_key, {self.hash_type: str(hash_value)})
 
     def p_hash(self, image_path: str):
         import cv2

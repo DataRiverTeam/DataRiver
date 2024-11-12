@@ -1,8 +1,9 @@
+import json
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
 
 
-class JsonDescribeImage(BaseOperator):
+class JsonExtractMetadata(BaseOperator):
     template_fields = (
         "json_files_paths",
         "fs_conn_id",
@@ -19,7 +20,7 @@ class JsonDescribeImage(BaseOperator):
         input_key,
         output_key,
         encoding="utf-8",
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.json_files_paths = json_files_paths
@@ -29,16 +30,8 @@ class JsonDescribeImage(BaseOperator):
         self.encoding = encoding
 
     def execute(self, context):
-        from transformers import BlipProcessor, BlipForConditionalGeneration
-        from PIL import Image
+        from PIL import Image, ExifTags
 
-        # Load the pre-trained BLIP model and processor
-        model = BlipForConditionalGeneration.from_pretrained(
-            "Salesforce/blip-image-captioning-base"
-        )
-        processor = BlipProcessor.from_pretrained(
-            "Salesforce/blip-image-captioning-base"
-        )
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image_path = json_args.get_value(self.input_key)
@@ -46,12 +39,13 @@ class JsonDescribeImage(BaseOperator):
                 json_args.get_full_path(), image_path
             )
             image = Image.open(image_full_path)
-
-            # Preprocess the image and prepare inputs for the model
-            inputs = processor(images=image, return_tensors="pt")
-            # Generate caption
-            caption = model.generate(**inputs, max_new_tokens=100)
-            # Decode the generated caption
-            caption_text = processor.decode(caption[0], skip_special_tokens=True)
-
-            json_args.add_value(self.output_key, caption_text)
+            exif_info = image._getexif()
+            metadata = []
+            if exif_info is not None:
+                for tag, value in exif_info.items():
+                    if isinstance(value, bytes):
+                        value = value.decode(encoding=json.detect_encoding(value))
+                    else:
+                        value = str(value)
+                    metadata.append({ExifTags.TAGS.get(tag): value})
+            json_args.add_value(self.output_key, metadata)
