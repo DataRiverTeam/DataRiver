@@ -209,7 +209,7 @@ app.get("/api/ner/docs", async (req, res) => {
 
     ners.forEach((ner) => {
         mustClauses.push({
-            match: { "ner.ents.text": ner },
+            term: { "ner.ents.text.keyword": ner },
         });
     });
 
