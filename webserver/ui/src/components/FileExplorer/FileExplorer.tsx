@@ -97,13 +97,15 @@ function FileExplorer() {
         <>
             <h1> Browse files</h1>
             <Tooltip title="Refresh file explorer">
-                <Button
-                    onClick={fetchFiles}
-                    className={s.button}
-                    disabled={isLoading}
-                >
-                    <RefreshIcon />
-                </Button>
+                <span>
+                    <Button
+                        onClick={fetchFiles}
+                        className={s.button}
+                        disabled={isLoading}
+                    >
+                        <RefreshIcon />
+                    </Button>
+                </span>
             </Tooltip>
             <h2> {currentDir} </h2>
             {/* TODO: move the table to separate component */}
