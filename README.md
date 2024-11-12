@@ -19,33 +19,48 @@ Run Airflow with Elasticsearch cluster and Kibana dashboard
 docker compose --profile debug up
 ```
 
-Rebuild base image (_required after modyfying the requirements.txt file_)
+Rebuild base image (_required after modifying the requirements.txt file_)
 ```
 docker compose build
 ```
-### Configuring the Apache Airflow
-After the first launch, before triggering any DAGs, you need to provide required filesystem connections in Airflow.
-
+## Running ner workflow from UI
 ### Step 1
-Open http://localhost:8080/ in the browser.
-
+Open http://localhost:3000/ in the browser.
 ### Step 2
-Navigate to _Admin > Connections_: \
-![Navigate to Admin > Connections](resources/tutorial_conf_conn_panel.png?raw=true)
-
+Navigate to `FILES` in navbar \
+![Navigate to files](resources/files.png)
 ### Step 3
-Select the _file (path)_ connection type, and provide the connection ID and the base directory path \
-![Configure connection](resources/tutorial_conf_fs_data.png)
-
-_Note: the `/opt/airflow/data` directory is preferred, it's directly mapped to `data` directory in the root of the project and allows easy way to upload files._
-
+Select map folder \
+![Go to map folder](resources/map.png)
 ### Step 4
-When triggering the `mailbox` DAG via UI, you need to provide two parameters: connection ID and path relative to the directory specified by connection with given ID. \
-![Configure triggered DAG](resources/tutorial_conf_trigger.png)
-
+Browse and upload file ./test_data/texts/texts_small.json \
+![Search texts_small.json](resources/browse.png)
 ### Step 5
-The `mailbox` DAG uses a sensor to wait for files.
-In order to start processing the files, you need to put them in the directory specified in the DAG's configuration (default: `/opt/airflow/data/map/*.json`)
+Navigate to `DAGS` in navbar \
+![Go to dags](resources/dags.png)
+### Step 6
+Select mailbox dag \
+![Select mailbox dag](resources/mailbox.png)
+### Step 7
+Trigger dag \
+![Trigger dag](resources/trigger.png)
+### Step 8
+Insert config below and run dag. 
+```
+{
+  "batch_size": 10,
+  "encoding": "utf-8",
+  "filepath": "map/*.json",
+  "fs_conn_id": "fs_data"
+}
+```
+![Configure triggered DAG](resources/config.png)
+### Step 9
+After a minute you can see processed data in `BROWSE DOCUMENTS`.
+
+## Running image workflow from UI
+
+### TO DO
 
 ## Service access
 ### Web UI
