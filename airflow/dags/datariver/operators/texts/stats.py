@@ -44,25 +44,19 @@ class NerJsonStatisticsOperator(BaseOperator):
             )
 
             if error_handler.are_previous_tasks_error_free():
-                json_data = json_args.get_value(self.input_key)
+                ner_data = json_args.get_value(self.input_key)
 
-                for data in json_data:
-                    detected = ast.literal_eval(
-                        json.dumps(data)
-                    )  # literal_eval is used here, because data pushed to xcom by NerOperator are not in fully correct json format
-
-                    text = detected["text"]
-                    for ent in detected["ents"]:
+                for data in ner_data:
+                    text = data["sentence"]
+                    for ent in data["ents"]:
                         label = ent["label"]
                         if label in label_counter:
                             label_counter[label] = label_counter[label] + 1
                         else:
                             label_counter[label] = 1
-                        start = ent["start"]
-                        end = ent["end"]
-                        entity = (
-                            text[start:end].replace("\n", "\\n").replace("\t", "\\t")
-                        )
+
+                        entity = ent["text"].replace("\n", "\\n").replace("\t", "\\t")
+
                         if entity in entity_counter:
                             entity_counter[entity] = entity_counter[entity] + 1
                         else:
