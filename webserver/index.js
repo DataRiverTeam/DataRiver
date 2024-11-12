@@ -228,6 +228,13 @@ app.get("/api/ner/docs", async (req, res) => {
             size: SIZE,
             from: start,
             query: query,
+            sort: [
+                {
+                    dag_start_date: {
+                        order: "desc",
+                    },
+                },
+            ],
         });
 
         res.json({ status: 200, ...result });
