@@ -4,7 +4,7 @@ import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
 
 import Pagination from "@mui/material/Pagination";
 
-import { TNerDoc } from "../../types/ner";
+import { TParsedNerDocProps, TFailedNerDocProps } from "../../types/ner";
 import NerCard from "../NerCard/NerCard";
 
 import s from "./NerBrowser.module.css";
@@ -16,11 +16,10 @@ type TNerFormFields = {
     dagRunId: string;
 };
 
-//TODO: dynamically created inputs
-//https://codesandbox.io/p/sandbox/react-hook-form-usefieldarray-ssugn?file=%2Fsrc%2Findex.tsx
-
 function NerBrowser() {
-    let [docs, setDocs] = useState<TNerDoc[]>([]);
+    let [docs, setDocs] = useState<(TParsedNerDocProps | TFailedNerDocProps)[]>(
+        []
+    );
     let [totalFound, setTotalFound] = useState<number>(0);
     let [page, setPage] = useState<number>(1);
     let [isLoading, setIsLoading] = useState(false);

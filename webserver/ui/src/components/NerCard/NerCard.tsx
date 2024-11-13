@@ -85,136 +85,166 @@ function NerCard({ item }: TNerCardProps) {
                     </AccordionDetails>
                 </Accordion>
             ) : null}
-            <Accordion disableGutters>
-                <AccordionSummary
-                    aria-controls="ner-details"
-                    id="ner-header"
-                    expandIcon={<ArrowDropDownIcon />}
-                >
-                    Named Entities
-                </AccordionSummary>
-                <AccordionDetails>
-                    <div className={s.nerWrapper}>
-                        {item.ner.map((ner, index) => (
-                            <div
-                                key={`${item.id}-sentence-${ner.sentence}-${index}`}
-                            >
-                                <blockquote className={s.quote}>
-                                    {ner.sentence}
-                                </blockquote>
-                                {ner.ents.length > 0 ? (
-                                    <table className={s.statTable}>
-                                        <tbody>
-                                            {ner.ents.map((ent, index) => {
-                                                return (
-                                                    <tr
-                                                        key={`${item.id}-sentence-${ner.sentence}-${index}-ent-${index}`}
-                                                    >
-                                                        <td
-                                                            className={
-                                                                s.statLabel
-                                                            }
-                                                        >
-                                                            {ent.text}
-                                                        </td>
-                                                        <td> {ent.label} </td>
-                                                    </tr>
-                                                );
-                                            })}
-                                        </tbody>
-                                    </table>
-                                ) : (
-                                    <p style={{ textAlign: "center" }}>
-                                        No entities detected.
-                                    </p>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </AccordionDetails>
-            </Accordion>
-            <Accordion disableGutters>
-                <AccordionSummary
-                    aria-controls="stats-details"
-                    id="stats-header"
-                    expandIcon={<ArrowDropDownIcon />}
-                >
-                    Statistics
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Tabs
-                        value={tabValue}
-                        onChange={handleTabChange}
-                        aria-label="Toggle data representation"
+            {item.ner ? (
+                <Accordion disableGutters>
+                    <AccordionSummary
+                        aria-controls="ner-details"
+                        id="ner-header"
+                        expandIcon={<ArrowDropDownIcon />}
                     >
-                        <Tab
-                            label={"Charts"}
-                            aria-controls={`${item.id}-charts`}
-                        ></Tab>
-                        <Tab
-                            label={"Tables"}
-                            aria-controls={`${item.id}-tables`}
-                        ></Tab>
-                    </Tabs>
-                    <TabDisplay index={0} value={tabValue}>
-                        <NerChart
-                            labels={item.ner_stats.stats.entities.map(
-                                (label) => label.value
-                            )}
-                            values={item.ner_stats.stats.entities.map(
-                                (label) => label.count
-                            )}
-                        />
-                        <NerChart
-                            labels={item.ner_stats.stats.labels.map(
-                                (label) => label.value
-                            )}
-                            values={item.ner_stats.stats.labels.map(
-                                (label) => label.count
-                            )}
-                        />
-                    </TabDisplay>
+                        Named Entities
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <div className={s.nerWrapper}>
+                            {item.ner.map((ner, index) => (
+                                <div
+                                    key={`${item.id}-sentence-${ner.sentence}-${index}`}
+                                >
+                                    <blockquote className={s.quote}>
+                                        {ner.sentence}
+                                    </blockquote>
+                                    {ner.ents.length > 0 ? (
+                                        <table className={s.statTable}>
+                                            <tbody>
+                                                {ner.ents.map((ent, index) => {
+                                                    return (
+                                                        <tr
+                                                            key={`${item.id}-sentence-${ner.sentence}-${index}-ent-${index}`}
+                                                        >
+                                                            <td
+                                                                className={
+                                                                    s.statLabel
+                                                                }
+                                                            >
+                                                                {ent.text}
+                                                            </td>
+                                                            <td>
+                                                                {" "}
+                                                                {ent.label}{" "}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <p style={{ textAlign: "center" }}>
+                                            No entities detected.
+                                        </p>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </AccordionDetails>
+                </Accordion>
+            ) : null}
 
-                    <TabDisplay index={1} value={tabValue}>
-                        <table className={s.statTable}>
-                            <thead>
-                                <tr>
-                                    <th className={s.statLabel}>Label</th>
-                                    <th>Count</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {item.ner_stats.stats.labels.map((label) => (
-                                    <tr key={`ner-state-${label.value}`}>
-                                        <td className={s.statLabel}>
-                                            {label.value}
-                                        </td>
-                                        <td>{label.count}</td>
+            {item.ner_stats ? (
+                <Accordion disableGutters>
+                    <AccordionSummary
+                        aria-controls="stats-details"
+                        id="stats-header"
+                        expandIcon={<ArrowDropDownIcon />}
+                    >
+                        Statistics
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Tabs
+                            value={tabValue}
+                            onChange={handleTabChange}
+                            aria-label="Toggle data representation"
+                        >
+                            <Tab
+                                label={"Charts"}
+                                aria-controls={`${item.id}-charts`}
+                            ></Tab>
+                            <Tab
+                                label={"Tables"}
+                                aria-controls={`${item.id}-tables`}
+                            ></Tab>
+                        </Tabs>
+                        <TabDisplay index={0} value={tabValue}>
+                            <NerChart
+                                labels={item.ner_stats.stats.entities.map(
+                                    (label) => label.value
+                                )}
+                                values={item.ner_stats.stats.entities.map(
+                                    (label) => label.count
+                                )}
+                            />
+                            <NerChart
+                                labels={item.ner_stats.stats.labels.map(
+                                    (label) => label.value
+                                )}
+                                values={item.ner_stats.stats.labels.map(
+                                    (label) => label.count
+                                )}
+                            />
+                        </TabDisplay>
+
+                        <TabDisplay index={1} value={tabValue}>
+                            <table className={s.statTable}>
+                                <thead>
+                                    <tr>
+                                        <th className={s.statLabel}>Label</th>
+                                        <th>Count</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <table className={s.statTable}>
-                            <thead>
-                                <tr>
-                                    <th>Entity</th>
-                                    <th>Count</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {item.ner_stats.stats.entities.map((entity) => (
-                                    <tr key={`entity-${entity.value}`}>
-                                        <td className={s.statLabel}>
-                                            {entity.value}
-                                        </td>
-                                        <td>{entity.count}</td>
+                                </thead>
+                                <tbody>
+                                    {item.ner_stats.stats.labels.map(
+                                        (label) => (
+                                            <tr
+                                                key={`ner-state-${label.value}`}
+                                            >
+                                                <td className={s.statLabel}>
+                                                    {label.value}
+                                                </td>
+                                                <td>{label.count}</td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                            <table className={s.statTable}>
+                                <thead>
+                                    <tr>
+                                        <th>Entity</th>
+                                        <th>Count</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </TabDisplay>
-                </AccordionDetails>
-            </Accordion>
+                                </thead>
+                                <tbody>
+                                    {item.ner_stats.stats.entities.map(
+                                        (entity) => (
+                                            <tr key={`entity-${entity.value}`}>
+                                                <td className={s.statLabel}>
+                                                    {entity.value}
+                                                </td>
+                                                <td>{entity.count}</td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </TabDisplay>
+                    </AccordionDetails>
+                </Accordion>
+            ) : null}
+            {"error" in item ? (
+                <Accordion defaultExpanded disableGutters>
+                    <AccordionSummary
+                        aria-controls="content-details"
+                        id="content-header"
+                        expandIcon={<ArrowDropDownIcon />}
+                    >
+                        Errors
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <p>
+                            [{item.error.task_id}] {item.error.message}
+                        </p>
+                    </AccordionDetails>
+                </Accordion>
+            ) : null}
         </Card>
     );
 }
