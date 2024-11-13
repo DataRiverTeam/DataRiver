@@ -26,7 +26,8 @@ class ErrorHandler:
         return True
 
     def save_error_to_file(self, message):
-        error_data = {"task_id": self.task_id, "message": message}
+        error_data = {}
+        error_data[self.task_id] = message
         self.json_args.add_value(self.error_key, error_data)
 
     # for all cases by now, getting only one error from file should be sufficient, as further processing a file containing error is not foreseen
