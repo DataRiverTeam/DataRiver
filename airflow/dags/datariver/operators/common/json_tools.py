@@ -117,6 +117,19 @@ class JsonArgs(LoggingMixin):
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return keys
 
+    def remove_value(self, key):
+        try:
+            with open(self.get_full_path(), "r+", encoding=self.encoding) as file:
+                fcntl.flock(file.fileno(), fcntl.LOCK_EX)
+                data = json.load(file)
+                file.seek(0)
+                file.truncate(0)
+                data.pop(key)
+                json.dump(data, file, ensure_ascii=False, indent=2)
+                fcntl.flock(file.fileno(), fcntl.LOCK_UN)
+        except IOError as e:
+            self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
+
     @staticmethod
     def generate_absolute_path(base_path: str, path: str) -> str:
         return os.path.normpath(os.path.join(os.path.dirname(base_path), path))
