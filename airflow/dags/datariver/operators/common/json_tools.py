@@ -124,7 +124,7 @@ class JsonArgs(LoggingMixin):
                 data = json.load(file)
                 file.seek(0)
                 file.truncate(0)
-                data.pop(key)
+                data.pop(key, None)
                 json.dump(data, file, ensure_ascii=False, indent=2)
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
         except IOError as e:
