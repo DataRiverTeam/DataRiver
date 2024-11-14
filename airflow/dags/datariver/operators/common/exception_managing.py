@@ -22,10 +22,14 @@ class ErrorHandler:
     # so even if error is found, we need to make sure it's from previous task
     def are_previous_tasks_error_free(self):
         if self.error_key in self.json_args.get_keys():
-            if self.task_id in self.json_args.get_value(self.error_key).get("task_id"):
+            if self.task_id in self.json_args.get_value(self.error_key):
                 return True
             return False
         return True
+
+    def save_error_to_file(self, message):
+        error_data = {"task_id": self.task_id, "message": message}
+        self.json_args.add_value(self.error_key, error_data)
 
     # for all cases by now, getting only one error from file should be sufficient, as further processing a file containing error is not foreseen
     def get_error_from_file(self):
@@ -37,7 +41,3 @@ class ErrorHandler:
     def remove_error(self):
         if self.error_key in self.json_args.get_keys():
             self.json_args.remove_value(self.error_key)
-
-    def save_error_to_file(self, message):
-        error_data = {"task_id": self.task_id, "message": message}
-        self.json_args.add_value(self.error_key, error_data)
