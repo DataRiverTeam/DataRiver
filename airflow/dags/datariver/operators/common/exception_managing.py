@@ -22,7 +22,7 @@ class ErrorHandler:
     # so even if error is found, we need to make sure it's from previous task
     def are_previous_tasks_error_free(self):
         if self.error_key in self.json_args.get_keys():
-            if self.task_id in self.json_args.get_value(self.error_key):
+            if self.task_id in self.json_args.get_value(self.error_key).get("task_id"):
                 return True
             return False
         return True
