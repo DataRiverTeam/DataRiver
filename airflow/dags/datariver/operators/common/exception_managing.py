@@ -18,8 +18,8 @@ class ErrorHandler:
     def is_file_error_free(self):
         return self.error_key not in self.json_args.get_keys()
 
-    #this method checks, if there was an error in previous tasks, but NOT current task to allow current task rerun,
-    #so even if error is found, we need to make sure it's from previous task
+    # this method checks, if there was an error in previous tasks, but NOT current task to allow current task rerun,
+    # so even if error is found, we need to make sure it's from previous task
     def are_previous_tasks_error_free(self):
         if self.error_key in self.json_args.get_keys():
             if self.task_id in self.json_args.get_value(self.error_key).get("task_id"):
@@ -37,7 +37,7 @@ class ErrorHandler:
             return self.json_args.get_value(self.error_key)
         return None
 
-    #to be used after successful rerun, in order to allow further flow, as file is recognized as failed if it contains error
+    # to be used after successful rerun, in order to allow further flow, as file is recognized as failed if it contains error
     def remove_error(self):
         if self.error_key in self.json_args.get_keys():
             self.json_args.remove_value(self.error_key)
