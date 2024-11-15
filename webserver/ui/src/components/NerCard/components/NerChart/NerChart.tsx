@@ -1,4 +1,7 @@
+import { memo } from "react";
+
 import s from "./NerChart.module.css";
+
 import Paper from "@mui/material/Paper";
 import { BarChart } from "@mui/x-charts/BarChart";
 

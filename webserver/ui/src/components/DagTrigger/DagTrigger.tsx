@@ -1,18 +1,95 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect, Fragment } from "react";
+import { useForm, SubmitHandler, UseFormRegister } from "react-hook-form";
 import clsx from "clsx";
 
 import Button from "@mui/material/Button";
 
 import s from "./DagTrigger.module.css";
 
+import { TDagDetail, TDagParam } from "../../types/airflow";
+
+type TDagNamedParam = TDagParam & {
+    name: string;
+};
+
+type TDagParamsFormFields = {
+    [key: string]: number | string;
+};
+
+type TTypedInputProps = {
+    param: TDagNamedParam;
+    register: UseFormRegister<TDagParamsFormFields>;
+};
+function TypedInput({ param, register }: TTypedInputProps) {
+    switch (param.schema.type) {
+        case "string":
+            return (
+                <input
+                    type="text"
+                    {...register(param.name)}
+                    defaultValue={param.value}
+                />
+            );
+        case "integer":
+            return (
+                <input
+                    type="number"
+                    defaultValue={param.value}
+                    {...register(param.name, { valueAsNumber: true })}
+                />
+            );
+        default:
+            return (
+                <input
+                    type="text"
+                    defaultValue={param.value}
+                    {...register(param.name)}
+                />
+            );
+    }
+}
+
 function DagTrigger() {
-    const [conf, setConf] = useState<string>("{}");
     const { dagId } = useParams();
     const navigate = useNavigate();
+    const [dagParams, setDagParams] = useState<TDagNamedParam[]>([]);
 
-    let handleSubmit = async () => {
+    let { register, handleSubmit } = useForm<TDagParamsFormFields>();
+
+    let fetchDagParams = async () => {
         try {
+            const res = await fetch(`/api/dags/${dagId}/details`);
+
+            if (!res.status.toString().startsWith("2")) {
+                throw new Error(
+                    `There was an error fetching the params. Status code: ${res.status}`
+                );
+            }
+
+            const details: TDagDetail = await res.json();
+
+            setDagParams(
+                Object.entries(details.params).map(
+                    ([key, param]): TDagNamedParam => {
+                        return { name: key, ...param };
+                    }
+                )
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                console.error(error.message);
+            }
+        }
+    };
+
+    useEffect(() => {
+        fetchDagParams();
+    }, []);
+
+    let onSubmit: SubmitHandler<TDagParamsFormFields> = async (data) => {
+        try {
+            console.log(data);
             let response = await fetch(`/api/dags/${dagId}/dagRuns`, {
                 method: "POST",
                 headers: {
@@ -20,7 +97,7 @@ function DagTrigger() {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    conf: JSON.parse(conf),
+                    conf: data,
                 }),
             });
 
@@ -30,16 +107,13 @@ function DagTrigger() {
                 );
             }
 
+            console.log(await response.json());
             navigate(`/dags/${dagId}`);
         } catch (error) {
             if (error instanceof Error) {
                 alert(error.message);
             }
         }
-    };
-
-    let handleInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
-        setConf(e.currentTarget.value);
     };
 
     return (
@@ -49,28 +123,27 @@ function DagTrigger() {
             </Link>
             <h1> {dagId} </h1>
             <h2> Trigger a new DAG run</h2>
-            <div className={s.triggerFormWrapper}>
-                <label>Configuration</label>
-                <textarea
-                    name="conf"
-                    style={{
-                        display: "block",
-                        width: "100%",
-                        resize: "vertical",
-                    }}
-                    value={conf}
-                    onChange={handleInput}
-                    className="code"
-                />
+            <form
+                className={s.triggerFormWrapper}
+                onSubmit={handleSubmit(onSubmit)}
+            >
+                {dagParams.map((param) => {
+                    return (
+                        <Fragment key={`${param.name}`}>
+                            <label>{param.name}</label>
+                            <TypedInput param={param} register={register} />
+                        </Fragment>
+                    );
+                })}
+
                 <Button
-                    onClick={handleSubmit}
                     variant="text"
                     className={clsx(s.submitButton)}
+                    type="submit"
                 >
                     Confirm
                 </Button>
-            </div>
-            {/* <CodeBlock code="" editable onInput={handleKey} /> */}
+            </form>
         </>
     );
 }
