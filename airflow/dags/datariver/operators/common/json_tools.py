@@ -133,3 +133,22 @@ class JsonArgs(LoggingMixin):
     @staticmethod
     def generate_absolute_path(base_path: str, path: str) -> str:
         return os.path.normpath(os.path.join(os.path.dirname(base_path), path))
+
+
+## helper functions to use in preexecute
+def _filter_errors(context, exclude):
+    task = context["task"]
+    result = [
+        json_file
+        for json_file in task.json_files_paths
+        if exclude == JsonArgs(task.fs_conn_id, json_file).is_error_free()
+    ]
+    setattr(context["task"], "json_files_paths", result)
+
+
+def filter_errors(context):
+    _filter_errors(context, True)
+
+
+def get_errors(context):
+    _filter_errors(context, False)

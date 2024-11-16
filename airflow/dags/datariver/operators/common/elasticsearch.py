@@ -53,7 +53,6 @@ class ElasticJsonPushOperator(BaseOperator):
         "input_keys",
         "keys_to_skip",
         "encoding",
-        "error_key",
     )
 
     def __init__(
@@ -67,7 +66,6 @@ class ElasticJsonPushOperator(BaseOperator):
         encoding="utf-8",
         refresh=False,
         keys_to_skip=[],
-        error_key,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -81,8 +79,6 @@ class ElasticJsonPushOperator(BaseOperator):
         self.refresh = refresh
         self.keys_to_skip = keys_to_skip  # if input_keys are empty, full document is pushed with exception of keys_to_skip
         # when both are empty, all keys are pushed
-        self.error_key = error_key
-        # pre_execute = lambda self: setattr(self["task"],"document",{"document": list(self["task_instance"].xcom_pull("detect_entities"))}),
 
     def execute(self, context):
         from elasticsearch import Elasticsearch, helpers
