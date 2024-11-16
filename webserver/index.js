@@ -56,17 +56,45 @@ const fsUtils = require("./utils/filesystem");
 */
 
 app.get("/api/dags", async (req, res) => {
-    fetch(`${AIRFLOW_HOST}/api/v1/dags`, {
-        headers: airflowUtil.getAirflowHeaders(),
-    })
-        .then((resp) => resp.json())
-        .then((data) => {
-            res.json({ status: 200, ...data });
-        })
-        .catch((err) => {
-            console.log(err);
-            res.status(500).json({ status: 500 });
+    try {
+        const options = {
+            headers: airflowUtil.getAirflowHeaders(),
+        };
+
+        const dags = await fetch(`${AIRFLOW_HOST}/api/v1/dags`, options).then(
+            (data) => data.json()
+        );
+
+        res.json({
+            status: 200,
+            ...dags,
         });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: 500 });
+    }
+});
+
+app.get("/api/dags/:dagid/details", async (req, res) => {
+    try {
+        const dagId = req.params["dagid"];
+        const options = {
+            headers: airflowUtil.getAirflowHeaders(),
+        };
+
+        const details = await fetch(
+            `${AIRFLOW_HOST}/api/v1/dags/${dagId}/details`,
+            options
+        ).then((data) => data.json());
+
+        res.json({
+            status: 200,
+            ...details,
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: 500 });
+    }
 });
 
 app.get("/api/dags/:dagid/dagruns", async (req, res) => {
@@ -110,10 +138,6 @@ app.post("/api/dags/:dagid/dagruns", async (req, res) => {
             }
         );
 
-        // FIXME: if user-provided parameters have wrong type
-        // (e.g. user providers "10" instead of 10)
-        // Airflow server returns HTML page instead of valid JSON
-        // what obviously fails
         const data = await response.json();
 
         res.status(response.status).send({
@@ -122,6 +146,18 @@ app.post("/api/dags/:dagid/dagruns", async (req, res) => {
         });
     } catch (error) {
         console.error(error);
+        // A really crude way to handle Airflow server responding with HTML instead of JSON,
+        // even though the request always expects a JSON response.
+        // This happens e.g. when the passed DAG params are invalid
+        if (
+            error.message &&
+            error.message.startsWith("SyntaxError: Unexpected token '<'")
+        ) {
+            res.status(400).send({
+                status: 400,
+            });
+            return;
+        }
         res.status(500).send({
             status: 500,
         });

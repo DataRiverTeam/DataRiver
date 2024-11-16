@@ -3,11 +3,17 @@ export type TNerStat = {
     count: number;
 };
 
-export type TNerDoc = {
+
+
+export type TBaseNerDocProps = {
     id: string;
     content: string;
     title: string;
-    translated?: string;
+    dag_run_id: string;
+};
+
+export type TNerDocResult = {
+    translated: string;
     language: string;
     ner: {
         sentence: string;
@@ -20,7 +26,17 @@ export type TNerDoc = {
             entities: TNerStat[];
         };
     };
-    dag_run_id: string;
-    dag_start_date?: string;
-    dag_processed_date?: string;
-};
+    dag_start_date: string;
+    dag_processed_date: string;
+}
+
+export type TParsedNerDocProps = TBaseNerDocProps & TNerDocResult;
+
+export type TFailedNerDocProps = TBaseNerDocProps & Partial<TNerDocResult> & {
+    error: {
+        "task_id": string;
+        "message": string;
+    }
+}
+
+export type TNerDoc = TFailedNerDocProps | TParsedNerDocProps;

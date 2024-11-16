@@ -3,11 +3,14 @@ import { Link } from "react-router-dom";
 import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
 
 import Pagination from "@mui/material/Pagination";
+import IconButton from "@mui/material/IconButton";
+import ClearIcon from "@mui/icons-material/Clear";
+import AddIcon from "@mui/icons-material/Add";
 
-import { TNerDoc } from "../../types/ner";
-import NerCard from "../NerCard/NerCard";
+import { TParsedNerDocProps, TFailedNerDocProps } from "../../types/ner";
 
 import s from "./NerBrowser.module.css";
+import NerCardsList from "./components/NerCardsList/NerCardsList";
 
 type TNerFormFields = {
     content: string;
@@ -16,11 +19,10 @@ type TNerFormFields = {
     dagRunId: string;
 };
 
-//TODO: dynamically created inputs
-//https://codesandbox.io/p/sandbox/react-hook-form-usefieldarray-ssugn?file=%2Fsrc%2Findex.tsx
-
 function NerBrowser() {
-    let [docs, setDocs] = useState<TNerDoc[]>([]);
+    let [docs, setDocs] = useState<(TParsedNerDocProps | TFailedNerDocProps)[]>(
+        []
+    );
     let [totalFound, setTotalFound] = useState<number>(0);
     let [page, setPage] = useState<number>(1);
     let [isLoading, setIsLoading] = useState(false);
@@ -70,8 +72,6 @@ function NerBrowser() {
             }
 
             let queryString = new URLSearchParams(queryObject).toString();
-
-            console.log(queryString);
 
             const response = await fetch(`/api/ner/docs?${queryString}`);
 
@@ -142,23 +142,26 @@ function NerBrowser() {
                             type="text"
                             {...register(`ners.${index}.value`)}
                         />
-                        <input
-                            type="button"
+                        <IconButton
+                            sx={{ color: "white" }}
                             onClick={() => {
                                 remove(index);
                             }}
-                            value="x"
-                        />
+                        >
+                            <ClearIcon />
+                        </IconButton>
                     </div>
                 ))}
 
-                <input
-                    type="button"
-                    value="+"
+                <IconButton
+                    sx={{ color: "white" }}
                     onClick={() => {
                         append({ value: "" });
                     }}
-                />
+                >
+                    <AddIcon />
+                </IconButton>
+
                 <input type="submit" value="Filter" />
             </form>
             <div
@@ -185,27 +188,22 @@ function NerBrowser() {
                                     page={page}
                                     onChange={handlePageChange}
                                 />
+
+                                <NerCardsList docs={docs} />
+
+                                <Pagination
+                                    classes={{
+                                        ul: s.paginatorList,
+                                    }}
+                                    color="primary"
+                                    count={Math.ceil(totalFound / 10)}
+                                    page={page}
+                                    onChange={handlePageChange}
+                                />
                             </>
                         ) : null}
-                        {docs.map((item) => (
-                            <NerCard key={item.id} item={item} />
-                        ))}
                     </>
                 )}
-
-                {totalFound > 0 ? (
-                    <>
-                        <Pagination
-                            classes={{
-                                ul: s.paginatorList,
-                            }}
-                            color="primary"
-                            count={Math.ceil(totalFound / 10)}
-                            page={page}
-                            onChange={handlePageChange}
-                        />
-                    </>
-                ) : null}
             </div>
         </>
     );

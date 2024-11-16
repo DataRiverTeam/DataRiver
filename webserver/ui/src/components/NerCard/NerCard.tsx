@@ -1,4 +1,4 @@
-import { useState, SyntheticEvent } from "react";
+import React, { useState, SyntheticEvent, ReactNode } from "react";
 
 import Card from "@mui/material/Card";
 import CardHeader from "@mui/material/CardHeader";
@@ -32,6 +32,32 @@ function TabDisplay({ children, index, value }: TTabDisplayProps) {
     );
 }
 
+type TCardSectionProps = {
+    title: string;
+    children: ReactNode;
+    defaultExpanded?: boolean;
+    ariaControls: string;
+};
+function NerCardSection({
+    title,
+    children,
+    defaultExpanded = false,
+    ariaControls,
+}: TCardSectionProps) {
+    return (
+        <Accordion defaultExpanded={defaultExpanded} disableGutters>
+            <AccordionSummary
+                aria-controls={ariaControls}
+                id="content-header"
+                expandIcon={<ArrowDropDownIcon />}
+            >
+                {title}
+            </AccordionSummary>
+            <AccordionDetails>{children}</AccordionDetails>
+        </Accordion>
+    );
+}
+
 function NerCard({ item }: TNerCardProps) {
     const [tabValue, setTabValue] = useState(0);
 
@@ -59,41 +85,26 @@ function NerCard({ item }: TNerCardProps) {
                     ) : null}
                 </ul>
             </CardContent>
-            <Accordion defaultExpanded disableGutters>
-                <AccordionSummary
-                    aria-controls="content-details"
-                    id="content-header"
-                    expandIcon={<ArrowDropDownIcon />}
-                >
-                    Content
-                </AccordionSummary>
-                <AccordionDetails>
-                    <q className={s.quote}>{item.content}</q>
-                </AccordionDetails>
-            </Accordion>
+            <NerCardSection
+                title="Content"
+                ariaControls="content-section-details"
+                defaultExpanded
+            >
+                <q className={s.quote}>{item.content}</q>
+            </NerCardSection>
             {item.translated ? (
-                <Accordion disableGutters>
-                    <AccordionSummary
-                        aria-controls="translation-details"
-                        id="translation-header"
-                        expandIcon={<ArrowDropDownIcon />}
-                    >
-                        Translation
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <q className={s.quote}>{item.translated}</q>
-                    </AccordionDetails>
-                </Accordion>
-            ) : null}
-            <Accordion disableGutters>
-                <AccordionSummary
-                    aria-controls="ner-details"
-                    id="ner-header"
-                    expandIcon={<ArrowDropDownIcon />}
+                <NerCardSection
+                    title="Translation"
+                    ariaControls="translation-section-details"
                 >
-                    Named Entities
-                </AccordionSummary>
-                <AccordionDetails>
+                    <q className={s.quote}>{item.translated}</q>
+                </NerCardSection>
+            ) : null}
+            {item.ner ? (
+                <NerCardSection
+                    title="Named Entities"
+                    ariaControls="ner-section-details"
+                >
                     <div className={s.nerWrapper}>
                         {item.ner.map((ner, index) => (
                             <div
@@ -131,17 +142,14 @@ function NerCard({ item }: TNerCardProps) {
                             </div>
                         ))}
                     </div>
-                </AccordionDetails>
-            </Accordion>
-            <Accordion disableGutters>
-                <AccordionSummary
-                    aria-controls="stats-details"
-                    id="stats-header"
-                    expandIcon={<ArrowDropDownIcon />}
+                </NerCardSection>
+            ) : null}
+
+            {item.ner_stats ? (
+                <NerCardSection
+                    title="Statistics"
+                    ariaControls="stats-section-details"
                 >
-                    Statistics
-                </AccordionSummary>
-                <AccordionDetails>
                     <Tabs
                         value={tabValue}
                         onChange={handleTabChange}
@@ -213,8 +221,18 @@ function NerCard({ item }: TNerCardProps) {
                             </tbody>
                         </table>
                     </TabDisplay>
-                </AccordionDetails>
-            </Accordion>
+                </NerCardSection>
+            ) : null}
+            {"error" in item ? (
+                <NerCardSection
+                    title="Errors"
+                    ariaControls="error-section-details"
+                >
+                    <p>
+                        [{item.error.task_id}] {item.error.message}
+                    </p>
+                </NerCardSection>
+            ) : null}
         </Card>
     );
 }

@@ -23,6 +23,78 @@ export type TDag = {
     timetable_description: string;
 };
 
+export type TDagDetail = {
+    dag_display_name: string;
+    dag_id: string;
+    default_view: string;
+    description: string;
+    file_token: string;
+    fileloc: string;
+    has_import_errors: boolean;
+    has_task_concurrency_limits: boolean;
+    is_active: boolean;
+    is_paused: boolean;
+    is_subdag: boolean;
+    last_expired: string;
+    last_parsed_time: string;
+    last_pickled: string;
+    max_active_runs: number;
+    max_active_tasks: number;
+    next_dagrun: string;
+    next_dagrun_create_after: string;
+    next_dagrun_data_interval_end: string;
+    next_dagrun_data_interval_start: string;
+    owners: string[];
+    pickle_id: string;
+    root_dag_id: string;
+    schedule_interval: {
+        __type: string;
+        days: number;
+        microseconds: number;
+        seconds: number;
+    };
+    scheduler_lock: boolean;
+    tags: {
+        name: string;
+    }[];
+    timetable_description: string;
+    catchup: boolean;
+    concurrency: number;
+    dag_run_timeout: {
+        __type: string;
+        days: number;
+        microseconds: number;
+        seconds: number;
+    };
+    dataset_expression: object;
+    doc_md: string;
+    end_date: string;
+    is_paused_upon_creation: boolean;
+    last_parsed: string;
+    orientation: string;
+    params: TDagParamsMap;
+    render_template_as_native_obj: boolean;
+    start_date: string;
+    template_search_path: string[];
+
+    timezone: string;
+};
+
+export type TDagParam = {
+    __class: "airflow.models.param.Param";
+    description: string | null;
+    schema: { type: TDagParamSchemaType };
+    value: TDagParamValue;
+};
+
+export type TDagParamSchemaType = "integer" | "string";
+
+export type TDagParamValue = string | number;
+
+export type TDagParamsMap = {
+    [key: string]: TDagParam;
+};
+
 export type TDagRunCollection = {
     dag_runs: TDagRun[];
     total_entries: number;
