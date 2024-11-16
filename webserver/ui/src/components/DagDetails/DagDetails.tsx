@@ -7,6 +7,7 @@ import DagRunsList from "../DagRunsList/DagRunsList";
 import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import BackButton from "../BackButton/BackButton";
 
 type TDagRunResponse = TDagRunCollection & { status: number };
 
@@ -43,9 +44,7 @@ function DagDetails() {
 
     return (
         <>
-            <Link to={".."} relative="path">
-                Back
-            </Link>
+            <BackButton />
 
             <h1> {dagId} </h1>
             <h2> DAG runs </h2>

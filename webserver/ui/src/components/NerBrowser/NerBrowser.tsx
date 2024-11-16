@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
 
+import Button from "@mui/material/Button";
 import Pagination from "@mui/material/Pagination";
 import IconButton from "@mui/material/IconButton";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -11,6 +11,7 @@ import { TParsedNerDocProps, TFailedNerDocProps } from "../../types/ner";
 
 import s from "./NerBrowser.module.css";
 import NerCardsList from "./components/NerCardsList/NerCardsList";
+import BackButton from "../BackButton/BackButton";
 
 type TNerFormFields = {
     content: string;
@@ -112,71 +113,67 @@ function NerBrowser() {
 
     return (
         <>
-            <Link to={".."} relative="path">
-                Back
-            </Link>
+            <BackButton />
             <h1> Documents </h1>
 
-            <form
-                id="filter-text"
-                className={s.filters}
-                onSubmit={handleSubmit(onSubmit)}
-            >
-                <div className={s.filtersItem}>
-                    <label>Searched phrase</label>
-                    <input type="text" {...register("content")} />
-                </div>
-                <div className={s.filtersItem}>
-                    <label>Language code</label>
-                    <input type="text" {...register("lang")} />
-                </div>
-                <div className={s.filtersItem}>
-                    <label>Dag run id</label>
-                    <input type="text" {...register("dagRunId")} />
-                </div>
-
-                <label>Named entities</label>
-                {fields.map((_field, index) => (
-                    <div className={s.filtersItem} key={`ners-${index}`}>
-                        <input
-                            type="text"
-                            {...register(`ners.${index}.value`)}
-                        />
-                        <IconButton
-                            sx={{ color: "white" }}
-                            onClick={() => {
-                                remove(index);
-                            }}
-                        >
-                            <ClearIcon />
-                        </IconButton>
-                    </div>
-                ))}
-
-                <IconButton
-                    sx={{ color: "white" }}
-                    onClick={() => {
-                        append({ value: "" });
-                    }}
+            <div className={s.filtersWrapper}>
+                <form
+                    id="filter-text"
+                    className={s.filters}
+                    onSubmit={handleSubmit(onSubmit)}
                 >
-                    <AddIcon />
-                </IconButton>
-
-                <input type="submit" value="Filter" />
-            </form>
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "10px",
-                }}
-            >
+                    <div className={s.filtersItem}>
+                        <label>Searched phrase</label>
+                        <input type="text" {...register("content")} />
+                    </div>
+                    <div className={s.filtersItem}>
+                        <label>Language code</label>
+                        <input type="text" {...register("lang")} />
+                    </div>
+                    <div className={s.filtersItem}>
+                        <label>Dag run id</label>
+                        <input type="text" {...register("dagRunId")} />
+                    </div>
+                    <label>Named entities</label>
+                    {fields.map((_field, index) => (
+                        <div className={s.filtersItem} key={`ners-${index}`}>
+                            <input
+                                type="text"
+                                {...register(`ners.${index}.value`)}
+                            />
+                            <IconButton
+                                sx={{ color: "white" }}
+                                onClick={() => {
+                                    remove(index);
+                                }}
+                            >
+                                <ClearIcon />
+                            </IconButton>
+                        </div>
+                    ))}
+                    <IconButton
+                        sx={{ color: "white" }}
+                        onClick={() => {
+                            append({ value: "" });
+                        }}
+                    >
+                        <AddIcon />
+                    </IconButton>
+                    <Button
+                        variant="outlined"
+                        className={s.filterSubmit}
+                        type="submit"
+                    >
+                        Filter
+                    </Button>
+                </form>
+            </div>
+            <div className={s.docsListWrapper}>
                 {isLoading ? (
                     <span> Loading...</span>
                 ) : (
                     <>
-                        Found {totalFound} matching results.
+                        <p>Found {totalFound} matching results.</p>
                         {totalFound > 0 ? (
                             <>
                                 <Pagination

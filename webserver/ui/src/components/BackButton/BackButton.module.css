@@ -1,0 +1,4 @@
+.backButton:global(.MuiButton-root) {
+    border: var(--border-button);
+    color: var(--color-primary);
+}

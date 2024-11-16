@@ -68,7 +68,7 @@ function NerCard({ item }: TNerCardProps) {
     return (
         <Card
             sx={{
-                maxWidth: "960px",
+                width: "100%",
             }}
         >
             <CardHeader title={item.title} />
