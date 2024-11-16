@@ -13,6 +13,7 @@
     -moz-osx-font-smoothing: grayscale;
 
     --border-table: 1px solid rgba(127, 127, 127, 0.3);
+    --border-button: 1px solid rgba(127, 127, 127, 0.3);
 }
 
 body {
@@ -34,9 +35,11 @@ input[type=text], input[type=number] {
 
 .content {
     padding-top: 80px;
-    padding-left: 2rem;
-    padding-right: 2rem;
-    width: 960px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 100%;
+    max-width: 960px;
+    box-sizing: border-box;
 }
 
 .code {
