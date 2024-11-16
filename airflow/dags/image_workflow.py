@@ -1,10 +1,15 @@
 from airflow import DAG
 from airflow.utils.trigger_rule import TriggerRule
+from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
 from datariver.operators.images.perceptual_hash import JsonPerceptualHash
 from datariver.operators.images.describe_image import JsonDescribeImage
 from datariver.operators.images.thumbnail import JsonThumbnailImage
 from datariver.operators.images.extract_metadata import JsonExtractMetadata
+from datariver.operators.common.json_tools import (
+    add_pre_run_information,
+    add_post_run_information,
+)
 from datariver.operators.common.elasticsearch import (
     ElasticJsonPushOperator,
     ElasticSearchOperator,
@@ -41,6 +46,11 @@ with DAG(
         "fs_conn_id": Param(type="string", default="fs_data"),
     },
 ) as dag:
+    add_pre_run_information_task = PythonOperator(
+        task_id="add_pre_run_information",
+        python_callable=add_pre_run_information,
+        provide_context=True,
+    )
     perceptual_hash_task = JsonPerceptualHash(
         task_id="perceptual_hash",
         json_files_paths="{{ params.json_files_paths }}",
@@ -70,6 +80,11 @@ with DAG(
         output_key="description",
         local_model_path="/home/airflow/.local/BLIP",
     )
+    add_post_run_information_task = PythonOperator(
+        task_id="add_post_run_information",
+        python_callable=add_post_run_information,
+        provide_context=True,
+    )
     es_push_task = ElasticJsonPushOperator(
         task_id="elastic_push",
         fs_conn_id="{{ params.fs_conn_id }}",
@@ -77,7 +92,6 @@ with DAG(
         index="image_processing",
         es_conn_args=ES_CONN_ARGS,
     )
-
     es_search_task = ElasticSearchOperator(
         task_id="elastic_get",
         index="image_processing",
@@ -90,7 +104,14 @@ with DAG(
     )
 
 (
-    [thumbnail_task, perceptual_hash_task, descript_image_task, extract_metadata_task]
+    add_pre_run_information_task
+    >> [
+        thumbnail_task,
+        perceptual_hash_task,
+        descript_image_task,
+        extract_metadata_task,
+    ]
+    >> add_post_run_information_task
     >> es_push_task
     >> es_search_task
 )
