@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useForm, SubmitHandler, useFieldArray } from "react-hook-form";
 
+import Button from "@mui/material/Button";
 import Pagination from "@mui/material/Pagination";
 import IconButton from "@mui/material/IconButton";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -11,7 +11,7 @@ import { TParsedNerDocProps, TFailedNerDocProps } from "../../types/ner";
 
 import s from "./NerBrowser.module.css";
 import NerCardsList from "./components/NerCardsList/NerCardsList";
-import Button from "@mui/material/Button";
+import BackButton from "../BackButton/BackButton";
 
 type TNerFormFields = {
     content: string;
@@ -113,9 +113,7 @@ function NerBrowser() {
 
     return (
         <>
-            <Link to={".."} relative="path">
-                Back
-            </Link>
+            <BackButton />
             <h1> Documents </h1>
 
             <div className={s.filtersWrapper}>

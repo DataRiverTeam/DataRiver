@@ -1,0 +1,4 @@
+.backButton {
+    border: var(--border-button);
+    color: var(--color-primary);
+}

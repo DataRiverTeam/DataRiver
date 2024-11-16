@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, Fragment } from "react";
 import { useForm, SubmitHandler, UseFormRegister } from "react-hook-form";
 import clsx from "clsx";
@@ -8,6 +8,7 @@ import Button from "@mui/material/Button";
 import s from "./DagTrigger.module.css";
 
 import { TDagDetail, TDagParam } from "../../types/airflow";
+import BackButton from "../BackButton/BackButton";
 
 type TDagNamedParam = TDagParam & {
     name: string;
@@ -118,9 +119,7 @@ function DagTrigger() {
 
     return (
         <>
-            <Link to={".."} relative="path">
-                Back
-            </Link>
+            <BackButton />
             <h1> {dagId} </h1>
             <h2> Trigger a new DAG run</h2>
             <form

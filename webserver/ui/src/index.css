@@ -4,7 +4,6 @@
     font-weight: 400;
 
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
     background-color: #242424;
 
     font-synthesis: none;
@@ -14,6 +13,9 @@
 
     --border-table: 1px solid rgba(127, 127, 127, 0.3);
     --border-button: 1px solid rgba(127, 127, 127, 0.3);
+    --color-primary: rgba(255, 255, 255, 0.87);
+    
+    color: var(--color-primary);
 }
 
 body {
@@ -21,7 +23,7 @@ body {
     height: 100vh;
     height: 100dvh;
     background: #242424;
-    color: rgba(255, 255, 255, 0.87);
+    color: var(--color-primary);
 }
 
 input[type=text], input[type=number] {

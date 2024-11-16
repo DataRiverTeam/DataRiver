@@ -7,6 +7,7 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 
 import { TDag } from "../../types/airflow";
+import BackButton from "../BackButton/BackButton";
 
 function DagsList() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
@@ -47,9 +48,7 @@ function DagsList() {
 
     return (
         <>
-            <Link to={".."} relative="path">
-                Back
-            </Link>
+            <BackButton />
             <h1> DAGs </h1>
             {isLoading ? (
                 "Loading..."
