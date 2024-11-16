@@ -1,9 +1,12 @@
 from airflow import DAG
-
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
-from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.json_tools import (
+    JsonArgs,
+    add_post_run_information,
+    add_pre_run_information,
+)
 from datariver.operators.common.elasticsearch import (
     ElasticJsonPushOperator,
     ElasticSearchOperator,
@@ -13,9 +16,7 @@ from datariver.operators.texts.translate import JsonTranslateOperator
 from datariver.operators.texts.ner import NerJsonOperator
 from datariver.operators.texts.stats import NerJsonStatisticsOperator
 from datariver.operators.texts.collectstats import JsonSummaryMarkdownOperator
-
 import os
-import datetime
 
 default_args = {
     "owner": "airflow",
@@ -55,26 +56,6 @@ def decide_about_translation(ti, **context):
         branches.append("detect_entities_without_translation")
         ti.xcom_push(key="json_files_paths_no_translation", value=no_translation)
     return branches
-
-
-def add_pre_run_information(**context):
-    fs_conn_id = context["params"]["fs_conn_id"]
-    json_files_paths = context["params"]["json_files_paths"]
-    date = datetime.datetime.now().replace(microsecond=0).isoformat()
-    run_id = context["dag_run"].run_id
-    for file_path in json_files_paths:
-        json_args = JsonArgs(fs_conn_id, file_path)
-        json_args.add_value("dag_start_date", date)
-        json_args.add_value("dag_run_id", run_id)
-
-
-def add_post_run_information(**context):
-    fs_conn_id = context["params"]["fs_conn_id"]
-    json_files_paths = context["params"]["json_files_paths"]
-    date = datetime.datetime.now().replace(microsecond=0).isoformat()
-    for file_path in json_files_paths:
-        json_args = JsonArgs(fs_conn_id, file_path)
-        json_args.add_value("dag_processed_date", date)
 
 
 with DAG(

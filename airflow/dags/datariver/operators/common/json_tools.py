@@ -1,6 +1,6 @@
 import json
 import ijson
-import os, fcntl
+import os, fcntl, datetime
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -133,6 +133,26 @@ class JsonArgs(LoggingMixin):
     @staticmethod
     def generate_absolute_path(base_path: str, path: str) -> str:
         return os.path.normpath(os.path.join(os.path.dirname(base_path), path))
+
+
+def add_pre_run_information(**context):
+    fs_conn_id = context["params"]["fs_conn_id"]
+    json_files_paths = context["params"]["json_files_paths"]
+    date = datetime.datetime.now().replace(microsecond=0).isoformat()
+    run_id = context["dag_run"].run_id
+    for file_path in json_files_paths:
+        json_args = JsonArgs(fs_conn_id, file_path)
+        json_args.add_value("dag_start_date", date)
+        json_args.add_value("dag_run_id", run_id)
+
+
+def add_post_run_information(**context):
+    fs_conn_id = context["params"]["fs_conn_id"]
+    json_files_paths = context["params"]["json_files_paths"]
+    date = datetime.datetime.now().replace(microsecond=0).isoformat()
+    for file_path in json_files_paths:
+        json_args = JsonArgs(fs_conn_id, file_path)
+        json_args.add_value("dag_processed_date", date)
 
 
 ## helper functions to use in preexecute
