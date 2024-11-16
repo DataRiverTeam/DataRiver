@@ -3,7 +3,6 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator, BranchPythonOperator
 from airflow.utils.trigger_rule import TriggerRule
 from airflow.models.param import Param
-from datariver.operators.common.exception_managing import ErrorHandler
 from datariver.operators.common.json_tools import JsonArgs
 from datariver.operators.common.elasticsearch import (
     ElasticJsonPushOperator,
@@ -33,28 +32,6 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
-
-
-def _filter_errors(context, exclude):
-    task = context["task"]
-    task_id = context["task_instance"].task_id
-    result = [
-        json_file
-        for json_file in task.json_files_paths
-        if exclude
-        == ErrorHandler(
-            json_file, task.fs_conn_id, task.error_key, task_id, task.encoding
-        ).is_file_error_free()
-    ]
-    setattr(context["task"], "json_files_paths", result)
-
-
-def filter_errors(context):
-    _filter_errors(context, True)
-
-
-def get_errors(context):
-    _filter_errors(context, False)
 
 
 def decide_about_translation(ti, **context):
@@ -203,19 +180,6 @@ with DAG(
         index="ner",
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
-        error_key="error",
-        pre_execute=filter_errors,
-    )
-
-    error_push_task = ElasticJsonPushOperator(
-        task_id="elastic_error_push",
-        fs_conn_id="{{ params.fs_conn_id }}",
-        json_files_paths="{{ params.json_files_paths }}",
-        index="errors",
-        es_conn_args=ES_CONN_ARGS,
-        encoding="{{ params.encoding }}",
-        error_key="error",
-        pre_execute=get_errors,
     )
 
     es_search_task = ElasticSearchOperator(
@@ -242,6 +206,5 @@ translate_task >> ner_task
     >> summary_task
     >> add_post_run_information_task
     >> es_push_task
-    >> error_push_task
     >> es_search_task
 )

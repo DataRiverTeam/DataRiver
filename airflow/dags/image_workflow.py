@@ -76,7 +76,6 @@ with DAG(
         json_files_paths="{{ params.json_files_paths }}",
         index="image_processing",
         es_conn_args=ES_CONN_ARGS,
-        error_key="error",
     )
 
     es_search_task = ElasticSearchOperator(
