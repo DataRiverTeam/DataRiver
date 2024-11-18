@@ -343,7 +343,6 @@ services:
     build: ./webserver
     command: >
       bash -c '''
-        echo "path"
         if [[ "${WEBSERVER_MODE}" == dev ]]; then
           echo "RUNNING UI IN DEV MODE"
           
