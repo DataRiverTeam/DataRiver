@@ -117,7 +117,7 @@ class ElasticJsonPushOperator(BaseOperator):
 
         for document in documents_with_id:
             document_id = document["es_document_id"]
-            response = es.update(index=self.index, id=document_id, body=document)
+            response = es.update(index=self.index, id=document_id, body={"doc": document})
             results.append(response.body)
 
         if self.refresh:
