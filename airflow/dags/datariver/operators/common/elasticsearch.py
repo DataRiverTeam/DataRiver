@@ -96,7 +96,7 @@ class ElasticJsonPushOperator(BaseOperator):
             else:
                 keys = list(set(present_keys) - set(self.keys_to_skip))
                 document = json_args.get_values(keys)
-            #regardless of keys chosen by user, es_document_id has to be present in a document if it has an id
+            # regardless of keys chosen by user, es_document_id has to be present in a document if it has an id
             if "es_document_id" in present_keys:
                 if "es_document_id" not in document:
                     document["es_document_id"] = json_args.get_value("es_document_id")
@@ -117,7 +117,9 @@ class ElasticJsonPushOperator(BaseOperator):
 
         for document in documents_with_id:
             document_id = document["es_document_id"]
-            response = es.update(index=self.index, id=document_id, body={"doc": document})
+            response = es.update(
+                index=self.index, id=document_id, body={"doc": document}
+            )
             results.append(response.body)
 
         if self.refresh:
