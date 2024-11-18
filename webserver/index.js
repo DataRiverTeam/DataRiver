@@ -333,6 +333,7 @@ app.get("/api/images/:imageid/details", async (req, res) => {
         const { _id, _source } = result.hits.hits[0];
         res.json({
             status: 200,
+            size: 20,
             data: {
                 id: _id,
                 ..._source,

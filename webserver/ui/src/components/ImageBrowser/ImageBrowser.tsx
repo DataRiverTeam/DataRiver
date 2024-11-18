@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { Link } from "react-router-dom";
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
@@ -14,6 +14,8 @@ type TImageThumbnailEntry = {
     thumbnail: string;
 };
 
+const ITEMS_PER_PAGE = 20;
+
 function ImageBrowser() {
     let [images, setImages] = useState<TImageThumbnailEntry[]>([]);
     let [page, setPage] = useState<number>(1);
@@ -23,7 +25,7 @@ function ImageBrowser() {
     const fetchImages = async () => {
         try {
             const response = await fetch(
-                `/api/images/thumbnails?start=${(page - 1) * 10}`
+                `/api/images/thumbnails?start=${(page - 1) * ITEMS_PER_PAGE}`
             );
 
             if (!response.status.toString().startsWith("2")) {
@@ -51,7 +53,7 @@ function ImageBrowser() {
 
     useEffect(() => {
         fetchImages();
-    }, []);
+    }, [page]);
 
     const handlePageChange = (
         _event: React.ChangeEvent<unknown>,
@@ -62,30 +64,18 @@ function ImageBrowser() {
 
     return (
         <div>
-            <div className={s.paginatorWrapper}>
-                <Pagination
-                    classes={{
-                        ul: s.paginatorList,
-                    }}
-                    color="primary"
-                    count={Math.ceil(images.length / 10)}
-                    page={page}
-                    onChange={handlePageChange}
-                />
-            </div>
             {!errorMessage ? (
                 <>
                     <p className={s.totalFoundMessage}>
-                        {" "}
                         {totalFound > 0
                             ? `Found ${totalFound} matching images.`
                             : "No images to display."}
                     </p>
-                    <ImageList cols={3}>
+                    <ImageList cols={4}>
                         {images.map((item) => {
                             return (
-                                <>
-                                    <ImageListItem key={item.id}>
+                                <Fragment key={item.id}>
+                                    <ImageListItem>
                                         <img
                                             src={`data:image/png;base64, ${item.thumbnail}`}
                                             // alt={item.id}
@@ -107,7 +97,7 @@ function ImageBrowser() {
                                             }
                                         />
                                     </ImageListItem>
-                                </>
+                                </Fragment>
                             );
                         })}
                     </ImageList>
@@ -121,7 +111,7 @@ function ImageBrowser() {
                         ul: s.paginatorList,
                     }}
                     color="primary"
-                    count={Math.ceil(images.length / 10)}
+                    count={Math.ceil(totalFound / ITEMS_PER_PAGE)}
                     page={page}
                     onChange={handlePageChange}
                 />
