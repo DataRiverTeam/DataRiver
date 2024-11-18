@@ -84,22 +84,42 @@ class ElasticJsonPushOperator(BaseOperator):
         from elasticsearch import Elasticsearch, helpers
 
         es = Elasticsearch(**self.es_conn_args)
-        document_list = []
+        documents_with_id = []
+        documents_without_id = []
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             document = {}
+            present_keys = json_args.get_keys()
 
             if self.input_keys:
                 document = json_args.get_values(self.input_keys)
             else:
-                present_keys = json_args.get_keys()
                 keys = list(set(present_keys) - set(self.keys_to_skip))
                 document = json_args.get_values(keys)
-            document_list.append(document)
+            #regardless of keys chosen by user, es_document_id has to be present in a document if it has an id
+            if "es_document_id" in present_keys:
+                if "es_document_id" not in document:
+                    document["es_document_id"] = json_args.get_value("es_document_id")
+                documents_with_id.append(document)
+            else:
+                document_with_path = (document, file_path)
+                documents_without_id.append(document_with_path)
 
         results = []
-        for ok, response in helpers.streaming_bulk(es, document_list, index=self.index):
-            results.append(response["index"])
+        for document_with_path in documents_without_id:
+            document = document_with_path[0]
+            file_path = document_with_path[1]
+            response = es.index(index=self.index, document=document)
+            document_id = response["_id"]
+            results.append(response.body)
+            json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
+            json_args.add_value("es_document_id", document_id)
+
+        for document in documents_with_id:
+            document_id = document["es_document_id"]
+            response = es.update(index=self.index, id=document_id, body=document)
+            results.append(response.body)
+
         if self.refresh:
             es.indices.refresh(index=self.index)
         return results
