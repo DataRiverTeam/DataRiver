@@ -54,7 +54,6 @@ function ImageDetails() {
                     <ul>
                         <li> ID: {imageDetails.id} </li>
                         <li>
-                            {" "}
                             Source URL:{" "}
                             {imageDetails.image_path.match("^https*:") ? (
                                 <a href={imageDetails.image_path}>
@@ -101,6 +100,38 @@ function ImageDetails() {
                     ) : (
                         <p> No metadata to display.</p>
                     )}
+                    {imageDetails.hash &&
+                    Object.keys(imageDetails.hash).length > 0 ? (
+                        <>
+                            <h3>Hashes</h3>
+                            <table className={s.hashTypesTable}>
+                                <thead>
+                                    <tr>
+                                        <td className={s.hashTypesLabel}>
+                                            Type
+                                        </td>
+                                        <td>Value</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {Object.keys(imageDetails.hash).map(
+                                        (hashType) => (
+                                            <tr key={`hash-${hashType}`}>
+                                                <td> {hashType} </td>
+                                                <td>
+                                                    {
+                                                        imageDetails.hash[
+                                                            hashType
+                                                        ]
+                                                    }
+                                                </td>
+                                            </tr>
+                                        )
+                                    )}
+                                </tbody>
+                            </table>
+                        </>
+                    ) : null}
                 </Card>
             ) : (
                 <p> {errorMessage}</p>

@@ -19,7 +19,20 @@
     box-sizing: border-box;
 }
 
-.metaDataTable .metaDataLabel {
-    width: 30%;
+.hashTypesTable {
+    border-collapse: collapse;
+    width: 600px;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+}
+
+.hashTypesTable td {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
     word-wrap: anywhere;
+}
+
+.hashTypesTable .hashTypesLabel {
+    width: 30%;
 }
