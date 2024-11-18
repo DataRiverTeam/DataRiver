@@ -14,7 +14,7 @@
     --border-table: 1px solid rgba(127, 127, 127, 0.3);
     --border-button: 1px solid rgba(127, 127, 127, 0.3);
     --color-primary: rgba(255, 255, 255, 0.87);
-    
+
     color: var(--color-primary);
 }
 
@@ -26,7 +26,8 @@ body {
     color: var(--color-primary);
 }
 
-input[type=text], input[type=number] {
+input[type="text"],
+input[type="number"] {
     padding: 10px;
 }
 
@@ -40,7 +41,7 @@ input[type=text], input[type=number] {
     padding-left: 1rem;
     padding-right: 1rem;
     width: 100%;
-    max-width: 960px;
+    max-width: 1080px;
     box-sizing: border-box;
 }
 

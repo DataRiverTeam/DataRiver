@@ -79,7 +79,7 @@ function ImageDetails() {
                             <table className={s.metaDataTable}>
                                 <thead>
                                     <tr>
-                                        <td>Tag</td>
+                                        <td className={s.metaDataLabel}>Tag</td>
                                         <td>Value</td>
                                     </tr>
                                 </thead>
@@ -87,7 +87,9 @@ function ImageDetails() {
                                     {imageDetails.metadata.map((item) => {
                                         return (
                                             <tr key={`metadana-${item.tag}`}>
-                                                <td className={s.metaDataLabel}>
+                                                <td
+                                                    className={s.hashTypesLabel}
+                                                >
                                                     {item.tag}
                                                 </td>
                                                 <td>{item.value}</td>
