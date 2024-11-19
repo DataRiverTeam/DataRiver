@@ -100,7 +100,7 @@ function DagTrigger() {
         <>
             {dagId ? (
                 <>
-                    <BackButton />
+                    <BackButton to=".." relative="path" />
                     <h1> {dagId} </h1>
                     <h2> Trigger a new DAG run</h2>
                     <form

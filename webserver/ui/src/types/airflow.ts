@@ -95,7 +95,7 @@ export type TDagParamsMap = {
     [key: string]: TDagParam;
 };
 
-export type TDagRunCollection = {
+export type TDagRunsCollection = {
     dag_runs: TDagRun[];
     total_entries: number;
 };

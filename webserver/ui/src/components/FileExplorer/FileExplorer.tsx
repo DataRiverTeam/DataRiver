@@ -168,7 +168,10 @@ function FileExplorer() {
             {errorMessage.length ? (
                 errorMessage
             ) : (
-                <FileUploadForm directory={currentDir} />
+                <>
+                    <h3> Upload to {currentDir} </h3>
+                    <FileUploadForm directory={currentDir} />
+                </>
             )}
         </>
     );

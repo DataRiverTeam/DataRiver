@@ -8,6 +8,7 @@ import DagTrigger from "./components/DagTrigger/DagTrigger";
 import FileExplorer from "./components/FileExplorer/FileExplorer";
 import ImageBrowser from "./components/ImageBrowser/ImageBrowser";
 import ImageDetails from "./components/ImageDetails/ImageDetails";
+import NerDashboard from "./components/NerDashboard/NerDashboard";
 
 const pages: RouteObject[] = [
     {
@@ -15,8 +16,12 @@ const pages: RouteObject[] = [
         element: <App />,
         children: [
             {
-                path: "ner",
+                path: "ner/search",
                 element: <NerBrowser />,
+            },
+            {
+                path: "ner/dashboard",
+                element: <NerDashboard />,
             },
             {
                 path: "dags",
@@ -36,7 +41,7 @@ const pages: RouteObject[] = [
                 element: <FileExplorer />,
             },
             {
-                path: "images",
+                path: "images/search",
                 element: <ImageBrowser />,
             },
             {

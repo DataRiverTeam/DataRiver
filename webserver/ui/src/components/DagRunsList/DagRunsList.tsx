@@ -1,23 +1,25 @@
 import { TDagRun, TDagState } from "../../types/airflow";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 
 import s from "./DagRunsList.module.css";
 import Row from "./components/Row";
 
 type TDagRunsListProps = {
     dagRuns: TDagRun[];
+    heading?: ReactNode;
 };
 
 const NO_ITEMS_MSG = "No DAG runs to display.";
 
 const states: TDagState[] = ["queued", "running", "success", "failed"];
 
-function DagRunsList({ dagRuns }: TDagRunsListProps) {
+function DagRunsList({ dagRuns, heading = null }: TDagRunsListProps) {
     let [selectedState, setSelectedState] = useState<"" | TDagState>("");
 
     return (
         <>
+            {heading || null}
             <fieldset>
                 <legend>Filters</legend>
                 <select
@@ -38,7 +40,6 @@ function DagRunsList({ dagRuns }: TDagRunsListProps) {
                     <div className={s.dagrunsCell}>DAG run ID</div>
                     <div className={s.dagrunsCell}>Start date</div>
                     <div className={s.dagrunsCell}>State</div>
-                    <div className={s.dagrunsCell}>Conf</div>
                     {dagRuns
                         .filter(
                             (dagRun) =>

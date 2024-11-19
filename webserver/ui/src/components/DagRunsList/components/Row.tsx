@@ -10,12 +10,6 @@ type TRowProps = {
 };
 
 function Row({ dagRun }: TRowProps) {
-    let [confExpanded, setConfExpanded] = useState<boolean>(false);
-
-    let toggleConfExpanded = () => {
-        setConfExpanded(!confExpanded);
-    };
-
     return (
         <>
             <div className={s.dagrunsCell}>
@@ -30,26 +24,6 @@ function Row({ dagRun }: TRowProps) {
                 })}
             >
                 {dagRun.state}
-            </div>
-            <div className={s.dagrunsCell}>
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                    }}
-                >
-                    <button onClick={toggleConfExpanded}>Display conf</button>
-                </div>
-            </div>
-            <div
-                className={clsx(s.dagrunConfCell, s.dagrunConfCellActive)}
-                style={{
-                    display: confExpanded ? "initial" : "none",
-                }}
-            >
-                <pre className="code">
-                    {JSON.stringify(dagRun.conf, null, 2)}
-                </pre>
             </div>
         </>
     );
