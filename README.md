@@ -19,9 +19,9 @@ Run Airflow with Elasticsearch cluster and Kibana dashboard
 docker compose --profile debug up
 ```
 
-Rebuild base image (_required after modifying the requirements.txt file_)
+Rebuild base image (_required after modifying the requirements.txt or package.json_)
 ```
-docker compose build
+docker compose --profile ui up -V --build
 ```
 ## Running ner workflow from UI
 ### Step 1
