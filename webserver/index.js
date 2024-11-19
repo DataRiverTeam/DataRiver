@@ -291,6 +291,39 @@ app.get("/api/ner/docs", async (req, res) => {
 app.get("/api/images/thumbnails", async (req, res) => {
     const SIZE = 20;
     const start = req.query["start"] || 0;
+    const dagRunId = req.query["dag-run-id"] || null;
+    const description = req.query["description"] || null;
+    const dateRangeFrom = req.query["date-range-from"] || null;
+    const dateRangeTo = req.query["date-range-to"] || null;
+
+    const mustClauses = [];
+
+    if (description) {
+        mustClauses.push({ match: { description: description } });
+    }
+
+    if (dagRunId) {
+        mustClauses.push({ match: { "dag_run_id.keyword": dagRunId } });
+    }
+
+    if (dateRangeFrom || dateRangeTo) {
+        const dateClause = {
+            range: {
+                dag_start_date: {
+                    ...(dateRangeFrom ? { gte: dateRangeFrom } : null),
+                    ...(dateRangeTo ? { lte: dateRangeTo } : null),
+                },
+            },
+        };
+
+        mustClauses.push(dateClause);
+    }
+
+    const query = {
+        bool: {
+            must: mustClauses,
+        },
+    };
 
     try {
         const result = await elasticClient.search({
@@ -300,8 +333,8 @@ app.get("/api/images/thumbnails", async (req, res) => {
             _source: {
                 includes: "thumbnail",
             },
+            query: query,
         });
-
         res.json({ status: 200, ...result });
     } catch (error) {
         console.log(error);
