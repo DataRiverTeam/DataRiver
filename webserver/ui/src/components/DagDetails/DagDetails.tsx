@@ -8,6 +8,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import BackButton from "../BackButton/BackButton";
+import { triggerDag } from "../../utils/dags";
 
 type TDagRunResponse = TDagRunCollection & { status: number };
 
@@ -44,32 +45,43 @@ function DagDetails() {
 
     return (
         <>
-            <BackButton />
-
-            <h1> {dagId} </h1>
-            <h2> DAG runs </h2>
-            <div style={{ marginBottom: "1rem" }}>
-                <Link relative="path" to={"./trigger"}>
-                    <Tooltip title={"Trigger a DAG run"}>
-                        <Button
-                            sx={{
-                                color: "white",
-                                border: "1px solid rgba(127, 127, 127, 0.3)",
-                            }}
-                            aria-label="trigger-dagrun"
-                        >
-                            <PlayArrowIcon />
-                        </Button>
-                    </Tooltip>
-                </Link>
-            </div>
-
-            {isLoading ? (
-                "Loading..."
-            ) : errorMessage ? (
-                errorMessage
+            {dagId ? (
+                <>
+                    <BackButton />
+                    <h1> {dagId} </h1>
+                    <h2> DAG runs </h2>
+                    <div
+                        style={{
+                            marginBottom: "1rem",
+                            display: "flex",
+                            flexDirection: "row",
+                            gap: "10px",
+                        }}
+                    >
+                        <Link relative="path" to={"./trigger"}>
+                            <Tooltip title={"Trigger a DAG run"}>
+                                <Button
+                                    sx={{
+                                        color: "white",
+                                        border: "1px solid rgba(127, 127, 127, 0.3)",
+                                    }}
+                                    aria-label="trigger-dagrun"
+                                >
+                                    <PlayArrowIcon />
+                                </Button>
+                            </Tooltip>
+                        </Link>
+                    </div>
+                    {isLoading ? (
+                        "Loading..."
+                    ) : errorMessage ? (
+                        errorMessage
+                    ) : (
+                        <DagRunsList dagRuns={dagRuns} />
+                    )}
+                </>
             ) : (
-                <DagRunsList dagRuns={dagRuns} />
+                <p> Missing parameter: DAG ID.</p>
             )}
         </>
     );
