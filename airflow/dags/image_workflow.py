@@ -15,6 +15,7 @@ from datariver.operators.common.elasticsearch import (
     ElasticSearchOperator,
 )
 import os
+import shutil
 
 default_args = {
     "owner": "airflow",
@@ -31,6 +32,13 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
+
+
+def remove_temp_files(context, result):
+    json_files_paths = context["params"]["json_files_paths"]
+    if (len(json_files_paths)) != 0:
+        dirname = os.path.dirname(json_files_paths[0])
+        shutil.rmtree(dirname)
 
 
 with DAG(
@@ -101,6 +109,7 @@ with DAG(
             }
         },
         es_conn_args=ES_CONN_ARGS,
+        post_execute=remove_temp_files,
     )
 
 (
