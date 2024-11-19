@@ -80,8 +80,8 @@ with DAG(
         input_key="image_path",
         output_key="thumbnail",
     )
-    descript_image_task = JsonDescribeImage(
-        task_id="descript_image",
+    describe_image_task = JsonDescribeImage(
+        task_id="describe_image",
         json_files_paths="{{ params.json_files_paths }}",
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="image_path",
@@ -117,7 +117,7 @@ with DAG(
     >> [
         thumbnail_task,
         perceptual_hash_task,
-        descript_image_task,
+        describe_image_task,
         extract_metadata_task,
     ]
     >> add_post_run_information_task
