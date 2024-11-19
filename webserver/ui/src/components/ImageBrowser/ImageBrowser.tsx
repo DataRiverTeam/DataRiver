@@ -44,8 +44,8 @@ function ImageBrowser() {
             };
 
             if (currentFormData) {
-                console.log(currentFormData);
-                let { dagRunId, description } = currentFormData;
+                let { dagRunId, description, dateRangeTo, dateRangeFrom } =
+                    currentFormData;
 
                 Object.assign(queryObject, {
                     //TODO: implement sending date range
@@ -53,10 +53,15 @@ function ImageBrowser() {
                     ...(dagRunId.trim().length > 0
                         ? { "dag-run-id": dagRunId }
                         : null),
+                    ...(dateRangeFrom
+                        ? { "date-range-from": dateRangeFrom }
+                        : null),
+                    ...(dateRangeTo ? { "date-range-to": dateRangeTo } : null),
                 });
             }
 
             let queryString = new URLSearchParams(queryObject).toString();
+            console.log(queryString);
             const response = await fetch(
                 `/api/images/thumbnails?${queryString}`
             );
