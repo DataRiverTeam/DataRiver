@@ -6,6 +6,8 @@ import DagDetails from "./components/DagDetails/DagDetails";
 import DagRunDetails from "./components/DagRunDetails/DagRunDetails";
 import DagTrigger from "./components/DagTrigger/DagTrigger";
 import FileExplorer from "./components/FileExplorer/FileExplorer";
+import ImageBrowser from "./components/ImageBrowser/ImageBrowser";
+import ImageDetails from "./components/ImageDetails/ImageDetails";
 
 const pages: RouteObject[] = [
     {
@@ -30,8 +32,16 @@ const pages: RouteObject[] = [
                 element: <DagTrigger />,
             },
             {
-                path: "/fileexplorer",
+                path: "fileexplorer",
                 element: <FileExplorer />,
+            },
+            {
+                path: "images",
+                element: <ImageBrowser />,
+            },
+            {
+                path: "images/:imageId",
+                element: <ImageDetails />,
             },
         ],
     },

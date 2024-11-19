@@ -47,5 +47,5 @@ class JsonExtractMetadata(BaseOperator):
                         value = value.decode(encoding=json.detect_encoding(value))
                     else:
                         value = str(value)
-                    metadata.append({ExifTags.TAGS.get(tag): value})
+                    metadata.append({"tag": ExifTags.TAGS.get(tag), "value": value})
             json_args.add_value(self.output_key, metadata)

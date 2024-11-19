@@ -1,0 +1,12 @@
+.paginatorWrapper {
+    display: flex;
+    justify-content: center;
+}
+
+.paginatorList :global(.MuiPaginationItem-root) {
+    color: white;
+}
+
+.totalFoundMessage {
+    text-align: center;
+}

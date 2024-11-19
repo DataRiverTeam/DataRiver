@@ -20,7 +20,12 @@ function NavBar() {
                 </Button>
                 <Button variant="text">
                     <Link to={"/ner"} className={s.link}>
-                        Browse documents
+                        NER
+                    </Link>
+                </Button>
+                <Button variant="text">
+                    <Link to={"/images"} className={s.link}>
+                        Images
                     </Link>
                 </Button>
             </Toolbar>
