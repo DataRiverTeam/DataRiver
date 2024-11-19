@@ -27,7 +27,8 @@ body {
 }
 
 input[type="text"],
-input[type="number"] {
+input[type="number"],
+input[type="datetime-local"] {
     padding: 10px;
 }
 

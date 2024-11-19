@@ -1,17 +1,27 @@
 import { useEffect, useState, Fragment } from "react";
 import { Link } from "react-router-dom";
+import { useForm, SubmitHandler } from "react-hook-form";
+
 import ImageList from "@mui/material/ImageList";
 import ImageListItem from "@mui/material/ImageListItem";
 import ImageListItemBar from "@mui/material/ImageListItemBar";
 import IconButton from "@mui/material/IconButton";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import Pagination from "@mui/material/Pagination";
+import Button from "@mui/material/Button";
 
 import s from "./ImageBrowser.module.css";
 
 type TImageThumbnailEntry = {
     id: string;
     thumbnail: string;
+};
+
+type TImageFormFields = {
+    description: string;
+    dagRunId: string;
+    dateRangeFrom: string;
+    dateRangeTo: string;
 };
 
 const ITEMS_PER_PAGE = 20;
@@ -22,10 +32,38 @@ function ImageBrowser() {
     let [errorMessage, setErrorMessage] = useState<string | null>(null);
     let [totalFound, setTotalFound] = useState(0);
 
+    let [currentFormData, setCurrentFormData] =
+        useState<TImageFormFields | null>(null);
+
+    let { register, handleSubmit } = useForm<TImageFormFields>();
+
     const fetchImages = async () => {
         try {
+            let queryObject = {
+                start: ((page - 1) * ITEMS_PER_PAGE).toString(),
+            };
+
+            if (currentFormData) {
+                let { dagRunId, description, dateRangeTo, dateRangeFrom } =
+                    currentFormData;
+
+                Object.assign(queryObject, {
+                    //TODO: implement sending date range
+                    ...(description.trim().length > 0 ? { description } : null),
+                    ...(dagRunId.trim().length > 0
+                        ? { "dag-run-id": dagRunId }
+                        : null),
+                    ...(dateRangeFrom
+                        ? { "date-range-from": dateRangeFrom }
+                        : null),
+                    ...(dateRangeTo ? { "date-range-to": dateRangeTo } : null),
+                });
+            }
+
+            let queryString = new URLSearchParams(queryObject).toString();
+            console.log(queryString);
             const response = await fetch(
-                `/api/images/thumbnails?start=${(page - 1) * ITEMS_PER_PAGE}`
+                `/api/images/thumbnails?${queryString}`
             );
 
             if (!response.status.toString().startsWith("2")) {
@@ -53,7 +91,7 @@ function ImageBrowser() {
 
     useEffect(() => {
         fetchImages();
-    }, [page]);
+    }, [page, currentFormData]);
 
     const handlePageChange = (
         _event: React.ChangeEvent<unknown>,
@@ -62,8 +100,55 @@ function ImageBrowser() {
         setPage(value);
     };
 
+    let onSubmit: SubmitHandler<TImageFormFields> = (data) => {
+        setPage(1);
+        setCurrentFormData(data);
+    };
+
     return (
         <div>
+            <div className={s.filtersWrapper}>
+                <form
+                    id="filter-images"
+                    className={s.filters}
+                    onSubmit={handleSubmit(onSubmit)}
+                >
+                    <div className={s.filtersItem}>
+                        <label>Description</label>
+                        <input type="text" {...register("description")} />
+                    </div>
+                    <div className={s.filtersItem}>
+                        <label>DAG run ID</label>
+                        <input type="text" {...register("dagRunId")} />
+                    </div>
+                    <fieldset className={s.filters}>
+                        <legend>Processing start date range</legend>
+                        <div className={s.filtersItem}>
+                            <label>From:</label>
+                            <input
+                                type="datetime-local"
+                                {...register("dateRangeFrom")}
+                            />
+                        </div>
+                        <div className={s.filtersItem}>
+                            <label>To:</label>
+                            <input
+                                type="datetime-local"
+                                {...register("dateRangeTo")}
+                            />
+                        </div>
+                    </fieldset>
+
+                    <Button
+                        variant="outlined"
+                        className={s.filterSubmit}
+                        type="submit"
+                    >
+                        Filter
+                    </Button>
+                </form>
+            </div>
+
             {!errorMessage ? (
                 <>
                     <p className={s.totalFoundMessage}>
