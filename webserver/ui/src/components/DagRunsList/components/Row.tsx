@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { TDagRun } from "../../../types/airflow";
 import clsx from "clsx";
@@ -7,13 +6,16 @@ import s from "../DagRunsList.module.css";
 
 type TRowProps = {
     dagRun: TDagRun;
+    dagId: string;
 };
 
-function Row({ dagRun }: TRowProps) {
+function Row({ dagRun, dagId }: TRowProps) {
     return (
         <>
             <div className={s.dagrunsCell}>
-                <Link to={`${dagRun.dag_run_id}`}>{dagRun.dag_run_id}</Link>
+                <Link to={`/dags/${dagId}/${dagRun.dag_run_id}`}>
+                    {dagRun.dag_run_id}
+                </Link>
             </div>
             <div className={s.dagrunsCell}>{dagRun.start_date}</div>
             <div

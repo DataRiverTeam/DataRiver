@@ -6,6 +6,7 @@ import s from "./DagRunsList.module.css";
 import Row from "./components/Row";
 
 type TDagRunsListProps = {
+    dagId: string;
     dagRuns: TDagRun[];
     heading?: ReactNode;
 };
@@ -14,7 +15,7 @@ const NO_ITEMS_MSG = "No DAG runs to display.";
 
 const states: TDagState[] = ["queued", "running", "success", "failed"];
 
-function DagRunsList({ dagRuns, heading = null }: TDagRunsListProps) {
+function DagRunsList({ dagRuns, dagId, heading = null }: TDagRunsListProps) {
     let [selectedState, setSelectedState] = useState<"" | TDagState>("");
 
     return (
@@ -48,7 +49,11 @@ function DagRunsList({ dagRuns, heading = null }: TDagRunsListProps) {
                         )
                         .map((dagRun) => {
                             return (
-                                <Row key={dagRun.dag_run_id} dagRun={dagRun} />
+                                <Row
+                                    key={dagRun.dag_run_id}
+                                    dagRun={dagRun}
+                                    dagId={dagId}
+                                />
                             );
                         })}
                 </div>

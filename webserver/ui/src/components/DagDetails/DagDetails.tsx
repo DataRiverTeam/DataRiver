@@ -8,9 +8,11 @@ import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import BackButton from "../BackButton/BackButton";
+import { ApiClient } from "../../utils/api";
 
 type TDagRunResponse = TDagRunsCollection & { status: number };
 
+const client = new ApiClient();
 function DagDetails() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [errorMessage, setErrorMessage] = useState("");
@@ -19,15 +21,7 @@ function DagDetails() {
 
     let fetchDagRuns = async () => {
         try {
-            const response = await fetch(`/api/dags/${dagId}/dagruns`);
-
-            if (!response?.status.toString().startsWith("2")) {
-                throw new Error(
-                    `There was an error when handling request. Status code: ${response.status}`
-                );
-            }
-
-            const json: TDagRunResponse = await response.json();
+            const json: TDagRunResponse = await client.getDagRuns(dagId!);
 
             setDagRuns(json.dag_runs);
         } catch (error) {

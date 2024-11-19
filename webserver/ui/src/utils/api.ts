@@ -3,6 +3,7 @@ import {
     TDagRun,
     TTaskInstance,
     TDag,
+    TDagDetails,
 } from "../types/airflow";
 
 type TStatus = {
@@ -26,28 +27,35 @@ export type TTaskInstancesResponse = {
 export class ApiClient {
     //TODO: move repeated code to separate function/variables
 
-    async getDags() {
-        const response = await fetch("/api/dags");
-
-        if (!response.status.toString().startsWith("2")) {
+    #handleResponse(response: Response) {
+        if (!response?.status.toString().startsWith("2")) {
             throw new Error(
                 `There was an error when handling request. Status code: ${response.status}`
             );
         }
+    }
+
+    async getDags() {
+        const response = await fetch("/api/dags");
+        this.#handleResponse(response);
 
         const json: TDagsResponse = await response.json();
 
         return json;
     }
 
+    async getDagDetails(dagId: string) {
+        const response = await fetch(`/api/dags/${dagId}/details`);
+        this.#handleResponse(response);
+
+        const json: TDagDetails = await response.json();
+
+        return json;
+    }
+
     async getDagRuns(dagId: string) {
         const response = await fetch(`/api/dags/${dagId}/dagruns`);
-
-        if (!response?.status.toString().startsWith("2")) {
-            throw new Error(
-                `There was an error when handling request. Status code: ${response.status}`
-            );
-        }
+        this.#handleResponse(response);
 
         const json: TDagRunsCollectionResponse = await response.json();
 
@@ -56,12 +64,7 @@ export class ApiClient {
 
     async getDagRunDetails(dagId: string, dagRunId: string) {
         const response = await fetch(`/api/dags/${dagId}/dagruns/${dagRunId}`);
-
-        if (!response.status.toString().startsWith("2")) {
-            throw new Error(
-                `There was an error when handling request. Status code: ${response.status}`
-            );
-        }
+        this.#handleResponse(response);
 
         const json: TDagRunResponse = await response.json();
 
@@ -72,12 +75,7 @@ export class ApiClient {
         const response = await fetch(
             `/api/dags/${dagId}/dagruns/${dagRunId}/taskInstances`
         );
-
-        if (!response.status.toString().startsWith("2")) {
-            throw new Error(
-                `There was an error when handling request. Status code: ${response.status}`
-            );
-        }
+        this.#handleResponse(response);
 
         const json: TTaskInstancesResponse = await response.json();
 

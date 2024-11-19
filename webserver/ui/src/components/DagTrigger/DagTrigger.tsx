@@ -7,9 +7,10 @@ import Button from "@mui/material/Button";
 
 import s from "./DagTrigger.module.css";
 
-import { TDagDetail, TDagParam } from "../../types/airflow";
+import { TDagDetails, TDagParam } from "../../types/airflow";
 import { triggerDag } from "../../utils/dags";
 import BackButton from "../BackButton/BackButton";
+import { ApiClient } from "../../utils/api";
 
 type TDagNamedParam = TDagParam & {
     name: string;
@@ -53,6 +54,7 @@ function TypedInput({ param, register }: TTypedInputProps) {
     }
 }
 
+const client = new ApiClient();
 function DagTrigger() {
     const { dagId } = useParams();
     const navigate = useNavigate();
@@ -62,15 +64,7 @@ function DagTrigger() {
 
     let fetchDagParams = async () => {
         try {
-            const res = await fetch(`/api/dags/${dagId}/details`);
-
-            if (!res.status.toString().startsWith("2")) {
-                throw new Error(
-                    `There was an error fetching the params. Status code: ${res.status}`
-                );
-            }
-
-            const details: TDagDetail = await res.json();
+            const details: TDagDetails = await client.getDagDetails(dagId!);
 
             setDagParams(
                 Object.entries(details.params).map(
