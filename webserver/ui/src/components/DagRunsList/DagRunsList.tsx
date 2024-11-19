@@ -1,12 +1,9 @@
-import { TDagRun } from "../../types/airflow";
+import { TDagRun, TDagState } from "../../types/airflow";
 
-import { useState, Fragment } from "react";
-
-import { Link } from "react-router-dom";
-
-import clsx from "clsx";
+import { useState } from "react";
 
 import s from "./DagRunsList.module.css";
+import Row from "./components/Row";
 
 type TDagRunsListProps = {
     dagRuns: TDagRun[];
@@ -14,75 +11,45 @@ type TDagRunsListProps = {
 
 const NO_ITEMS_MSG = "No DAG runs to display.";
 
+const states: TDagState[] = ["queued", "running", "success", "failed"];
+
 function DagRunsList({ dagRuns }: TDagRunsListProps) {
+    let [selectedState, setSelectedState] = useState<"" | TDagState>("");
+
     return (
         <>
+            <fieldset>
+                <legend>Filters</legend>
+                <select
+                    onChange={(e) => {
+                        setSelectedState(e.target.value as "" | TDagState);
+                    }}
+                >
+                    <option value={""}> - </option>
+                    {states.map((state) => (
+                        <option key={`option-${state}`} value={state}>
+                            {state}
+                        </option>
+                    ))}
+                </select>
+            </fieldset>
             {dagRuns?.length ? (
                 <div className={s.dagruns}>
                     <div className={s.dagrunsCell}>DAG run ID</div>
                     <div className={s.dagrunsCell}>Start date</div>
                     <div className={s.dagrunsCell}>State</div>
                     <div className={s.dagrunsCell}>Conf</div>
-                    {dagRuns.map((dagRun) => {
-                        let [confExpanded, setConfExpanded] =
-                            useState<boolean>(false);
-
-                        let toggleConfExpanded = () => {
-                            setConfExpanded(!confExpanded);
-                        };
-
-                        return (
-                            <Fragment key={dagRun.dag_run_id}>
-                                <div className={s.dagrunsCell}>
-                                    <Link to={`${dagRun.dag_run_id}`}>
-                                        {dagRun.dag_run_id}
-                                    </Link>
-                                </div>
-                                <div className={s.dagrunsCell}>
-                                    {dagRun.start_date}
-                                </div>
-                                <div
-                                    className={clsx(s.dagrunsCell, s.status, {
-                                        [s.statusSuccess]:
-                                            dagRun.state === "success",
-                                        [s.statusFailed]:
-                                            dagRun.state === "failed",
-                                        [s.statusRunning]:
-                                            dagRun.state === "running",
-                                    })}
-                                >
-                                    {dagRun.state}
-                                </div>
-                                <div className={s.dagrunsCell}>
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            justifyContent: "center",
-                                        }}
-                                    >
-                                        <button onClick={toggleConfExpanded}>
-                                            Display conf
-                                        </button>
-                                    </div>
-                                </div>
-                                <div
-                                    className={clsx(
-                                        s.dagrunConfCell,
-                                        s.dagrunConfCellActive
-                                    )}
-                                    style={{
-                                        display: confExpanded
-                                            ? "initial"
-                                            : "none",
-                                    }}
-                                >
-                                    <pre className="code">
-                                        {JSON.stringify(dagRun.conf, null, 2)}
-                                    </pre>
-                                </div>
-                            </Fragment>
-                        );
-                    })}
+                    {dagRuns
+                        .filter(
+                            (dagRun) =>
+                                selectedState === "" ||
+                                dagRun.state === selectedState
+                        )
+                        .map((dagRun) => {
+                            return (
+                                <Row key={dagRun.dag_run_id} dagRun={dagRun} />
+                            );
+                        })}
                 </div>
             ) : (
                 <p>{NO_ITEMS_MSG}</p>
