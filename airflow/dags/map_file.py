@@ -1,4 +1,5 @@
 import os
+import shutil
 
 from airflow import DAG
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
@@ -64,6 +65,12 @@ def copy_item_to_file(item, context):
         return full_path
 
 
+def remove_temp_files(context, result):
+    json_file_path = context["params"]["path"]
+    dirname = os.path.dirname(json_file_path)
+    shutil.rmtree(dirname)
+
+
 with DAG(
     "map_file",
     default_args=default_args,
@@ -95,6 +102,7 @@ with DAG(
         task_id="create_confs",
         python_callable=map_paths,
         op_kwargs={"paths": "{{ task_instance.xcom_pull(task_ids='map_json') }}"},
+        post_execute=remove_temp_files,
     )
 
     trigger_ner_task = TriggerDagRunOperator.partial(
