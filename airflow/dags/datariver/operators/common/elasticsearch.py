@@ -106,8 +106,10 @@ class ElasticJsonPushOperator(BaseOperator):
 
         for i, result in enumerate(results):
             if "_id" in result:
-                json_args = JsonArgs(self.fs_conn_id, self.json_files_paths[i], self.encoding)
-                json_args.add_value("es_document_id", result["_id"])
+                json_args = JsonArgs(
+                    self.fs_conn_id, self.json_files_paths[i], self.encoding
+                )
+                json_args.add_value("_id", result["_id"])
 
         return results
 
@@ -162,15 +164,13 @@ class ElasticJsonUpdateOperator(BaseOperator):
                 keys = list(set(present_keys) - set(self.keys_to_skip))
                 document = json_args.get_values(keys)
 
-            if "es_document_id" in document:
+            if "_id" in document:
                 operation = {
                     "_op_type": "update",
                     "_index": self.index,
-                    "_id": document["es_document_id"],
+                    "_id": document["_id"],
                     "doc": {
-                        key: value
-                        for key, value in document.items()
-                        if key != "es_document_id"
+                        key: value for key, value in document.items() if key != "_id"
                     },
                 }
                 operations.append(operation)
@@ -184,7 +184,7 @@ class ElasticJsonUpdateOperator(BaseOperator):
                     self.encoding,
                 )
                 error_handler.save_error_to_file(
-                    f"Document which does not have es_document_id can not be updated"
+                    f"Document which does not have _id can not be updated"
                 )
 
         results = []
