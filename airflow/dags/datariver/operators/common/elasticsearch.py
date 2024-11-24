@@ -99,8 +99,17 @@ class ElasticJsonPushOperator(BaseOperator):
             document_list.append(document)
 
         results = []
+        i = 0
         for ok, response in helpers.streaming_bulk(es, document_list, index=self.index):
-            results.append(response["index"])
+            result = response["index"]
+            if "_id" in result:
+                json_args = JsonArgs(
+                    self.fs_conn_id, self.json_files_paths[i], self.encoding
+                )
+                json_args.add_value("_id", result["_id"])
+            results.append(result)
+            i += 1
+
         if self.refresh:
             es.indices.refresh(index=self.index)
 
