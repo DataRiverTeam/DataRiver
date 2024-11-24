@@ -164,17 +164,15 @@ class ElasticJsonUpdateOperator(BaseOperator):
                 keys = list(set(present_keys) - set(self.keys_to_skip))
                 document = json_args.get_values(keys)
 
-            if "_id" in document:
+            document_id = document.pop("_id", None)
+            if document_id is not None:
                 operation = {
                     "_op_type": "update",
                     "_index": self.index,
                     "_id": document["_id"],
-                    "doc": {
-                        key: value for key, value in document.items() if key != "_id"
-                    },
+                    "doc": document,
                 }
                 operations.append(operation)
-
             else:
                 error_handler = ErrorHandler(
                     file_path,
