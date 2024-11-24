@@ -31,7 +31,7 @@ class ElasticSearchOperator(BaseOperator):
         query={"match_all": {}},
         fs_conn_id="fs_data",
         es_conn_args={},
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.index = index
@@ -67,7 +67,7 @@ class ElasticJsonPushOperator(BaseOperator):
         encoding="utf-8",
         refresh=False,
         keys_to_skip=[],
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -86,7 +86,6 @@ class ElasticJsonPushOperator(BaseOperator):
 
         es = Elasticsearch(**self.es_conn_args)
         document_list = []
-        file_paths_list = []
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             document = {}
@@ -98,7 +97,6 @@ class ElasticJsonPushOperator(BaseOperator):
                 keys = list(set(present_keys) - set(self.keys_to_skip))
                 document = json_args.get_values(keys)
             document_list.append(document)
-            file_paths_list.append(file_path)
 
         results = []
         for ok, response in helpers.streaming_bulk(es, document_list, index=self.index):
@@ -106,14 +104,13 @@ class ElasticJsonPushOperator(BaseOperator):
         if self.refresh:
             es.indices.refresh(index=self.index)
 
-        i = 0
-        for result in results:
+        for i, result in enumerate(results):
             if "_id" in result:
-                json_args = JsonArgs(self.fs_conn_id, file_paths_list[i], self.encoding)
+                json_args = JsonArgs(self.fs_conn_id, self.json_files_paths[i], self.encoding)
                 json_args.add_value("es_document_id", result["_id"])
-            i+=1
 
         return results
+
 
 class ElasticJsonUpdateOperator(BaseOperator):
     template_fields = (
@@ -125,18 +122,18 @@ class ElasticJsonUpdateOperator(BaseOperator):
     )
 
     def __init__(
-            self,
-            *,
-            index,
-            fs_conn_id="fs_data",
-            es_conn_args={},
-            json_files_paths,
-            input_keys=[],
-            encoding="utf-8",
-            refresh=False,
-            keys_to_skip=[],
-            error_key="error",
-            **kwargs
+        self,
+        *,
+        index,
+        fs_conn_id="fs_data",
+        es_conn_args={},
+        json_files_paths,
+        input_keys=[],
+        encoding="utf-8",
+        refresh=False,
+        keys_to_skip=[],
+        error_key="error",
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -158,27 +155,33 @@ class ElasticJsonUpdateOperator(BaseOperator):
         operations = []
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            document = {}
+            if self.input_keys:
+                document = json_args.get_values(self.input_keys)
+            else:
+                present_keys = json_args.get_keys()
+                keys = list(set(present_keys) - set(self.keys_to_skip))
+                document = json_args.get_values(keys)
 
             if "es_document_id" in document:
-                if self.input_keys:
-                    document = json_args.get_values(self.input_keys)
-                else:
-                    present_keys = json_args.get_keys()
-                    keys = list(set(present_keys) - set(self.keys_to_skip))
-                    document = json_args.get_values(keys)
-
                 operation = {
                     "_op_type": "update",
                     "_index": self.index,
                     "_id": document["es_document_id"],
-                    "doc": {key: value for key, value in document.items() if key != "es_document_id"}
+                    "doc": {
+                        key: value
+                        for key, value in document.items()
+                        if key != "es_document_id"
+                    },
                 }
                 operations.append(operation)
 
             else:
                 error_handler = ErrorHandler(
-                    file_path, self.fs_conn_id, self.error_key, self.task_id, self.encoding
+                    file_path,
+                    self.fs_conn_id,
+                    self.error_key,
+                    self.task_id,
+                    self.encoding,
                 )
                 error_handler.save_error_to_file(
                     f"Document which does not have es_document_id can not be updated"
