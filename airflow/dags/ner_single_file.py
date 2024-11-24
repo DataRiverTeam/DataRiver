@@ -10,6 +10,7 @@ from datariver.operators.common.json_tools import (
 from datariver.operators.common.elasticsearch import (
     ElasticJsonPushOperator,
     ElasticSearchOperator,
+    ElasticJsonUpdateOperator
 )
 from datariver.operators.texts.langdetect import JsonLangdetectOperator
 from datariver.operators.texts.translate import JsonTranslateOperator
@@ -163,7 +164,7 @@ with DAG(
         provide_context=True,
     )
 
-    es_update_task = ElasticJsonPushOperator(
+    es_update_task = ElasticJsonUpdateOperator(
         task_id="elastic_update",
         fs_conn_id="{{ params.fs_conn_id }}",
         json_files_paths="{{ params.json_files_paths }}",
