@@ -55,6 +55,8 @@ const fsUtils = require("./utils/filesystem");
  API ENDPOINTS
 */
 
+// Airflow endpoints
+
 app.get("/api/dags", async (req, res) => {
     try {
         const options = {
@@ -212,6 +214,8 @@ app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
     }
 });
 
+// NER endpoints
+
 app.get("/api/ner/docs", async (req, res) => {
     const SIZE = 10;
 
@@ -282,6 +286,100 @@ app.get("/api/ner/docs", async (req, res) => {
     }
 });
 
+// Image endpoints
+
+app.get("/api/images/thumbnails", async (req, res) => {
+    const SIZE = 20;
+    const start = req.query["start"] || 0;
+    const dagRunId = req.query["dag-run-id"] || null;
+    const description = req.query["description"] || null;
+    const dateRangeFrom = req.query["date-range-from"] || null;
+    const dateRangeTo = req.query["date-range-to"] || null;
+
+    const mustClauses = [];
+
+    if (description) {
+        mustClauses.push({ match: { description: description } });
+    }
+
+    if (dagRunId) {
+        mustClauses.push({ match: { "dag_run_id.keyword": dagRunId } });
+    }
+
+    if (dateRangeFrom || dateRangeTo) {
+        const dateClause = {
+            range: {
+                dag_start_date: {
+                    ...(dateRangeFrom ? { gte: dateRangeFrom } : null),
+                    ...(dateRangeTo ? { lte: dateRangeTo } : null),
+                },
+            },
+        };
+
+        mustClauses.push(dateClause);
+    }
+
+    const query = {
+        bool: {
+            must: mustClauses,
+        },
+    };
+
+    try {
+        const result = await elasticClient.search({
+            index: "image_processing",
+            size: SIZE,
+            from: start,
+            _source: {
+                includes: "thumbnail",
+            },
+            query: query,
+        });
+        res.json({ status: 200, ...result });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: 500 });
+    }
+});
+
+app.get("/api/images/:imageid/details", async (req, res) => {
+    const imageId = req.params["imageid"];
+
+    if (!imageId) {
+        return res.status(400).send({ status: 400 });
+    }
+
+    try {
+        const result = await elasticClient.search({
+            index: "image_processing",
+            query: {
+                ids: {
+                    values: [imageId],
+                },
+            },
+        });
+
+        if (result.hits.total.value === 0) {
+            return res.status(404).send({ status: 404 });
+        }
+
+        const { _id, _source } = result.hits.hits[0];
+        res.json({
+            status: 200,
+            size: 20,
+            data: {
+                id: _id,
+                ..._source,
+            },
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ status: 500 });
+    }
+});
+
+// handling file upload
+
 app.get("/api/files", async (req, res) => {
     const files = await fsUtils.getFiles(UPLOAD_DIR);
 
@@ -295,6 +393,8 @@ app.get("/api/files", async (req, res) => {
         }))
     );
 });
+
+// default API endpoint handler in case
 
 app.get("/api/*", async (req, res) => {
     res.status(403).send();

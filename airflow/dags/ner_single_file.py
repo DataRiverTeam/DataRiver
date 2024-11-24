@@ -59,6 +59,12 @@ def decide_about_translation(ti, **context):
     return branches
 
 
+def remove_temp_files(context, result):
+    json_files_paths = context["params"]["json_files_paths"]
+    for file_path in json_files_paths:
+        os.remove(file_path)
+
+
 with DAG(
     "ner_single_file",
     default_args=default_args,
@@ -182,6 +188,7 @@ with DAG(
             }
         },
         es_conn_args=ES_CONN_ARGS,
+        post_execute=remove_temp_files,
     )
 
 (

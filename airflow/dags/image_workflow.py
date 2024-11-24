@@ -15,6 +15,7 @@ from datariver.operators.common.elasticsearch import (
     ElasticSearchOperator,
 )
 import os
+import shutil
 
 default_args = {
     "owner": "airflow",
@@ -31,6 +32,13 @@ ES_CONN_ARGS = {
     "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
     "verify_certs": True,
 }
+
+
+def remove_temp_files(context, result):
+    json_files_paths = context["params"]["json_files_paths"]
+    if (len(json_files_paths)) != 0:
+        dirname = os.path.dirname(json_files_paths[0])
+        shutil.rmtree(dirname)
 
 
 with DAG(
@@ -72,8 +80,8 @@ with DAG(
         input_key="image_path",
         output_key="thumbnail",
     )
-    descript_image_task = JsonDescribeImage(
-        task_id="descript_image",
+    describe_image_task = JsonDescribeImage(
+        task_id="describe_image",
         json_files_paths="{{ params.json_files_paths }}",
         fs_conn_id="{{ params.fs_conn_id }}",
         input_key="image_path",
@@ -101,6 +109,7 @@ with DAG(
             }
         },
         es_conn_args=ES_CONN_ARGS,
+        post_execute=remove_temp_files,
     )
 
 (
@@ -108,7 +117,7 @@ with DAG(
     >> [
         thumbnail_task,
         perceptual_hash_task,
-        descript_image_task,
+        describe_image_task,
         extract_metadata_task,
     ]
     >> add_post_run_information_task

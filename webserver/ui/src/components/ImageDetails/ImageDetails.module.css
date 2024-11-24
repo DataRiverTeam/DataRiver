@@ -1,0 +1,45 @@
+.imageCard {
+    padding: 2rem;
+}
+
+.metaDataTable {
+    border-collapse: collapse;
+    width: 800px;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+}
+
+.metaDataTable thead td {
+    font-weight: bold;
+}
+
+.metaDataTable td {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+    word-wrap: anywhere;
+    word-break: break-all;
+}
+
+.metaDataTable .metaDataLabel {
+    width: 30%;
+}
+
+.hashTypesTable {
+    border-collapse: collapse;
+    width: 800px;
+    margin: 0 auto;
+    margin-bottom: 2rem;
+}
+
+.hashTypesTable td {
+    border: 1px solid rgba(0, 0, 0, 0.5);
+    padding: 0.5rem 1rem;
+    box-sizing: border-box;
+    word-wrap: anywhere;
+    word-break: break-all;
+}
+
+.hashTypesTable .hashTypesLabel {
+    width: 30%;
+}

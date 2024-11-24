@@ -363,7 +363,9 @@ services:
     - "5173:5173"
     - "3000:3000"
     volumes:
-      - webserver:/usr/src/webserver
+      - ./webserver:/usr/src/webserver
+      - /usr/src/webserver/node_modules
+      - /usr/src/webserver/ui/node_modules
       - ./airflow/data:/usr/src/webserver/uploaded
     environment:
       - ELASTIC_HOST=${ELASTIC_HOST}
@@ -372,8 +374,6 @@ services:
       - ui
 volumes:
   postgres-db-volume:
-    driver: local
-  webserver:
     driver: local
   certs:
     driver: local
