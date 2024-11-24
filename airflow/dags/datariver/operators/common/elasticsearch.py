@@ -113,14 +113,6 @@ class ElasticJsonPushOperator(BaseOperator):
         if self.refresh:
             es.indices.refresh(index=self.index)
 
-        for i in range(len(self.json_files_paths)):
-            result = results[i]
-            if "_id" in result:
-                json_args = JsonArgs(
-                    self.fs_conn_id, self.json_files_paths[i], self.encoding
-                )
-                json_args.add_value("_id", result["_id"])
-
         return results
 
 
