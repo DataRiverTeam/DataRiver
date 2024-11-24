@@ -187,7 +187,7 @@ class ElasticJsonUpdateOperator(BaseOperator):
 
         results = []
         for ok, response in helpers.streaming_bulk(es, operations):
-            results.append(response["index"])
+            results.append(response["update"])
         if self.refresh:
             es.indices.refresh(index=self.index)
 
