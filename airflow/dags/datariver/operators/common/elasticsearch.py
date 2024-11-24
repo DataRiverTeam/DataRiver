@@ -169,7 +169,7 @@ class ElasticJsonUpdateOperator(BaseOperator):
                 operation = {
                     "_op_type": "update",
                     "_index": self.index,
-                    "_id": document["_id"],
+                    "_id": document_id,
                     "doc": document,
                 }
                 operations.append(operation)
