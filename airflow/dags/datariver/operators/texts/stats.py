@@ -1,6 +1,4 @@
 from airflow.models.baseoperator import BaseOperator
-import ast
-import json
 from datariver.operators.common.json_tools import JsonArgs
 from datariver.operators.common.exception_managing import ErrorHandler
 
@@ -47,7 +45,6 @@ class NerJsonStatisticsOperator(BaseOperator):
                 ner_data = json_args.get_value(self.input_key)
 
                 for data in ner_data:
-                    text = data["sentence"]
                     for ent in data["ents"]:
                         label = ent["label"]
                         if label in label_counter:

@@ -32,7 +32,8 @@ class JsonThumbnailImage(BaseOperator):
 
     def execute(self, context):
         from PIL import Image
-        import base64, io
+        import base64
+        import io
 
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
