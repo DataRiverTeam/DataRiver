@@ -6,7 +6,7 @@ from datariver.operators.common.exception_managing import ErrorHandler
 
 # TODO:
 # Perhaps we should make the operator more universal?
-MAX_FRAGMENT_LENGTH = 4000
+MAX_LENGTH = 4000
 language_names = {
     "cs": "czech",
     "da": "danish",
@@ -104,7 +104,7 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
                         right = 0
                         total_length = 0
                         while right < len(sentences):
-                            if total_length + len(sentences[right]) < MAX_FRAGMENT_LENGTH:
+                            if total_length + len(sentences[right]) < MAX_LENGTH:
                                 total_length += len(sentences[right])
                             else:
                                 to_translate = " ".join(sentences[left : right + 1])
