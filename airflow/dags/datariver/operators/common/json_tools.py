@@ -1,6 +1,8 @@
 import json
 import ijson
-import os, fcntl, datetime
+import os
+import fcntl
+import datetime
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -155,7 +157,7 @@ def add_post_run_information(**context):
         json_args.add_value("dag_processed_date", date)
 
 
-## helper functions to use in preexecute
+# helper functions to use in preexecute
 def _filter_errors(context, exclude):
     task = context["task"]
     result = [

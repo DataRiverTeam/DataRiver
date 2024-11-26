@@ -75,10 +75,12 @@ class ElasticJsonPushOperator(BaseOperator):
         self.index = index
         self.es_conn_args = es_conn_args
         self.json_files_paths = json_files_paths
-        self.input_keys = input_keys  # keys to push to es if present
+        # keys to push to es if present
+        self.input_keys = input_keys
         self.encoding = encoding
         self.refresh = refresh
-        self.keys_to_skip = keys_to_skip  # if input_keys are empty, full document is pushed with exception of keys_to_skip
+        # if input_keys are empty, full document is pushed except of keys_to_skip
+        self.keys_to_skip = keys_to_skip
         # when both are empty, all keys are pushed
 
     def execute(self, context):
@@ -184,7 +186,7 @@ class ElasticJsonUpdateOperator(BaseOperator):
                     self.encoding,
                 )
                 error_handler.save_error_to_file(
-                    f"Document which does not have _id can not be updated"
+                    "Document which does not have _id can not be updated"
                 )
 
         results = []
