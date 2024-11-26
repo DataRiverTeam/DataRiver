@@ -160,7 +160,6 @@ def add_post_run_information(**context):
 # helper functions to use in preexecute
 def _filter_errors(context, exclude):
     task = context["task"]
-    x = 0
     result = [
         json_file
         for json_file in task.json_files_paths
