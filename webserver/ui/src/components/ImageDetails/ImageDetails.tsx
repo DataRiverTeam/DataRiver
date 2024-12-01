@@ -69,29 +69,27 @@ function ImageDetails() {
                             {imageDetails.processed_date}
                         </li>
                     </ul>
-                <p>Dags info</p>
-                {imageDetails.dags_info && Object.keys(imageDetails.dags_info).length > 0 ? (
-                    <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
-                        <thead>
-                            <tr>
-                                <th>Dag ID</th>
-                                <th>Start Date</th>
-                                <th>Run ID</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {Object.entries(imageDetails.dags_info).map(([dag_id, dagInfo]) => (
-                                <tr key={dag_id}>
-                                    <td>{dagInfo.dag_id}</td>
-                                    <td>{dagInfo.start_date}</td>
-                                    <td>{dagInfo.run_id}</td>
+                    <p>Dags info</p>
+                    {imageDetails.dags_info && Object.keys(imageDetails.dags_info).length > 0 ? (
+                        <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+                            <thead>
+                                <tr>
+                                    <th>Dag ID</th>
+                                    <th>Start Date</th>
+                                    <th>Run ID</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                ) : (
-                    <p>No DAGs info available.</p>
-                )}
+                            </thead>
+                            <tbody>
+                                {Object.entries(imageDetails.dags_info).map(([dag_id, dagInfo]) => (
+                                    <tr key={dag_id}>
+                                        <td>{dagInfo.dag_id}</td>
+                                        <td>{dagInfo.start_date}</td>
+                                        <td>{dagInfo.run_id}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    ) : null}
                     <h3>Metadata</h3>
                     {imageDetails.metadata.length ? (
                         <>

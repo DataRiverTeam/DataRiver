@@ -101,9 +101,7 @@ function NerCard({ item }: TNerCardProps) {
                             ))}
                         </tbody>
                     </table>
-                ) : (
-                    <p>No DAGs info available.</p>
-                )}
+                ) : null}
             </CardContent>
             <NerCardSection
                 title="Content"
