@@ -70,7 +70,7 @@ function ImageDetails() {
                         </li>
                         <li>
                             Processing end date:{" "}
-                            {imageDetails.dag_processed_date}
+                            {imageDetails.processed_date}
                         </li>
                     </ul>
                     <h3>Metadata</h3>

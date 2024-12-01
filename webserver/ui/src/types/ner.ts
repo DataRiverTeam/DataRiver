@@ -27,7 +27,7 @@ export type TNerDocResult = {
         };
     };
     dag_start_date: string;
-    dag_processed_date: string;
+    processed_date: string;
 }
 
 export type TParsedNerDocProps = TBaseNerDocProps & TNerDocResult;

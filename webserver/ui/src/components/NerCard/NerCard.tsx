@@ -80,8 +80,8 @@ function NerCard({ item }: TNerCardProps) {
                     {item.dag_start_date ? (
                         <li>Start date: {item.dag_start_date}</li>
                     ) : null}
-                    {item.dag_processed_date ? (
-                        <li>End date: {item.dag_processed_date}</li>
+                    {item.processed_date ? (
+                        <li>Processed date: {item.processed_date}</li>
                     ) : null}
                 </ul>
             </CardContent>
