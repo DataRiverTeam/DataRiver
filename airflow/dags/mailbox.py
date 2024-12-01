@@ -62,12 +62,12 @@ with DAG(
             # - remove [' from the begginig
             # - replace ', ' with , everywhere
             # - remove '] from the end
-            for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed "s/^\['//;s/', '/,/g;s/'\]$//")
+            for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed "s/^\['//;s/', '/,/g;s/'\]$//") # noqa W605
             do
                 # move detected files from mailbox to folder where processing will happen
                 base_dir="$(dirname "$file")"
                 filename="$(basename "$file")"
-                # build folder name basaed on unique run_id
+                # build folder name based on unique run_id
                 dest="$base_dir/{{run_id}}"
                 mkdir -p "$dest" && mv "$file" "$dest"
                 if [[ "$first" == "true" ]]; then

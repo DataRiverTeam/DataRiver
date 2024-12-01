@@ -197,6 +197,15 @@ services:
     profiles:
       - format
 
+  lint:
+    image: alpine/flake8
+    entrypoint: /bin/sh
+    command: ["-c","flake8 /opt/airflow/dags/datariver /opt/airflow/dags/*.py --ignore=E501,W503,E203"]
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    profiles:
+      - lint
+
   # -------------- elastic -------------------
 
   setup:
