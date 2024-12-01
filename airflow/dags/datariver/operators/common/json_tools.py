@@ -65,11 +65,9 @@ class JsonArgs(LoggingMixin):
                 fcntl.flock(file.fileno(), fcntl.LOCK_SH)
                 data = json.load(file)
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-                value = data.get(key)
+                value = data.get(key, None)
                 if value is None:
-                    self.log.error(
-                        f"{self.get_full_path()} does not contain key {key}!"
-                    )
+                    self.log.info(f"{self.get_full_path()} does not contain key {key}!")
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return value

@@ -45,6 +45,9 @@ def copy_item_to_file(item, context):
         article = item["resultData"]["results"][0]
         title = article["title"]
         content = article["content"]
+        run_id = context["dag_run"].run_id
+        dag_id = context["dag_run"].dag_id
+        date = context["dag_run"].start_date.replace(microsecond=0).isoformat()
         curr_date = str(datetime.datetime.now())
         dir_path = os.path.join(
             hook.get_path(),
@@ -60,7 +63,18 @@ def copy_item_to_file(item, context):
         )
 
         with open(full_path, "w") as file:
-            file.write(json.dumps({"title": title, "content": content}, indent=2))
+            file.write(
+                json.dumps(
+                    {
+                        "title": title,
+                        "content": content,
+                        "dags_info": [
+                            {"start_date": date, "dag_id": dag_id, "run_id": run_id}
+                        ],
+                    },
+                    indent=2,
+                )
+            )
 
         return full_path
 
