@@ -1,3 +1,5 @@
+import {TDagsInfo} from "./airflow.ts";
+
 export type TNerStat = {
     value: string;
     count: number;
@@ -26,7 +28,7 @@ export type TNerDocResult = {
             entities: TNerStat[];
         };
     };
-    dag_start_date: string;
+    dags_info: TDagsInfo[];
     processed_date: string;
 }
 

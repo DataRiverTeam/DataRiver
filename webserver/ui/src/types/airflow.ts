@@ -190,3 +190,9 @@ export type TTaskInstance = {
     try_number: number;
     unixname: string;
 };
+
+export type TDagsInfo = {
+    dag_id: string;
+    run_id: string;
+    start_date: string;
+}

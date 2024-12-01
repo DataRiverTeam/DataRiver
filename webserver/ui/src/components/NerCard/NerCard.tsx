@@ -77,13 +77,33 @@ function NerCard({ item }: TNerCardProps) {
                 <ul>
                     <li>Language: {item.language}</li>
                     <li>DAG run ID: {item.dag_run_id}</li>
-                    {item.dag_start_date ? (
-                        <li>Start date: {item.dag_start_date}</li>
-                    ) : null}
                     {item.processed_date ? (
                         <li>Processed date: {item.processed_date}</li>
                     ) : null}
                 </ul>
+                <p>Dags info</p>
+                {item.dags_info && Object.keys(item.dags_info).length > 0 ? (
+                    <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+                        <thead>
+                            <tr>
+                                <th>Dag ID</th>
+                                <th>Start Date</th>
+                                <th>Run ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(item.dags_info).map(([dag_id, dagInfo]) => (
+                                <tr key={dag_id}>
+                                    <td>{dagInfo.dag_id}</td>
+                                    <td>{dagInfo.start_date}</td>
+                                    <td>{dagInfo.run_id}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>No DAGs info available.</p>
+                )}
             </CardContent>
             <NerCardSection
                 title="Content"

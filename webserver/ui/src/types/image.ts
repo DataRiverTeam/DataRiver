@@ -1,3 +1,5 @@
+import {TDagsInfo} from "./airflow.ts";
+
 export type TImageDetails = {
     id: string;
     hash: {
@@ -8,6 +10,5 @@ export type TImageDetails = {
     image_path: string;
     metadata: { tag: string; value: string }[];
     processed_date: string;
-    dag_run_id: string;
-    dag_start_date: string;
+    dags_info: TDagsInfo[];
 };

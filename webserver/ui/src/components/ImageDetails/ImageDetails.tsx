@@ -64,15 +64,34 @@ function ImageDetails() {
                                 <>{imageDetails.image_path}</>
                             )}
                         </li>
-                        <li> DAGRun ID: {imageDetails.dag_run_id}</li>
-                        <li>
-                            Processing start date: {imageDetails.dag_start_date}
-                        </li>
                         <li>
                             Processing end date:{" "}
                             {imageDetails.processed_date}
                         </li>
                     </ul>
+                <p>Dags info</p>
+                {imageDetails.dags_info && Object.keys(imageDetails.dags_info).length > 0 ? (
+                    <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+                        <thead>
+                            <tr>
+                                <th>Dag ID</th>
+                                <th>Start Date</th>
+                                <th>Run ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.entries(imageDetails.dags_info).map(([dag_id, dagInfo]) => (
+                                <tr key={dag_id}>
+                                    <td>{dagInfo.dag_id}</td>
+                                    <td>{dagInfo.start_date}</td>
+                                    <td>{dagInfo.run_id}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>No DAGs info available.</p>
+                )}
                     <h3>Metadata</h3>
                     {imageDetails.metadata.length ? (
                         <>
