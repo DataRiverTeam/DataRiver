@@ -44,7 +44,17 @@ def copy_item_to_file(item, context):
     full_path = os.path.join(dir_path, f'{os.path.basename(item).split(".")[0]}.json')
 
     with open(full_path, "w") as file:
-        file.write(json.dumps({"image_path": f"../{item}"}, indent=2))
+        file.write(
+            json.dumps(
+                {
+                    "image_path": f"../{item}",
+                    "dags_info": [
+                        {"start_date": date, "dag_id": dag_id, "run_id": run_id}
+                    ],
+                },
+                indent=2,
+            )
+        )
     return full_path
 
 
