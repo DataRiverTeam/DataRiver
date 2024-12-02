@@ -9,6 +9,7 @@ import FileExplorer from "./components/FileExplorer/FileExplorer";
 import ImageBrowser from "./components/ImageBrowser/ImageBrowser";
 import ImageDetails from "./components/ImageDetails/ImageDetails";
 import NerDashboard from "./components/NerDashboard/NerDashboard";
+import Home from "./components/Home/Home";
 
 const pages: RouteObject[] = [
     {
@@ -16,7 +17,11 @@ const pages: RouteObject[] = [
         element: <App />,
         children: [
             {
-                path: "ner/search",
+                index: true,
+                element: <Home />,
+            },
+            {
+                path: "ner/dashboard/mailbox",
                 element: <NerBrowser />,
             },
             {

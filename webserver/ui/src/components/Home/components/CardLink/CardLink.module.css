@@ -1,0 +1,13 @@
+.card:global(.MuiPaper-root) {
+    padding: 1.2rem;
+    text-decoration: none;
+    width: 200px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.link {
+    text-decoration: none;
+}
