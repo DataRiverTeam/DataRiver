@@ -23,7 +23,7 @@ export type TDag = {
     timetable_description: string;
 };
 
-export type TDagDetail = {
+export type TDagDetails = {
     dag_display_name: string;
     dag_id: string;
     default_view: string;
@@ -95,7 +95,7 @@ export type TDagParamsMap = {
     [key: string]: TDagParam;
 };
 
-export type TDagRunCollection = {
+export type TDagRunsCollection = {
     dag_runs: TDagRun[];
     total_entries: number;
 };

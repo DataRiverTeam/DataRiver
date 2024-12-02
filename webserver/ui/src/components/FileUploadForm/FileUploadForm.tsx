@@ -51,7 +51,6 @@ function FileUploadForm({ directory = null }: TFileUploadFormProps) {
 
     return (
         <form onSubmit={handleUpload}>
-            <h3> Upload to {directory} </h3>
             <input type="file" multiple onChange={handleChange} />
             <input type="submit" value="Upload" />
         </form>

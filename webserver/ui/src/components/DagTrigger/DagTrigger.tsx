@@ -7,8 +7,10 @@ import Button from "@mui/material/Button";
 
 import s from "./DagTrigger.module.css";
 
-import { TDagDetail, TDagParam } from "../../types/airflow";
+import { TDagDetails, TDagParam } from "../../types/airflow";
+import { triggerDag } from "../../utils/dags";
 import BackButton from "../BackButton/BackButton";
+import { ApiClient } from "../../utils/api";
 
 type TDagNamedParam = TDagParam & {
     name: string;
@@ -22,6 +24,7 @@ type TTypedInputProps = {
     param: TDagNamedParam;
     register: UseFormRegister<TDagParamsFormFields>;
 };
+
 function TypedInput({ param, register }: TTypedInputProps) {
     switch (param.schema.type) {
         case "string":
@@ -51,6 +54,7 @@ function TypedInput({ param, register }: TTypedInputProps) {
     }
 }
 
+const client = new ApiClient();
 function DagTrigger() {
     const { dagId } = useParams();
     const navigate = useNavigate();
@@ -60,15 +64,7 @@ function DagTrigger() {
 
     let fetchDagParams = async () => {
         try {
-            const res = await fetch(`/api/dags/${dagId}/details`);
-
-            if (!res.status.toString().startsWith("2")) {
-                throw new Error(
-                    `There was an error fetching the params. Status code: ${res.status}`
-                );
-            }
-
-            const details: TDagDetail = await res.json();
+            const details: TDagDetails = await client.getDagDetails(dagId!);
 
             setDagParams(
                 Object.entries(details.params).map(
@@ -89,60 +85,46 @@ function DagTrigger() {
     }, []);
 
     let onSubmit: SubmitHandler<TDagParamsFormFields> = async (data) => {
-        try {
-            console.log(data);
-            let response = await fetch(`/api/dags/${dagId}/dagRuns`, {
-                method: "POST",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    conf: data,
-                }),
-            });
-
-            if (response.status.toString() !== "200") {
-                throw new Error(
-                    `Couldn't trigger a new DAG run. Status code ${response.status}`
-                );
-            }
-
-            console.log(await response.json());
+        triggerDag(data, dagId!, () => {
             navigate(`/dags/${dagId}`);
-        } catch (error) {
-            if (error instanceof Error) {
-                alert(error.message);
-            }
-        }
+        });
     };
 
     return (
         <>
-            <BackButton />
-            <h1> {dagId} </h1>
-            <h2> Trigger a new DAG run</h2>
-            <form
-                className={s.triggerFormWrapper}
-                onSubmit={handleSubmit(onSubmit)}
-            >
-                {dagParams.map((param) => {
-                    return (
-                        <Fragment key={`${param.name}`}>
-                            <label>{param.name}</label>
-                            <TypedInput param={param} register={register} />
-                        </Fragment>
-                    );
-                })}
+            {dagId ? (
+                <>
+                    <BackButton to=".." relative="path" />
+                    <h1> {dagId} </h1>
+                    <h2> Trigger a new DAG run</h2>
+                    <form
+                        className={s.triggerFormWrapper}
+                        onSubmit={handleSubmit(onSubmit)}
+                    >
+                        {dagParams.map((param) => {
+                            return (
+                                <Fragment key={`${param.name}`}>
+                                    <label>{param.name}</label>
+                                    <TypedInput
+                                        param={param}
+                                        register={register}
+                                    />
+                                </Fragment>
+                            );
+                        })}
 
-                <Button
-                    variant="text"
-                    className={clsx(s.submitButton)}
-                    type="submit"
-                >
-                    Confirm
-                </Button>
-            </form>
+                        <Button
+                            variant="text"
+                            className={clsx(s.submitButton)}
+                            type="submit"
+                        >
+                            Confirm
+                        </Button>
+                    </form>
+                </>
+            ) : (
+                <p> Missing parameter: DAG run id.</p>
+            )}
         </>
     );
 }
