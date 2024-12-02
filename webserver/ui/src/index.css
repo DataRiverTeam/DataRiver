@@ -32,6 +32,10 @@ input[type="datetime-local"] {
     padding: 10px;
 }
 
+select {
+    padding: 4px 10px;
+}
+
 #root {
     display: flex;
     justify-content: center;

@@ -7,7 +7,7 @@
 .dagruns {
     min-width: 100%;
     display: grid;
-    grid-template-columns: repeat(4, auto);
+    grid-template-columns: repeat(3, auto);
 }
 
 .dagrunsRow {

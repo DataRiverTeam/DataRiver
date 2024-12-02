@@ -19,12 +19,12 @@ function NavBar() {
                     </Link>
                 </Button>
                 <Button variant="text">
-                    <Link to={"/ner"} className={s.link}>
+                    <Link to={"/ner/search"} className={s.link}>
                         NER
                     </Link>
                 </Button>
                 <Button variant="text">
-                    <Link to={"/images"} className={s.link}>
+                    <Link to={"/images/search"} className={s.link}>
                         Images
                     </Link>
                 </Button>

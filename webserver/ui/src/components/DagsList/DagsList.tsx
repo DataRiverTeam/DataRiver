@@ -8,6 +8,9 @@ import ListItemText from "@mui/material/ListItemText";
 
 import { TDag } from "../../types/airflow";
 import BackButton from "../BackButton/BackButton";
+import { ApiClient } from "../../utils/api";
+
+const client = new ApiClient();
 
 function DagsList() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
@@ -16,16 +19,7 @@ function DagsList() {
 
     let getDags = async () => {
         try {
-            const response = await fetch("/api/dags");
-
-            const statusCode = response.status;
-            if (!statusCode.toString().startsWith("2")) {
-                throw new Error(
-                    `There was an error when handling request. Status code: ${statusCode}`
-                );
-            }
-
-            const json = await response.json();
+            const json = await client.getDags();
 
             setDags(json.dags);
         } catch (error) {
@@ -37,18 +31,11 @@ function DagsList() {
 
     useEffect(() => {
         getDags();
-        // const fetchDagInterval = setInterval(() => {
-        //     getDags();
-        // }, 10000);
-
-        return () => {
-            // clearInterval(fetchDagInterval);
-        };
     }, []);
 
     return (
         <>
-            <BackButton />
+            <BackButton to="/" />
             <h1> DAGs </h1>
             {isLoading ? (
                 "Loading..."
@@ -63,11 +50,6 @@ function DagsList() {
                                     <ListItemButton>
                                         <ListItemText
                                             primary={dag.dag_display_name}
-                                            // secondary={
-                                            //     dag.is_active
-                                            //         ? "active"
-                                            //         : "inactive"
-                                            // }
                                         />
                                     </ListItemButton>
                                 </Link>
