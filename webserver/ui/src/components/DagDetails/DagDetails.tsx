@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { TDagRun, TDagRunsCollection } from "../../types/airflow";
+import { TDagRun } from "../../types/airflow";
 
 import DagRunsList from "../DagRunsList/DagRunsList";
 
@@ -8,9 +8,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import BackButton from "../BackButton/BackButton";
-import { ApiClient } from "../../utils/api";
-
-type TDagRunResponse = TDagRunsCollection & { status: number };
+import { ApiClient, TDagRunsCollectionResponse } from "../../utils/api";
 
 const client = new ApiClient();
 function DagDetails() {
@@ -21,7 +19,9 @@ function DagDetails() {
 
     let fetchDagRuns = async () => {
         try {
-            const json: TDagRunResponse = await client.getDagRuns(dagId!);
+            const json: TDagRunsCollectionResponse = await client.getDagRuns(
+                dagId!
+            );
 
             setDagRuns(json.dag_runs);
         } catch (error) {
@@ -74,6 +74,7 @@ function DagDetails() {
                             <DagRunsList
                                 heading={<h2> DAG runs </h2>}
                                 dagRuns={dagRuns}
+                                dagId={dagId}
                             />
                         </>
                     )}

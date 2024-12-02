@@ -8,8 +8,9 @@ import DagTrigger from "./components/DagTrigger/DagTrigger";
 import FileExplorer from "./components/FileExplorer/FileExplorer";
 import ImageBrowser from "./components/ImageBrowser/ImageBrowser";
 import ImageDetails from "./components/ImageDetails/ImageDetails";
-import NerDashboard from "./components/NerDashboard/NerDashboard";
 import Home from "./components/Home/Home";
+
+import MailboxDashboard from "./components/dashboards/Mailbox/MailboxDashboard";
 
 const pages: RouteObject[] = [
     {
@@ -21,12 +22,12 @@ const pages: RouteObject[] = [
                 element: <Home />,
             },
             {
-                path: "ner/dashboard/mailbox",
+                path: "ner/search",
                 element: <NerBrowser />,
             },
             {
-                path: "ner/dashboard",
-                element: <NerDashboard />,
+                path: "ner/dashboard/mailbox",
+                element: <MailboxDashboard />,
             },
             {
                 path: "dags",

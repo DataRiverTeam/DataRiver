@@ -8,10 +8,10 @@ function Home() {
             <CardContainer>
                 <CardLink
                     title="File import"
-                    linkTo="/dags/mailbox"
+                    linkTo="/ner/dashboard/mailbox"
                     description="Manage file sensors and upload files"
                 />
-                <CardLink
+                {/* <CardLink
                     title="Split files"
                     linkTo="/dags/mailbox"
                     description="Monitor batching of the uploaded documents"
@@ -20,12 +20,12 @@ function Home() {
                     title="Process files"
                     linkTo="/dags/mailbox"
                     description="Monitor batch processing"
-                />
+                /> */}
             </CardContainer>
 
             <h2> Image processing</h2>
             <CardContainer>
-                <CardLink
+                {/* <CardLink
                     title="Create batches"
                     linkTo="/dags/map_file_images"
                     description="Create batches"
@@ -34,7 +34,7 @@ function Home() {
                     title="Process images"
                     linkTo="/dags/image_workflow"
                     description="Process files"
-                />
+                /> */}
             </CardContainer>
         </>
     );

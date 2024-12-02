@@ -1,6 +1,5 @@
 import { Link, RelativeRoutingType } from "react-router-dom";
 import Button from "@mui/material/Button";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 import s from "./LinkButton.module.css";
 import { ReactNode } from "react";
