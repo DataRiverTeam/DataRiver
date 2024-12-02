@@ -74,6 +74,7 @@ function DagDetails() {
                             <DagRunsList
                                 heading={<h2> DAG runs </h2>}
                                 dagRuns={dagRuns}
+                                dagId={dagId}
                             />
                         </>
                     )}

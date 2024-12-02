@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 
 import Tooltip from "@mui/material/Tooltip";
-import Button from "@mui/material/Button";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 
 import DagRunsList from "../../../DagRunsList/DagRunsList";
