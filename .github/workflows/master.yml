@@ -7,10 +7,17 @@ jobs:
   black:
     timeout-minutes: 10
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-
     - name: Run formatter
       run: docker run --rm -v "$PWD/airflow/dags:/tmp" pyfound/black black --check /tmp
+
+  flake8:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Run formatter
+        run: docker compose up lint --exit-code-from lint
