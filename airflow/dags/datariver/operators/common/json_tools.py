@@ -163,7 +163,7 @@ def add_pre_run_information(**context):
     for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
         json_args.add_or_update(
-            "dags_info", [{"start_date": date, "dag_id": dag_id, "run_id": run_id}]
+            "dags_info", {dag_id: {"start_date": date, "run_id": run_id}}
         )
 
 

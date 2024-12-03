@@ -92,11 +92,11 @@ function NerCard({ item }: TNerCardProps) {
                             </tr>
                         </thead>
                         <tbody>
-                            {Object.entries(item.dags_info).map(([dag_id, dagInfo]) => (
+                            {Object.entries(item.dags_info).map(([dag_id, value]) => (
                                 <tr key={dag_id}>
-                                    <td>{dagInfo.dag_id}</td>
-                                    <td>{dagInfo.start_date}</td>
-                                    <td>{dagInfo.run_id}</td>
+                                    <td>{dag_id}</td>
+                                    <td>{value.start_date}</td>
+                                    <td>{value.run_id}</td>
                                 </tr>
                             ))}
                         </tbody>

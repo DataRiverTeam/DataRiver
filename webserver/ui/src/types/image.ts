@@ -10,5 +10,6 @@ export type TImageDetails = {
     image_path: string;
     metadata: { tag: string; value: string }[];
     processed_date: string;
-    dags_info: TDagsInfo[];
+    // Hardcoding is bag. I know
+    dags_info: {map_file: TDagsInfo, ner_single_file: TDagsInfo};
 };

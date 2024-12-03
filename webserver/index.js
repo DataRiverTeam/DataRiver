@@ -270,13 +270,13 @@ app.get("/api/ner/docs", async (req, res) => {
             size: SIZE,
             from: start,
             query: query,
-            sort: [
-                {
-                    dag_start_date: {
+            sort: {
+                    _script: {
+                        script : "doc['dags_info.map_file.start_date'].value.format(DateTimeFormatter.ofPattern(\"MM/dd/yyyy - HH:mm:ss Z\"));",
+                        type: "string",
                         order: "desc",
                     },
                 },
-            ],
         });
 
         res.json({ status: 200, ...result });

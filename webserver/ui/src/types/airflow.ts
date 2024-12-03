@@ -192,7 +192,6 @@ export type TTaskInstance = {
 };
 
 export type TDagsInfo = {
-    dag_id: string;
     run_id: string;
     start_date: string;
 }

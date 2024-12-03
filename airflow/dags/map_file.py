@@ -68,9 +68,9 @@ def copy_item_to_file(item, context):
                     {
                         "title": title,
                         "content": content,
-                        "dags_info": [
-                            {"start_date": date, "dag_id": dag_id, "run_id": run_id}
-                        ],
+                        "dags_info": {
+                            dag_id: {"start_date": date, "run_id": run_id}
+                        },
                     },
                     indent=2,
                 )
