@@ -223,7 +223,7 @@ app.get("/api/ner/docs", async (req, res) => {
     const start = req.query["start"] || 0;
     const textFragment = req.query["text"] || null;
     const mapFileRunId = req.query["map-file-run-id"] || null;
-    const imageWorkflowRunId = req.query["image-workflow-run-id"] || null;
+    const nerSingleFileRunId = req.query["ner-single-file-run-id"] || null;
     const lang = req.query["lang"] || null;
     const ners = req.query["ners"]
         ? req.query["ners"].split(",").map((item) => item.trim())
@@ -244,8 +244,8 @@ app.get("/api/ner/docs", async (req, res) => {
         mustClauses.push({ match: { "dags_info.map_file.run_id.keyword": mapFileRunId } });
     }
 
-    if (imageWorkflowRunId) {
-        mustClauses.push({ match: { "dags_info.image_workflow.run_id.keyword": imageWorkflowRunId } });
+    if (nerSingleFileRunId) {
+        mustClauses.push({ match: { "dags_info.ner_single_file.run_id.keyword": nerSingleFileRunId } });
     }
 
     if (lang) {

@@ -17,7 +17,8 @@ type TNerFormFields = {
     content: string;
     ners: { value: string }[];
     lang: string;
-    dagRunId: string;
+    mapFileRunId: string;
+    nerSingleFileRunId: string;
 };
 
 function NerBrowser() {
@@ -53,12 +54,15 @@ function NerBrowser() {
             };
 
             if (data) {
-                let { content, ners, lang, dagRunId } = data;
+                let { content, ners, lang, mapFileRunId, nerSingleFileRunId } = data;
 
                 Object.assign(queryObject, {
                     ...(content.trim().length > 0 ? { text: content } : null),
-                    ...(dagRunId.trim().length > 0
-                        ? { "dag-run-id": dagRunId }
+                    ...(mapFileRunId.trim().length > 0
+                        ? { "map-file-run-id": mapFileRunId }
+                        : null),
+                    ...(nerSingleFileRunId.trim().length > 0
+                        ? { "ner-single-file-run-id": nerSingleFileRunId }
                         : null),
                     ...(lang.trim().length > 0 ? { lang } : null),
                     ...(ners.length > 0
@@ -131,8 +135,12 @@ function NerBrowser() {
                         <input type="text" {...register("lang")} />
                     </div>
                     <div className={s.filtersItem}>
-                        <label>Dag run id</label>
-                        <input type="text" {...register("dagRunId")} />
+                        <label>Map file dag run id</label>
+                        <input type="text" {...register("mapFileRunId")} />
+                    </div>
+                    <div className={s.filtersItem}>
+                        <label>Ner run id</label>
+                        <input type="text" {...register("nerSingleFileRunId")} />
                     </div>
                     <label>Named entities</label>
                     {fields.map((_field, index) => (

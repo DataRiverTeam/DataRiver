@@ -51,7 +51,7 @@ function ImageBrowser() {
                     //TODO: implement sending date range
                     ...(description.trim().length > 0 ? { description } : null),
                     ...(dagRunId.trim().length > 0
-                        ? { "dag-run-id": dagRunId }
+                        ? { "map-file-images-run-id": dagRunId }
                         : null),
                     ...(dateRangeFrom
                         ? { "date-range-from": dateRangeFrom }
