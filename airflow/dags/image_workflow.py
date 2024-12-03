@@ -11,7 +11,6 @@ from datariver.operators.common.json_tools import (
     add_post_run_information,
 )
 from datariver.operators.common.elasticsearch import (
-    ElasticJsonPushOperator,
     ElasticSearchOperator,
     ElasticJsonUpdateOperator,
 )
