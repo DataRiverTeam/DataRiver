@@ -95,7 +95,7 @@ class JsonArgs(LoggingMixin):
                 data = json.load(file)
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
                 for key in keys:
-                    value = data.get(key)
+                    value = data.get(key, None)
                     if value is None:
                         self.log.error(
                             f"{self.get_full_path()} does not contain key {key}!"
