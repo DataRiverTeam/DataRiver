@@ -314,7 +314,7 @@ app.get("/api/images/thumbnails", async (req, res) => {
     if (dateRangeFrom || dateRangeTo) {
         const dateClause = {
             range: {
-                dag_start_date: {
+                "dags_info.map_file_images.start_date": {
                     ...(dateRangeFrom ? { gte: dateRangeFrom } : null),
                     ...(dateRangeTo ? { lte: dateRangeTo } : null),
                 },

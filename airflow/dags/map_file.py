@@ -6,6 +6,7 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
 from datariver.operators.common.json_tools import MapJsonFile
+from datariver.operators.common.elasticsearch import ElasticJsonPushOperator
 
 default_args = {
     "owner": "airflow",
@@ -15,6 +16,12 @@ default_args = {
     "retries": 1,
 }
 
+ES_CONN_ARGS = {
+    "hosts": os.environ["ELASTIC_HOST"],
+    "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",
+    "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
+    "verify_certs": True,
+}
 
 def map_paths(paths, **context):
     batch_size = context["params"]["batch_size"]
@@ -118,6 +125,13 @@ with DAG(
         op_kwargs={"paths": "{{ task_instance.xcom_pull(task_ids='map_json') }}"},
         post_execute=remove_temp_files,
     )
+
+    es_push_task = ElasticJsonPushOperator.partial(
+        task_id="elastic_push",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        index="ner",
+        es_conn_args=ES_CONN_ARGS,
+    ).expand(json_files_paths=create_confs_task.output.map(lambda x: x.get("json_files_paths", []) ))
 
     trigger_ner_task = TriggerDagRunOperator.partial(
         task_id="trigger_ner",

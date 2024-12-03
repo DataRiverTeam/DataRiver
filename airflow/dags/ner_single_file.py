@@ -85,15 +85,6 @@ with DAG(
         provide_context=True,
     )
 
-    es_push_task = ElasticJsonPushOperator(
-        task_id="elastic_push",
-        fs_conn_id="{{ params.fs_conn_id }}",
-        json_files_paths="{{ params.json_files_paths }}",
-        index="ner",
-        es_conn_args=ES_CONN_ARGS,
-        encoding="{{ params.encoding }}",
-    )
-
     detect_language_task = JsonLangdetectOperator(
         task_id="detect_language",
         json_files_paths="{{ params.json_files_paths }}",
@@ -193,7 +184,6 @@ with DAG(
 
 (
     add_pre_run_information_task
-    >> es_push_task
     >> detect_language_task
     >> decide_about_translation
     >> [translate_task, ner_without_translation_task]
