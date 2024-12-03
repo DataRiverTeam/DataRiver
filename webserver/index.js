@@ -222,7 +222,8 @@ app.get("/api/ner/docs", async (req, res) => {
     // query params
     const start = req.query["start"] || 0;
     const textFragment = req.query["text"] || null;
-    const dagRunId = req.query["dag-run-id"] || null;
+    const mapFileRunId = req.query["map-file-run-id"] || null;
+    const imageWorkflowRunId = req.query["image-workflow-run-id"] || null;
     const lang = req.query["lang"] || null;
     const ners = req.query["ners"]
         ? req.query["ners"].split(",").map((item) => item.trim())
@@ -239,8 +240,12 @@ app.get("/api/ner/docs", async (req, res) => {
     // but it can result in performance issues
     //
     // Looking for exact match might be enough
-    if (dagRunId) {
-        mustClauses.push({ match: { "dag_run_id.keyword": dagRunId } });
+    if (mapFileRunId) {
+        mustClauses.push({ match: { "dags_info.map_file.run_id.keyword": mapFileRunId } });
+    }
+
+    if (imageWorkflowRunId) {
+        mustClauses.push({ match: { "dags_info.image_workflow.run_id.keyword": imageWorkflowRunId } });
     }
 
     if (lang) {
@@ -291,7 +296,7 @@ app.get("/api/ner/docs", async (req, res) => {
 app.get("/api/images/thumbnails", async (req, res) => {
     const SIZE = 20;
     const start = req.query["start"] || 0;
-    const dagRunId = req.query["dag-run-id"] || null;
+    const mapFileImagesRunId = req.query["map-file-images-run-id"] || null;
     const description = req.query["description"] || null;
     const dateRangeFrom = req.query["date-range-from"] || null;
     const dateRangeTo = req.query["date-range-to"] || null;
@@ -302,8 +307,8 @@ app.get("/api/images/thumbnails", async (req, res) => {
         mustClauses.push({ match: { description: description } });
     }
 
-    if (dagRunId) {
-        mustClauses.push({ match: { "dag_run_id.keyword": dagRunId } });
+    if (mapFileImagesRunId) {
+        mustClauses.push({ match: {"dags_info.map_file_images.keyword": mapFileImagesRunId } });
     }
 
     if (dateRangeFrom || dateRangeTo) {
