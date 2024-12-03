@@ -23,6 +23,7 @@ ES_CONN_ARGS = {
     "verify_certs": True,
 }
 
+
 def map_paths(paths, **context):
     batch_size = context["params"]["batch_size"]
 
@@ -75,9 +76,7 @@ def copy_item_to_file(item, context):
                     {
                         "title": title,
                         "content": content,
-                        "dags_info": {
-                            dag_id: {"start_date": date, "run_id": run_id}
-                        },
+                        "dags_info": {dag_id: {"start_date": date, "run_id": run_id}},
                     },
                     indent=2,
                 )
@@ -131,7 +130,11 @@ with DAG(
         fs_conn_id="{{ params.fs_conn_id }}",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
-    ).expand(json_files_paths=create_confs_task.output.map(lambda x: x.get("json_files_paths", []) ))
+    ).expand(
+        json_files_paths=create_confs_task.output.map(
+            lambda x: x.get("json_files_paths", [])
+        )
+    )
 
     trigger_ner_task = TriggerDagRunOperator.partial(
         task_id="trigger_ner",
