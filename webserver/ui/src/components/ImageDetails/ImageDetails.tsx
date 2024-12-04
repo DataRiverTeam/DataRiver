@@ -40,7 +40,7 @@ function ImageDetails() {
 
     return (
         <div>
-            <BackButton to=".." relative="path" />
+            <BackButton to="../search" relative="path" />
             <h1> Image details </h1>
             {errorMessage.length === 0 && imageDetails ? (
                 <Card className={s.imageCard}>
