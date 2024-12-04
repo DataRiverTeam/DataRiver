@@ -161,11 +161,17 @@ function ImageBrowser() {
                             return (
                                 <Fragment key={item.id}>
                                     <ImageListItem>
-                                        <img
-                                            src={`data:image/png;base64, ${item.thumbnail}`}
-                                            // alt={item.id}
-                                            loading="lazy"
-                                        />
+                                        {item?.thumbnail ? (
+                                            <img
+                                                src={`data:image/png;base64, ${item.thumbnail}`}
+                                                loading="lazy"
+                                            />
+                                            ) :
+                                            <img
+                                                src={`data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPk5OCoBwAA1QCa9We0GgAAAABJRU5ErkJggg==`}
+                                                loading="lazy"
+                                            />
+                                        }
                                         <ImageListItemBar
                                             title={item.id}
                                             actionIcon={
