@@ -44,10 +44,18 @@ function ImageDetails() {
             <h1> Image details </h1>
             {errorMessage.length === 0 && imageDetails ? (
                 <Card className={s.imageCard}>
-                    <img
-                        src={`data:image/png;base64, ${imageDetails.thumbnail}`}
-                        loading="lazy"
-                    />
+                    {imageDetails.thumbnail ? (
+                        <img
+                            src={`data:image/png;base64, ${imageDetails.thumbnail}`}
+                            loading="lazy"
+                        />
+                        ) :
+                        <img
+                            src={`data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPk5OCoBwAA1QCa9We0GgAAAABJRU5ErkJggg==`}
+                            loading="lazy"
+                        />
+                    }
+
                     <h3> Description </h3>
                     <p>{imageDetails.description}</p>
                     <h3> Processing data </h3>
@@ -64,10 +72,11 @@ function ImageDetails() {
                                 <>{imageDetails.image_path}</>
                             )}
                         </li>
+                        {imageDetails.processed_date ? (
                         <li>
                             Processing end date:{" "}
                             {imageDetails.processed_date}
-                        </li>
+                        </li>): null}
                     </ul>
                     <p>Dags info</p>
                     {imageDetails.dags_info && Object.keys(imageDetails.dags_info).length > 0 ? (
@@ -91,7 +100,7 @@ function ImageDetails() {
                         </table>
                     ) : null}
                     <h3>Metadata</h3>
-                    {imageDetails.metadata.length ? (
+                    {imageDetails.metadata ? (
                         <>
                             <table className={s.metaDataTable}>
                                 <thead>
