@@ -11,8 +11,8 @@ from datariver.operators.common.json_tools import (
     add_post_run_information,
 )
 from datariver.operators.common.elasticsearch import (
-    ElasticJsonPushOperator,
     ElasticSearchOperator,
+    ElasticJsonUpdateOperator,
 )
 import os
 import shutil
@@ -93,8 +93,8 @@ with DAG(
         python_callable=add_post_run_information,
         provide_context=True,
     )
-    es_push_task = ElasticJsonPushOperator(
-        task_id="elastic_push",
+    es_update_task = ElasticJsonUpdateOperator(
+        task_id="elastic_update",
         fs_conn_id="{{ params.fs_conn_id }}",
         json_files_paths="{{ params.json_files_paths }}",
         index="image_processing",
@@ -121,6 +121,6 @@ with DAG(
         extract_metadata_task,
     ]
     >> add_post_run_information_task
-    >> es_push_task
+    >> es_update_task
     >> es_search_task
 )

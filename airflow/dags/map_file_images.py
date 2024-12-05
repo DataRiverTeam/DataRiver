@@ -3,6 +3,7 @@ from airflow import DAG
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
+from datariver.operators.common.elasticsearch import ElasticJsonPushOperator
 from datariver.operators.common.json_tools import MapJsonFile
 
 default_args = {
@@ -11,6 +12,13 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
+}
+
+ES_CONN_ARGS = {
+    "hosts": os.environ["ELASTIC_HOST"],
+    "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",
+    "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
+    "verify_certs": True,
 }
 
 
@@ -33,7 +41,9 @@ def copy_item_to_file(item, context):
 
     hook = FSHook(context["params"]["fs_conn_id"])
     input_path = context["params"]["path"]
-
+    run_id = context["dag_run"].run_id
+    dag_id = context["dag_run"].dag_id
+    date = context["dag_run"].start_date.replace(microsecond=0).isoformat()
     print(item)
     dir_path = os.path.join(
         hook.get_path(),
@@ -44,7 +54,15 @@ def copy_item_to_file(item, context):
     full_path = os.path.join(dir_path, f'{os.path.basename(item).split(".")[0]}.json')
 
     with open(full_path, "w") as file:
-        file.write(json.dumps({"image_path": f"../{item}"}, indent=2))
+        file.write(
+            json.dumps(
+                {
+                    "image_path": f"../{item}",
+                    "dags_info": {dag_id: {"start_date": date, "run_id": run_id}},
+                },
+                indent=2,
+            )
+        )
     return full_path
 
 
@@ -74,9 +92,20 @@ with DAG(
         op_kwargs={"paths": "{{ task_instance.xcom_pull(task_ids='map_json') }}"},
     )
 
+    es_push_task = ElasticJsonPushOperator.partial(
+        task_id="elastic_push",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        index="image_processing",
+        es_conn_args=ES_CONN_ARGS,
+    ).expand(
+        json_files_paths=create_confs_task.output.map(
+            lambda x: x.get("json_files_paths", [])
+        )
+    )
+
     trigger_images_workflow_task = TriggerDagRunOperator.partial(
         task_id="trigger_images_workflow",
         trigger_dag_id="image_workflow",
     ).expand(conf=create_confs_task.output)
 
-map_task >> create_confs_task >> trigger_images_workflow_task
+map_task >> create_confs_task >> es_push_task >> trigger_images_workflow_task

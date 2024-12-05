@@ -1,3 +1,5 @@
+import {TDagsInfo} from "./airflow.ts";
+
 export type TNerStat = {
     value: string;
     count: number;
@@ -26,8 +28,8 @@ export type TNerDocResult = {
             entities: TNerStat[];
         };
     };
-    dag_start_date: string;
-    dag_processed_date: string;
+    dags_info: {map_file_images: TDagsInfo, image_workflow: TDagsInfo};
+    processed_date: string;
 }
 
 export type TParsedNerDocProps = TBaseNerDocProps & TNerDocResult;

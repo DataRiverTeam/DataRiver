@@ -6,6 +6,7 @@ from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
 from datariver.operators.common.json_tools import MapJsonFile
+from datariver.operators.common.elasticsearch import ElasticJsonPushOperator
 
 default_args = {
     "owner": "airflow",
@@ -13,6 +14,13 @@ default_args = {
     "email_on_failure": False,
     "email_on_retry": False,
     "retries": 1,
+}
+
+ES_CONN_ARGS = {
+    "hosts": os.environ["ELASTIC_HOST"],
+    "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",
+    "basic_auth": ("elastic", os.environ["ELASTIC_PASSWORD"]),
+    "verify_certs": True,
 }
 
 
@@ -45,6 +53,9 @@ def copy_item_to_file(item, context):
         article = item["resultData"]["results"][0]
         title = article["title"]
         content = article["content"]
+        run_id = context["dag_run"].run_id
+        dag_id = context["dag_run"].dag_id
+        date = context["dag_run"].start_date.replace(microsecond=0).isoformat()
         curr_date = str(datetime.datetime.now())
         dir_path = os.path.join(
             hook.get_path(),
@@ -60,7 +71,16 @@ def copy_item_to_file(item, context):
         )
 
         with open(full_path, "w") as file:
-            file.write(json.dumps({"title": title, "content": content}, indent=2))
+            file.write(
+                json.dumps(
+                    {
+                        "title": title,
+                        "content": content,
+                        "dags_info": {dag_id: {"start_date": date, "run_id": run_id}},
+                    },
+                    indent=2,
+                )
+            )
 
         return full_path
 
@@ -103,6 +123,17 @@ with DAG(
         python_callable=map_paths,
         op_kwargs={"paths": "{{ task_instance.xcom_pull(task_ids='map_json') }}"},
         post_execute=remove_temp_files,
+    )
+
+    es_push_task = ElasticJsonPushOperator.partial(
+        task_id="elastic_push",
+        fs_conn_id="{{ params.fs_conn_id }}",
+        index="ner",
+        es_conn_args=ES_CONN_ARGS,
+    ).expand(
+        json_files_paths=create_confs_task.output.map(
+            lambda x: x.get("json_files_paths", [])
+        )
     )
 
     trigger_ner_task = TriggerDagRunOperator.partial(

@@ -40,14 +40,22 @@ function ImageDetails() {
 
     return (
         <div>
-            <BackButton to=".." relative="path" />
+            <BackButton to="../search" relative="path" />
             <h1> Image details </h1>
             {errorMessage.length === 0 && imageDetails ? (
                 <Card className={s.imageCard}>
-                    <img
-                        src={`data:image/png;base64, ${imageDetails.thumbnail}`}
-                        loading="lazy"
-                    />
+                    {imageDetails.thumbnail ? (
+                        <img
+                            src={`data:image/png;base64, ${imageDetails.thumbnail}`}
+                            loading="lazy"
+                        />
+                    ) : (
+                        <img
+                            src="/no_thumbnail.svg"
+                            loading="lazy"
+                        />
+                    )}
+
                     <h3> Description </h3>
                     <p>{imageDetails.description}</p>
                     <h3> Processing data </h3>
@@ -64,17 +72,45 @@ function ImageDetails() {
                                 <>{imageDetails.image_path}</>
                             )}
                         </li>
-                        <li> DAGRun ID: {imageDetails.dag_run_id}</li>
-                        <li>
-                            Processing start date: {imageDetails.dag_start_date}
-                        </li>
-                        <li>
-                            Processing end date:{" "}
-                            {imageDetails.dag_processed_date}
-                        </li>
+                        {imageDetails.processed_date ? (
+                            <li>
+                                Processing end date:{" "}
+                                {imageDetails.processed_date}
+                            </li>
+                        ) : null}
                     </ul>
+                    <p>Dags info</p>
+                    {imageDetails.dags_info &&
+                    Object.keys(imageDetails.dags_info).length > 0 ? (
+                        <table
+                            border={1}
+                            style={{
+                                borderCollapse: "collapse",
+                                width: "100%",
+                            }}
+                        >
+                            <thead>
+                                <tr>
+                                    <th>Dag ID</th>
+                                    <th>Start Date</th>
+                                    <th>Run ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {Object.entries(imageDetails.dags_info).map(
+                                    ([dag_id, value]) => (
+                                        <tr key={dag_id}>
+                                            <td>{dag_id}</td>
+                                            <td>{value.start_date}</td>
+                                            <td>{value.run_id}</td>
+                                        </tr>
+                                    )
+                                )}
+                            </tbody>
+                        </table>
+                    ) : null}
                     <h3>Metadata</h3>
-                    {imageDetails.metadata.length ? (
+                    {imageDetails.metadata ? (
                         <>
                             <table className={s.metaDataTable}>
                                 <thead>

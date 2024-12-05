@@ -1,6 +1,7 @@
 import json
 import ijson
 import os
+import builtins
 import fcntl
 import datetime
 from airflow.models.baseoperator import BaseOperator
@@ -65,11 +66,9 @@ class JsonArgs(LoggingMixin):
                 fcntl.flock(file.fileno(), fcntl.LOCK_SH)
                 data = json.load(file)
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-                value = data.get(key)
+                value = data.get(key, None)
                 if value is None:
-                    self.log.error(
-                        f"{self.get_full_path()} does not contain key {key}!"
-                    )
+                    self.log.info(f"{self.get_full_path()} does not contain key {key}!")
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return value
@@ -96,7 +95,7 @@ class JsonArgs(LoggingMixin):
                 data = json.load(file)
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
                 for key in keys:
-                    value = data.get(key)
+                    value = data.get(key, None)
                     if value is None:
                         self.log.error(
                             f"{self.get_full_path()} does not contain key {key}!"
@@ -119,6 +118,24 @@ class JsonArgs(LoggingMixin):
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return keys
 
+    def add_or_update(self, key, value):
+        old_value = self.get_value(key)
+        if old_value is None:
+            self.add_value(key, value)
+            return
+        elif type(old_value) is type(value):
+            self.add_value(key, value)
+            self.log.info(
+                f"updating {key} with new value type, new value: {value}, old value: {old_value}"
+            )
+            return
+        match type(old_value):
+            case builtins.list:
+                value.extend(old_value)
+            case builtins.dict:
+                value.update(old_value)
+        self.add_value(key, value)
+
     def remove_value(self, key):
         try:
             with open(self.get_full_path(), "r+", encoding=self.encoding) as file:
@@ -140,12 +157,14 @@ class JsonArgs(LoggingMixin):
 def add_pre_run_information(**context):
     fs_conn_id = context["params"]["fs_conn_id"]
     json_files_paths = context["params"]["json_files_paths"]
-    date = datetime.datetime.now().replace(microsecond=0).isoformat()
+    date = context["dag_run"].start_date.replace(microsecond=0).isoformat()
     run_id = context["dag_run"].run_id
+    dag_id = context["dag_run"].dag_id
     for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
-        json_args.add_value("dag_start_date", date)
-        json_args.add_value("dag_run_id", run_id)
+        json_args.add_or_update(
+            "dags_info", {dag_id: {"start_date": date, "run_id": run_id}}
+        )
 
 
 def add_post_run_information(**context):
@@ -154,7 +173,7 @@ def add_post_run_information(**context):
     date = datetime.datetime.now().replace(microsecond=0).isoformat()
     for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
-        json_args.add_value("dag_processed_date", date)
+        json_args.add_value("processed_date", date)
 
 
 # helper functions to use in preexecute

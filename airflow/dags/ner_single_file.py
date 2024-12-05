@@ -8,7 +8,6 @@ from datariver.operators.common.json_tools import (
     add_pre_run_information,
 )
 from datariver.operators.common.elasticsearch import (
-    ElasticJsonPushOperator,
     ElasticSearchOperator,
     ElasticJsonUpdateOperator,
 )
@@ -83,15 +82,6 @@ with DAG(
         task_id="add_pre_run_information",
         python_callable=add_pre_run_information,
         provide_context=True,
-    )
-
-    es_push_task = ElasticJsonPushOperator(
-        task_id="elastic_push",
-        fs_conn_id="{{ params.fs_conn_id }}",
-        json_files_paths="{{ params.json_files_paths }}",
-        index="ner",
-        es_conn_args=ES_CONN_ARGS,
-        encoding="{{ params.encoding }}",
     )
 
     detect_language_task = JsonLangdetectOperator(
@@ -193,7 +183,6 @@ with DAG(
 
 (
     add_pre_run_information_task
-    >> es_push_task
     >> detect_language_task
     >> decide_about_translation
     >> [translate_task, ner_without_translation_task]

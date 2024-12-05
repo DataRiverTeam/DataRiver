@@ -4,6 +4,17 @@ on:
     branches: [master]  # Adjust this to match your main branch
 
 jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: build
+      working-directory: ./webserver/ui
+      run: npm ci
+      run: npm run build
+
   black:
     timeout-minutes: 10
     runs-on: ubuntu-latest
@@ -19,5 +30,5 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Run formatter
+      - name: Run linter
         run: docker compose up lint --exit-code-from lint
