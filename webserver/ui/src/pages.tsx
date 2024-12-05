@@ -35,7 +35,7 @@ const dashboards: RouteObject[] = [
         element: <MapImageFilesDashboard />,
     },
     {
-        path: "images/dashboard/map_files",
+        path: "images/dashboard/process_images",
         element: <ImageProcessingDashboard />,
     },
 ];

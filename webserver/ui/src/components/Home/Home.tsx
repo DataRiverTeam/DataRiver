@@ -32,7 +32,7 @@ function Home() {
                 />
                 <CardLink
                     title="Process images"
-                    linkTo="/images/dashboard/map_files"
+                    linkTo="/images/dashboard/process_images"
                     description="Process files"
                 />
             </CardContainer>
