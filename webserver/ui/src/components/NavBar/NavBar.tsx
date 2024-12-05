@@ -9,6 +9,11 @@ function NavBar() {
         <AppBar className="navbar">
             <Toolbar disableGutters>
                 <Button variant="text">
+                    <Link to={"/"} className={s.link}>
+                        Home
+                    </Link>
+                </Button>
+                <Button variant="text">
                     <Link to={"/dags"} className={s.link}>
                         DAGs
                     </Link>
