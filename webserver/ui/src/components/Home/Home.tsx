@@ -11,30 +11,30 @@ function Home() {
                     linkTo="/ner/dashboard/mailbox"
                     description="Manage file sensors and upload files"
                 />
-                {/* <CardLink
+                <CardLink
                     title="Split files"
-                    linkTo="/dags/mailbox"
-                    description="Monitor batching of the uploaded documents"
+                    linkTo="/ner/dashboard/map_files"
+                    description="Monitor splitting uploaded documents into batches"
                 />
                 <CardLink
                     title="Process files"
-                    linkTo="/dags/mailbox"
-                    description="Monitor batch processing"
-                /> */}
+                    linkTo="/ner/dashboard/ner_files"
+                    description="Monitor file processing"
+                />
             </CardContainer>
 
             <h2> Image processing</h2>
             <CardContainer>
-                {/* <CardLink
+                <CardLink
                     title="Create batches"
-                    linkTo="/dags/map_file_images"
-                    description="Create batches"
+                    linkTo="/images/dashboard/map_files"
+                    description="Monitor splitting images from dataset into batches"
                 />
                 <CardLink
                     title="Process images"
-                    linkTo="/dags/image_workflow"
+                    linkTo="/images/dashboard/map_files"
                     description="Process files"
-                /> */}
+                />
             </CardContainer>
         </>
     );

@@ -5,13 +5,15 @@ type TCodeBlockProps = {
     code: string;
     editable?: boolean;
     onInput?: (code: string) => any;
+    copy?: boolean;
 };
 
 function CodeBlock({
     code,
     editable = false,
     onInput: _onInput,
-}: TCodeBlockProps) {
+}: // copy = false,
+TCodeBlockProps) {
     let handleKey = (e: KeyboardEvent<any>) => {
         if (e.code === "Tab") {
             e.stopPropagation();

@@ -5,14 +5,18 @@ import DagRunsList from "../../DagRunsList/DagRunsList";
 import FileUploadForm from "../../FileUploadForm/FileUploadForm";
 import CodeBlock from "../../CodeBlock/CodeBlock";
 import { exampleNerJson } from "../../../utils/consts";
+import DialogWindow from "../../DialogWindow/DialogWindow";
+import BackButton from "../../BackButton/BackButton";
 
 const client = new ApiClient();
 
 const dagId = "mailbox";
+const mailboxUploadPath = "/map/";
 
 function MailboxDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
+    let [isExampleVisible, setIsExampleVisible] = useState(false);
 
     let fetchDagRuns = async () => {
         try {
@@ -34,15 +38,34 @@ function MailboxDashboard() {
 
     return (
         <>
+            <BackButton to="/" />
+            <DialogWindow
+                title="Example file"
+                open={isExampleVisible}
+                handleClose={() => {
+                    setIsExampleVisible(false);
+                }}
+            >
+                <CodeBlock code={JSON.stringify(exampleNerJson, null, 2)} />
+            </DialogWindow>
             <h1>NER - file upload</h1>
-            <p> Import texts in JSON </p>
+            <p>
+                Import JSON files containing articles (
+                <a
+                    href="#"
+                    onClick={() => {
+                        setIsExampleVisible(true);
+                    }}
+                >
+                    see example file
+                </a>
+                ) to process them.
+            </p>
 
-            <h3> Example file schema</h3>
-            <CodeBlock code={JSON.stringify(exampleNerJson, null, 2)} />
             <h2> Upload files</h2>
-            <FileUploadForm />
+            <FileUploadForm directory={mailboxUploadPath} />
 
-            <h2> Active DAGs</h2>
+            <h2> DAGs status </h2>
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
