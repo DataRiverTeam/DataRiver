@@ -83,7 +83,10 @@ function NerCard({ item }: TNerCardProps) {
                 </ul>
                 <p>Dags info</p>
                 {item.dags_info && Object.keys(item.dags_info).length > 0 ? (
-                    <table border="1" style={{ borderCollapse: "collapse", width: "100%" }}>
+                    <table
+                        border={1}
+                        style={{ borderCollapse: "collapse", width: "100%" }}
+                    >
                         <thead>
                             <tr>
                                 <th>Dag ID</th>
@@ -92,13 +95,15 @@ function NerCard({ item }: TNerCardProps) {
                             </tr>
                         </thead>
                         <tbody>
-                            {Object.entries(item.dags_info).map(([dag_id, value]) => (
-                                <tr key={dag_id}>
-                                    <td>{dag_id}</td>
-                                    <td>{value.start_date}</td>
-                                    <td>{value.run_id}</td>
-                                </tr>
-                            ))}
+                            {Object.entries(item.dags_info).map(
+                                ([dag_id, value]) => (
+                                    <tr key={dag_id}>
+                                        <td>{dag_id}</td>
+                                        <td>{value.start_date}</td>
+                                        <td>{value.run_id}</td>
+                                    </tr>
+                                )
+                            )}
                         </tbody>
                     </table>
                 ) : null}
