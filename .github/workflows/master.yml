@@ -4,6 +4,16 @@ on:
     branches: [master]  # Adjust this to match your main branch
 
 jobs:
+  build:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: build
+      working-directory: ./webserver/ui
+      run: npm run build
+
   black:
     timeout-minutes: 10
     runs-on: ubuntu-latest
