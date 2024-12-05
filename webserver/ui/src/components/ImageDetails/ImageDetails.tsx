@@ -51,7 +51,7 @@ function ImageDetails() {
                         />
                     ) : (
                         <img
-                            src={`data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mPk5OCoBwAA1QCa9We0GgAAAABJRU5ErkJggg==`}
+                            src="/no_thumbnail.svg"
                             loading="lazy"
                         />
                     )}
