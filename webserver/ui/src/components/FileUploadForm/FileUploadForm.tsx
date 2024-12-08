@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import UploadIcon from "@mui/icons-material/Upload";
+
+import s from "./FileUploadForm.module.css";
+import Button from "../Button/Button";
 
 type TFileUploadFormProps = {
     directory?: string | null;
@@ -49,11 +53,34 @@ function FileUploadForm({ directory = null }: TFileUploadFormProps) {
         setFiles(uploadedFiles);
     };
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const handleClick = () => {
+        if (fileInputRef.current) fileInputRef.current.click();
+    };
+
     return (
-        <form onSubmit={handleUpload}>
-            <input type="file" multiple onChange={handleChange} />
-            <input type="submit" value="Upload" />
-        </form>
+        <>
+            <div className={s.wrapper}>
+                <div className={s.innerWrapper} onClick={handleClick}>
+                    <UploadIcon className={s.uploadIcon} />
+                    <p>
+                        {files instanceof FileList && files.length > 0
+                            ? `${files.length} file(s) selected`
+                            : "Click to select the files to upload."}
+                    </p>
+                </div>
+                <form onSubmit={handleUpload}>
+                    <input
+                        type="file"
+                        multiple
+                        onChange={handleChange}
+                        hidden
+                        ref={fileInputRef}
+                    />
+                    <Button type="submit">Upload</Button>
+                </form>
+            </div>
+        </>
     );
 }
 
