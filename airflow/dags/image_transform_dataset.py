@@ -67,7 +67,7 @@ def copy_item_to_file(item, context):
 
 
 with DAG(
-    "map_file_images",
+    "image_transform_dataset",
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,

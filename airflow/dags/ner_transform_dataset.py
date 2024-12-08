@@ -92,7 +92,7 @@ def remove_temp_files(context, result):
 
 
 with DAG(
-    "map_file",
+    "ner_transform_dataset",
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,

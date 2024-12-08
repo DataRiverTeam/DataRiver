@@ -32,7 +32,7 @@ def parse_paths(paths, **context):
 
 
 with DAG(
-    "mailbox",
+    "ner_mailbox",
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
