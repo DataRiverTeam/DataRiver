@@ -5,7 +5,7 @@ import { TImageDetails } from "../../types/image";
 import BackButton from "../BackButton/BackButton";
 
 import s from "./ImageDetails.module.css";
-;
+test ;
 function ImageDetails() {
     let { imageId } = useParams();
     let [imageDetails, setImageDetails] = useState<TImageDetails | null>(null);
