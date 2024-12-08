@@ -5,7 +5,7 @@ import { TDagRun } from "../../../../types/airflow";
 import { ApiClient } from "../../../../utils/api";
 import DagRunsList from "../../../DagRunsList/DagRunsList";
 
-const DAG_NER_PROCESSING_NAME = "ner_single_file";
+const DAG_NER_PROCESSING_NAME = "ner_process";
 
 const client = new ApiClient();
 

@@ -65,7 +65,7 @@ def remove_temp_files(context, result):
 
 
 with DAG(
-    "ner_single_file",
+    "ner_process",
     default_args=default_args,
     schedule_interval=None,
     # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!

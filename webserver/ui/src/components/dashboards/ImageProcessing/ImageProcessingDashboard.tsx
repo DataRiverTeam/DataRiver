@@ -6,7 +6,7 @@ import BackButton from "../../BackButton/BackButton";
 
 const client = new ApiClient();
 
-const dagId = "image_workflow";
+const dagId = "image_process";
 function ImageProcessingDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);

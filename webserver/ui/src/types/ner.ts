@@ -28,7 +28,7 @@ export type TNerDocResult = {
             entities: TNerStat[];
         };
     };
-    dags_info: {map_file_images: TDagsInfo, image_workflow: TDagsInfo};
+    dags_info: {image_transform_dataset: TDagsInfo, image_process: TDagsInfo};
     processed_date: string;
 }
 

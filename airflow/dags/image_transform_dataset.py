@@ -67,7 +67,7 @@ def copy_item_to_file(item, context):
 
 
 with DAG(
-    "map_file_images",
+    "image_transform_dataset",
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
@@ -105,7 +105,7 @@ with DAG(
 
     trigger_images_workflow_task = TriggerDagRunOperator.partial(
         task_id="trigger_images_workflow",
-        trigger_dag_id="image_workflow",
+        trigger_dag_id="image_process",
     ).expand(conf=create_confs_task.output)
 
 map_task >> create_confs_task >> es_push_task >> trigger_images_workflow_task

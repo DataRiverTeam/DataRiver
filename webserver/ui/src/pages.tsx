@@ -23,7 +23,7 @@ const dashboards: RouteObject[] = [
         element: <MailboxDashboard />,
     },
     {
-        path: "ner/dashboard/map_files",
+        path: "ner/dashboard/ner_transform_dataset",
         element: <MapTextFilesDashboard />,
     },
     {
@@ -31,11 +31,11 @@ const dashboards: RouteObject[] = [
         element: <NerFilesDashboard />,
     },
     {
-        path: "images/dashboard/map_files",
+        path: "images/dashboard/image_transform_dataset",
         element: <MapImageFilesDashboard />,
     },
     {
-        path: "images/dashboard/process_images",
+        path: "images/dashboard/image_process",
         element: <ImageProcessingDashboard />,
     },
 ];

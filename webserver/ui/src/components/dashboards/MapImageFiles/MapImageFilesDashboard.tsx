@@ -6,7 +6,7 @@ import BackButton from "../../BackButton/BackButton";
 
 const client = new ApiClient();
 
-const dagId = "map_file_images";
+const dagId = "image_transform_dataset";
 
 function MapImageFilesDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);

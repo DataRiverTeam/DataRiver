@@ -6,7 +6,7 @@ import BackButton from "../../BackButton/BackButton";
 
 const client = new ApiClient();
 
-const dagId = "map_file";
+const dagId = "ner_transform_dataset";
 
 function MapTextFilesDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
