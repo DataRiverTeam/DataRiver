@@ -92,7 +92,9 @@ with DAG(
     ).expand(conf=parse_paths_task.output)
 
     trigger_mailbox = TriggerDagRunOperator(
-        task_id="trigger_mailbox", trigger_dag_id="ner_mailbox", conf="{{ params }}"  # noqa
+        task_id="trigger_mailbox",
+        trigger_dag_id="ner_mailbox",
+        conf="{{ params }}",  # noqa
     )
 
 
