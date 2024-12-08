@@ -1,4 +1,4 @@
-name: Black Formatter
+name: QA
 on:
   pull_request:
     branches: [master]  # Adjust this to match your main branch
@@ -12,8 +12,7 @@ jobs:
       uses: actions/checkout@v1
     - name: build
       working-directory: ./webserver/ui
-      run: npm ci
-      run: npm run build
+      run: npm ci && npm run build
 
   black:
     timeout-minutes: 10
