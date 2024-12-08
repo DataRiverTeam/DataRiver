@@ -1,4 +1,4 @@
-name: Black Formatter
+name: QA
 on:
   pull_request:
     branches: [master]  # Adjust this to match your main branch
