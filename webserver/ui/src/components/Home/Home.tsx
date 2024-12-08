@@ -13,7 +13,7 @@ function Home() {
                 />
                 <CardLink
                     title="Split files"
-                    linkTo="/ner/dashboard/map_files"
+                    linkTo="/ner/dashboard/ner_transform_dataset"
                     description="Monitor splitting uploaded documents into batches"
                 />
                 <CardLink
@@ -27,12 +27,12 @@ function Home() {
             <CardContainer>
                 <CardLink
                     title="Create batches"
-                    linkTo="/images/dashboard/map_files"
+                    linkTo="/images/dashboard/image_transform_dataset"
                     description="Monitor splitting images from dataset into batches"
                 />
                 <CardLink
                     title="Process images"
-                    linkTo="/images/dashboard/process_images"
+                    linkTo="/images/dashboard/image_process"
                     description="Process files"
                 />
             </CardContainer>
