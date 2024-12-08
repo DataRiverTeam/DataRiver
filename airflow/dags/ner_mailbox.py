@@ -88,11 +88,11 @@ with DAG(
     )
 
     trigger_map_file_task = TriggerDagRunOperator.partial(
-        task_id="trigger_map_file", trigger_dag_id="map_file"
+        task_id="trigger_map_file", trigger_dag_id="ner_transform_dataset"
     ).expand(conf=parse_paths_task.output)
 
     trigger_mailbox = TriggerDagRunOperator(
-        task_id="trigger_mailbox", trigger_dag_id="mailbox", conf="{{ params }}"  # noqa
+        task_id="trigger_mailbox", trigger_dag_id="ner_mailbox", conf="{{ params }}"  # noqa
     )
 
 
