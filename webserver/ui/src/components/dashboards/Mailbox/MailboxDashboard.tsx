@@ -10,7 +10,7 @@ import BackButton from "../../BackButton/BackButton";
 
 const client = new ApiClient();
 
-const dagId = "mailbox";
+const dagId = "ner_mailbox";
 const mailboxUploadPath = "/map/";
 
 function MailboxDashboard() {

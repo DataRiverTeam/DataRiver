@@ -6,7 +6,7 @@ import BackButton from "../../BackButton/BackButton";
 
 const client = new ApiClient();
 
-const dagId = "map_file";
+const dagId = "ner_transform_dataset";
 
 function NerFilesDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
@@ -38,7 +38,7 @@ function NerFilesDashboard() {
 
             <h2>
                 TODO: MAKE LINKS TO THE BROWSER WITH QUERY SET TO
-                ner_single_file DAG RUN ID
+                ner_process DAG RUN ID
             </h2>
 
             <h2> Active DAGs</h2>

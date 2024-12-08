@@ -8,7 +8,7 @@ import { TDagRun } from "../../../../types/airflow";
 import { ApiClient } from "../../../../utils/api";
 import LinkButton from "../../../LinkButton/LinkButton";
 
-const DAG_NER_IMPORT_NAME = "mailbox";
+const DAG_NER_IMPORT_NAME = "ner_mailbox";
 const client = new ApiClient();
 function FileImportSection() {
     const [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
