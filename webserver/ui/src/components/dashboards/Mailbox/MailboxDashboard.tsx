@@ -38,7 +38,6 @@ async function triggerMailbox(onSuccess: () => any | null) {
 
 function MailboxDashboard() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
-    // let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [isExampleVisible, setIsExampleVisible] = useState(false);
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
 
@@ -117,7 +116,9 @@ function MailboxDashboard() {
                         </Button>
                     </div>
                 )
-            ) : null}
+            ) : (
+                <p>Waiting for the server response...</p>
+            )}
 
             <h2> Upload files</h2>
             <p>
@@ -133,7 +134,13 @@ function MailboxDashboard() {
                 )
             </p>
 
-            <FileUploadForm directory={mailboxUploadPath} />
+            <FileUploadForm
+                directory={mailboxUploadPath}
+                onSuccess={() => {
+                    alert("Files uploaded sucessfully!");
+                    navigate(0);
+                }}
+            />
 
             {/* <h2> DAGs status </h2>
             {areDagRunsLoading ? (

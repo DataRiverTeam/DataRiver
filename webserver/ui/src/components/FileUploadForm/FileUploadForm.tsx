@@ -6,9 +6,13 @@ import Button from "../Button/Button";
 
 type TFileUploadFormProps = {
     directory?: string | null;
+    onSuccess?: (() => any) | null;
 };
 
-function FileUploadForm({ directory = null }: TFileUploadFormProps) {
+function FileUploadForm({
+    directory = null,
+    onSuccess = null,
+}: TFileUploadFormProps) {
     let [files, setFiles] = useState<FileList | null>(null);
 
     const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -37,7 +41,7 @@ function FileUploadForm({ directory = null }: TFileUploadFormProps) {
                 });
 
                 if (response.status.toString() === "200") {
-                    alert("File upload successful!");
+                    if (onSuccess) onSuccess();
                 }
             } catch (error) {
                 console.error(error);
