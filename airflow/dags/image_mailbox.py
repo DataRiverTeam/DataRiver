@@ -15,15 +15,12 @@ default_args = {
     "retries": 1,
 }
 
-FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
-
 
 def parse_paths(paths, **context):
     def create_conf(path):
         return {
             "path": path,
             "batch_size": context["params"]["batch_size"],
-            "encoding": context["params"]["encoding"],
         }
 
     paths_list = paths.split(",")
@@ -38,7 +35,7 @@ with DAG(
     render_template_as_native_obj=True,
     params={
         "fs_conn_id": Param(type="string", default="fs_data"),
-        "filepath": Param(type="string", default="map/*.json"),
+        "filepath": Param(type="string", default="image_process/*.json"),
         "batch_size": Param(type="integer", default=10),
     },
 ) as dag:
@@ -87,12 +84,12 @@ with DAG(
     )
 
     trigger_map_file_task = TriggerDagRunOperator.partial(
-        task_id="trigger_map_file", trigger_dag_id="ner_transform_dataset"
+        task_id="trigger_map_file", trigger_dag_id="image_transform_dataset"
     ).expand(conf=parse_paths_task.output)
 
     trigger_mailbox = TriggerDagRunOperator(
         task_id="trigger_mailbox",
-        trigger_dag_id="ner_mailbox",
+        trigger_dag_id="image_mailbox",
         conf="{{ params }}",  # noqa
     )
 

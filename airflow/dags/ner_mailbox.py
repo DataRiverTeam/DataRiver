@@ -15,8 +15,6 @@ default_args = {
     "retries": 1,
 }
 
-FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
-
 
 def parse_paths(paths, **context):
     def create_conf(path):
