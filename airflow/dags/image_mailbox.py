@@ -32,7 +32,7 @@ def parse_paths(paths, **context):
 
 
 with DAG(
-    "ner_mailbox",
+    "image_mailbox",
     default_args=default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
@@ -40,7 +40,6 @@ with DAG(
         "fs_conn_id": Param(type="string", default="fs_data"),
         "filepath": Param(type="string", default="map/*.json"),
         "batch_size": Param(type="integer", default=10),
-        "encoding": Param(type="string", default="utf-8"),
     },
 ) as dag:
     detect_files_task = MultipleFilesSensor(
