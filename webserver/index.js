@@ -277,7 +277,7 @@ app.get("/api/ner/docs", async (req, res) => {
             query: query,
             sort: {
                     _script: {
-                        script : "doc['dags_info.map_file.start_date'].value.format(DateTimeFormatter.ofPattern(\"MM/dd/yyyy - HH:mm:ss Z\"));",
+                        script : "doc['dags_info.ner_transform_dataset.start_date'].value.format(DateTimeFormatter.ofPattern(\"MM/dd/yyyy - HH:mm:ss Z\"));",
                         type: "string",
                         order: "desc",
                     },

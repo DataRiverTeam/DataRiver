@@ -6,9 +6,12 @@ import {
     TDagDetails,
 } from "../types/airflow";
 
+import { TDagTriggerBody } from "./dags";
+
 type TStatus = {
     status: number;
 };
+
 export type TDagsResponse = {
     dags: TDag[];
     total_entries: number;
@@ -80,5 +83,32 @@ export class ApiClient {
         const json: TTaskInstancesResponse = await response.json();
 
         return json;
+    }
+
+    async triggerDag(
+        data: TDagTriggerBody,
+        dagId: string,
+        onSuccess: (() => any) | null
+    ) {
+        let response = await fetch(`/api/dags/${dagId}/dagRuns`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                conf: data,
+            }),
+        });
+
+        if (response.status.toString() !== "200") {
+            throw new Error(
+                `Couldn't trigger a new DAG run. Status code ${response.status}`
+            );
+        }
+
+        if (onSuccess) {
+            onSuccess();
+        }
     }
 }

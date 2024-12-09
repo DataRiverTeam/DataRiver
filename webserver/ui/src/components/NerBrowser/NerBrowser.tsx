@@ -117,7 +117,7 @@ function NerBrowser() {
 
     return (
         <>
-            <BackButton to={"/ner/dashboard"} />
+            <BackButton to={"/"} />
             <h1> Documents </h1>
 
             <div className={s.filtersWrapper}>

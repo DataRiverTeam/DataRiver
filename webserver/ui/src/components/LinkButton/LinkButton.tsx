@@ -1,7 +1,6 @@
 import { Link, RelativeRoutingType } from "react-router-dom";
-import Button from "@mui/material/Button";
+import Button from "../Button/Button";
 
-import s from "./LinkButton.module.css";
 import { ReactNode } from "react";
 
 type TLinkButtonProps = {
@@ -21,12 +20,7 @@ function LinkButton({
 }: TLinkButtonProps) {
     return (
         <Link to={to} relative={relative || undefined}>
-            <Button
-                variant="outlined"
-                className={s.blockButton}
-                type={type}
-                startIcon={startIcon}
-            >
+            <Button type={type} startIcon={startIcon}>
                 {children}
             </Button>
         </Link>

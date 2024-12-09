@@ -8,7 +8,6 @@ import Button from "@mui/material/Button";
 import s from "./DagTrigger.module.css";
 
 import { TDagDetails, TDagParam } from "../../types/airflow";
-import { triggerDag } from "../../utils/dags";
 import BackButton from "../BackButton/BackButton";
 import { ApiClient } from "../../utils/api";
 
@@ -85,7 +84,7 @@ function DagTrigger() {
     }, []);
 
     let onSubmit: SubmitHandler<TDagParamsFormFields> = async (data) => {
-        triggerDag(data, dagId!, () => {
+        client.triggerDag(data, dagId!, () => {
             navigate(`/dags/${dagId}`);
         });
     };
