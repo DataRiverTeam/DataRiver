@@ -36,7 +36,6 @@ class JsonExtractMetadata(BaseOperator):
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image = json_args.get_image(self.input_key)
             if image == None:
-                # todo write error
                 continue
             exif_info = image._getexif()
             metadata = []

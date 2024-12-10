@@ -53,7 +53,7 @@ def copy_item_to_file(item, context):
         context["ti"].run_id,
     )
     os.makedirs(dir_path, exist_ok=True)
-    if validators.url(item): 
+    if validators.url(item):
         filename = f"{base64.b64encode(item.encode("utf-8")).decode("utf-8")}.json"
     else:
         item = f"../{item}"

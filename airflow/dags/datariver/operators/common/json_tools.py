@@ -14,6 +14,7 @@ from airflow.utils.log.logging_mixin import LoggingMixin
 from typing import Callable, Any
 from airflow.utils.context import Context
 
+
 class MapJsonFile(BaseOperator):
     template_fields = ("fs_conn_id", "path")
 
