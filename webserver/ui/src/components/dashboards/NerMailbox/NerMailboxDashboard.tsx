@@ -36,7 +36,7 @@ async function triggerMailbox(onSuccess: () => any | null) {
     }
 }
 
-function MailboxDashboard() {
+function NerMailboxDashboard() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
     let [isExampleVisible, setIsExampleVisible] = useState(false);
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
@@ -152,4 +152,4 @@ function MailboxDashboard() {
     );
 }
 
-export default MailboxDashboard;
+export default NerMailboxDashboard;

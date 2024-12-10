@@ -8,7 +8,7 @@ const client = new ApiClient();
 
 const dagId = "ner_transform_dataset";
 
-function MapTextFilesDashboard() {
+function NerTransformDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
@@ -54,4 +54,4 @@ function MapTextFilesDashboard() {
     );
 }
 
-export default MapTextFilesDashboard;
+export default NerTransformDashboard;

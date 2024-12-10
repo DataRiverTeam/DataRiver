@@ -8,7 +8,7 @@ const client = new ApiClient();
 
 const dagId = "ner_transform_dataset";
 
-function NerFilesDashboard() {
+function NerProcessDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
@@ -37,8 +37,8 @@ function NerFilesDashboard() {
             <p>Monitor processing of the articles.</p>
 
             <h2>
-                TODO: MAKE LINKS TO THE BROWSER WITH QUERY SET TO
-                ner_process DAG RUN ID
+                TODO: MAKE LINKS TO THE BROWSER WITH QUERY SET TO ner_process
+                DAG RUN ID
             </h2>
 
             <h2> Active DAGs</h2>
@@ -51,4 +51,4 @@ function NerFilesDashboard() {
     );
 }
 
-export default NerFilesDashboard;
+export default NerProcessDashboard;
