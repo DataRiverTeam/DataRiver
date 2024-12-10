@@ -5,7 +5,10 @@ import builtins
 import fcntl
 import datetime
 import requests
+from urllib.request import urlopen
 import validators
+import cv2
+import numpy as np
 from PIL import Image
 from io import BytesIO
 from airflow.models.baseoperator import BaseOperator
@@ -161,11 +164,25 @@ class JsonArgs(LoggingMixin):
                 return None
             image_content = BytesIO(result.content)
         else:
-            image_content = JsonArgs.generate_absolute_path(
+            image_content = generate_absolute_path(
                 self.get_full_path(), image_path
             )
         print(image_path)
         image = Image.open(image_content)
+        return image
+
+    def get_cv2_image(self, key):
+        image_path = self.get_value(key)
+        if validators.url(image_path):
+            result = urlopen(image_path)
+            arr = np.asarray(bytearray(result.read()), dtype=np.uint8)
+            image = cv2.imdecode(arr, -1)
+        else:
+            image_content = generate_absolute_path(
+                self.get_full_path(), image_path
+            )
+            image = cv2.imread(image_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         return image
 
     @staticmethod
