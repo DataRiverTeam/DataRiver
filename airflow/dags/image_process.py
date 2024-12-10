@@ -15,7 +15,6 @@ from datariver.operators.common.elasticsearch import (
     ElasticJsonUpdateOperator,
 )
 import os
-import shutil
 
 default_args = {
     "owner": "airflow",
