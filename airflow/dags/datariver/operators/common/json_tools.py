@@ -176,7 +176,7 @@ class JsonArgs(LoggingMixin):
         if validators.url(image_path):
             try:
                 result = urlopen(image_path)
-            except:
+            except Exception:
                 return None
             if result.code != 200:
                 return None

@@ -30,6 +30,8 @@ class JsonExtractMetadata(BaseOperator):
         self.encoding = encoding
 
     def execute(self, context):
+        from PIL import ExifTags
+
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image = json_args.get_PIL_image(self.input_key)
