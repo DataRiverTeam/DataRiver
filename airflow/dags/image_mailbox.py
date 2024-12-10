@@ -35,7 +35,7 @@ with DAG(
     render_template_as_native_obj=True,
     params={
         "fs_conn_id": Param(type="string", default="fs_data"),
-        "filepath": Param(type="string", default="image_process/*.json"),
+        "filepath": Param(type="string", default="image_mailbox/*.json"),
         "batch_size": Param(type="integer", default=10),
     },
 ) as dag:
