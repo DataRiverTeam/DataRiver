@@ -37,6 +37,20 @@ def map_paths(paths, **context):
     return [create_conf(clear_paths, i) for i in range(0, len(clear_paths), batch_size)]
 
 
+def remove_temp_files(context, result):
+    from airflow.hooks.filesystem import FSHook
+    import shutil
+
+    input_path = context["params"]["path"]
+    hook = FSHook(context["params"]["fs_conn_id"])
+    dir_path = os.path.join(
+        hook.get_path(),
+        os.path.dirname(input_path),
+        context["ti"].run_id,
+    )
+    shutil.rmtree(dir_path, ignore_errors=True)
+
+
 def copy_item_to_file(item, context):
     import json
     from airflow.hooks.filesystem import FSHook
@@ -113,6 +127,9 @@ with DAG(
     trigger_images_workflow_task = TriggerDagRunOperator.partial(
         task_id="trigger_images_workflow",
         trigger_dag_id="image_process",
+        post_execute=remove_temp_files,
+        wait_for_completion=True,
+        poke_interval=5,
     ).expand(conf=create_confs_task.output)
 
 map_task >> create_confs_task >> es_push_task >> trigger_images_workflow_task

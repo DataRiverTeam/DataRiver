@@ -36,9 +36,8 @@ ES_CONN_ARGS = {
 
 def remove_temp_files(context, result):
     json_files_paths = context["params"]["json_files_paths"]
-    if (len(json_files_paths)) != 0:
-        dirname = os.path.dirname(json_files_paths[0])
-        shutil.rmtree(dirname)
+    for file_path in json_files_paths:
+        os.remove(file_path)
 
 
 with DAG(
