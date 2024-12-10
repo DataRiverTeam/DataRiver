@@ -141,4 +141,4 @@ with DAG(
         trigger_dag_id="ner_process",
     ).expand(conf=create_confs_task.output)
 
-map_task >> create_confs_task >> trigger_ner_task
+map_task >> create_confs_task >> es_push_task >> trigger_ner_task
