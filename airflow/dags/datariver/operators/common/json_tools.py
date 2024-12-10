@@ -174,7 +174,12 @@ class JsonArgs(LoggingMixin):
     def get_cv2_image(self, key):
         image_path = self.get_value(key)
         if validators.url(image_path):
-            result = urlopen(image_path)
+            try:
+                result = urlopen(image_path)
+            except:
+                return None
+            if result.code != 200:
+                return None
             arr = np.asarray(bytearray(result.read()), dtype=np.uint8)
             image = cv2.imdecode(arr, -1)
         else:

@@ -49,6 +49,8 @@ class JsonPerceptualHash(BaseOperator):
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             cv2_image = json_args.get_cv2_image(self.input_key)
+            if cv2_image is None:
+                continue
             match self.hash_type:
                 case HashType.p_hash:
                     hash_value = self.p_hash(cv2_image)
