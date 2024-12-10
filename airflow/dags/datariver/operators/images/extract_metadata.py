@@ -34,17 +34,21 @@ class JsonExtractMetadata(BaseOperator):
 
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            image_path = json_args.get_value(self.input_key)
-            image_full_path = JsonArgs.generate_absolute_path(
-                json_args.get_full_path(), image_path
-            )
-            image = Image.open(image_full_path)
+            image = json_args.get_image(self.input_key)
+            if image == None:
+                # todo write error
+                continue
             exif_info = image._getexif()
             metadata = []
             if exif_info is not None:
                 for tag, value in exif_info.items():
                     if isinstance(value, bytes):
-                        value = value.decode(encoding=json.detect_encoding(value))
+                        try:
+                            value = value.decode(encoding=json.detect_encoding(value))
+                        except UnicodeDecodeError:
+                            # todo write error
+                            decoded_value = f"Binary data"
+                            continue
                     else:
                         value = str(value)
                     metadata.append({"tag": ExifTags.TAGS.get(tag), "value": value})

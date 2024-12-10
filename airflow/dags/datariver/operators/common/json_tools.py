@@ -4,12 +4,15 @@ import os
 import builtins
 import fcntl
 import datetime
+import requests
+import validators
+from PIL import Image
+from io import BytesIO
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
 from typing import Callable, Any
 from airflow.utils.context import Context
-
 
 class MapJsonFile(BaseOperator):
     template_fields = ("fs_conn_id", "path")
@@ -148,6 +151,21 @@ class JsonArgs(LoggingMixin):
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
+
+    def get_image(self, key):
+        image_path = self.get_value(key)
+        if validators.url(image_path):
+            result = requests.get(image_path)
+            if result.status_code != 200:
+                return None
+            image_content = BytesIO(result.content)
+        else:
+            image_content = JsonArgs.generate_absolute_path(
+                self.get_full_path(), image_path
+            )
+        print(image_path)
+        image = Image.open(image_content)
+        return image
 
     @staticmethod
     def generate_absolute_path(base_path: str, path: str) -> str:

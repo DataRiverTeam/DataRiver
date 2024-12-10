@@ -13,4 +13,5 @@ opencv-python-headless==4.10.0.84
 opencv-contrib-python-headless==4.10.0.84
 transformers==4.46.2
 torch==2.5.1
+validators==0.34.0
 https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.7.1/en_core_web_md-3.7.1.tar.gz
