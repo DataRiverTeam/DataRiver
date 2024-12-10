@@ -8,3 +8,4 @@ airflow/airflow-webserver.pid
 airflow/data
 airflow/dags/**/__pycache__/
 .idea
+webserver/**/tsconfig.app.tsbuildinfo

@@ -123,7 +123,7 @@ class JsonArgs(LoggingMixin):
         if old_value is None:
             self.add_value(key, value)
             return
-        elif type(old_value) is type(value):
+        elif type(old_value) is not type(value):
             self.add_value(key, value)
             self.log.info(
                 f"updating {key} with new value type, new value: {value}, old value: {old_value}"

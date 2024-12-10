@@ -8,7 +8,7 @@ const client = new ApiClient();
 
 const dagId = "ner_transform_dataset";
 
-function MapTextFilesDashboard() {
+function NerProcessDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
@@ -33,15 +33,12 @@ function MapTextFilesDashboard() {
     return (
         <>
             <BackButton to="/" />
-            <h1>NER - batching files</h1>
-            <p>
-                Monitor the process of splitting uploaded JSON files into
-                smaller batches.
-            </p>
+            <h1>NER - processing files</h1>
+            <p>Monitor processing of the articles.</p>
 
             <h2>
-                TODO: MAKE LINK TO THE BROWSER WITH QUERY SET TO map_text DAG
-                RUN ID
+                TODO: MAKE LINKS TO THE BROWSER WITH QUERY SET TO ner_process
+                DAG RUN ID
             </h2>
 
             <h2> Active DAGs</h2>
@@ -54,4 +51,4 @@ function MapTextFilesDashboard() {
     );
 }
 
-export default MapTextFilesDashboard;
+export default NerProcessDashboard;

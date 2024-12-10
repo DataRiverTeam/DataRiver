@@ -10,9 +10,9 @@ import ImageBrowser from "./components/ImageBrowser/ImageBrowser";
 import ImageDetails from "./components/ImageDetails/ImageDetails";
 import Home from "./components/Home/Home";
 
-import MailboxDashboard from "./components/dashboards/Mailbox/MailboxDashboard";
-import MapTextFilesDashboard from "./components/dashboards/MapTextFiles/MapTextFilesDashboard";
-import NerFilesDashboard from "./components/dashboards/NerFiles/NerFilesDashboard";
+import NerMailboxDashboard from "./components/dashboards/NerMailbox/NerMailboxDashboard";
+import NerTransformDashboard from "./components/dashboards/NerTransform/NerTransformDashboard";
+import NerProcessDashboard from "./components/dashboards/NerProcess/NerProcessDashboard";
 import MapImageFilesDashboard from "./components/dashboards/MapImageFiles/MapImageFilesDashboard";
 import ImageProcessingDashboard from "./components/dashboards/ImageProcessing/ImageProcessingDashboard";
 
@@ -20,15 +20,15 @@ const dashboards: RouteObject[] = [
     /* DASHBOARDS */
     {
         path: "ner/dashboard/mailbox",
-        element: <MailboxDashboard />,
+        element: <NerMailboxDashboard />,
     },
     {
         path: "ner/dashboard/ner_transform_dataset",
-        element: <MapTextFilesDashboard />,
+        element: <NerTransformDashboard />,
     },
     {
         path: "ner/dashboard/ner_files",
-        element: <NerFilesDashboard />,
+        element: <NerProcessDashboard />,
     },
     {
         path: "images/dashboard/image_transform_dataset",
