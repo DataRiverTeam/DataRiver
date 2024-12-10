@@ -37,9 +37,9 @@ def remove_temp_files(context, result):
     json_files_paths = context["params"]["json_files_paths"]
     for file_path in json_files_paths:
         os.remove(file_path)
-
-    if not os.listdir(path):
-        os.rmdir(os.path.dirname(json_files_paths[0]))
+    dirname = os.path.dirname(json_files_paths[0])
+    if not os.listdir(dirname):
+        os.rmdir(dirname)
 
 
 with DAG(
