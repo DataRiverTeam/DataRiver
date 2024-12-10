@@ -189,8 +189,9 @@ class ElasticJsonUpdateOperator(BaseOperator):
                 error_handler.save_error_to_file(
                     "Document which does not have _id can not be updated"
                 )
-                raise AirflowFailException("Document which does not have _id can not be updated")
-                
+                raise AirflowFailException(
+                    "Document which does not have _id can not be updated"
+                )
 
         results = []
         for ok, response in helpers.streaming_bulk(es, operations):
