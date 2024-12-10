@@ -33,7 +33,6 @@ class JsonDescribeImage(BaseOperator):
 
     def execute(self, context):
         from transformers import BlipProcessor, BlipForConditionalGeneration
-        from PIL import Image
 
         # Load the pre-trained BLIP model and processor
         if self.local_model_path is None:
@@ -45,7 +44,7 @@ class JsonDescribeImage(BaseOperator):
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image = json_args.get_PIL_image(self.input_key)
-            if image == None:
+            if image is None:
                 # todo write error
                 continue
 
