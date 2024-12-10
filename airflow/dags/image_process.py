@@ -38,6 +38,9 @@ def remove_temp_files(context, result):
     for file_path in json_files_paths:
         os.remove(file_path)
 
+    if not os.listdir(path)
+        os.rmdir(os.path.dirname(json_files_paths[0])) 
+
 
 with DAG(
     "image_process",

@@ -28,21 +28,6 @@ def parse_paths(paths, **context):
     return list(map(create_conf, paths_list))
 
 
-def remove_temp_files(context, result):
-    from airflow.hooks.filesystem import FSHook
-    import shutil
-    import os
-
-    input_path = context["params"]["filepath"]
-    hook = FSHook(context["params"]["fs_conn_id"])
-    dir_path = os.path.join(
-        hook.get_path(),
-        os.path.dirname(input_path),
-        context["ti"].run_id,
-    )
-    shutil.rmtree(dir_path, ignore_errors=True)
-
-
 with DAG(
     "image_mailbox",
     default_args=default_args,
@@ -101,8 +86,6 @@ with DAG(
     trigger_map_file_task = TriggerDagRunOperator.partial(
         task_id="trigger_map_file",
         trigger_dag_id="image_transform_dataset",
-        wait_for_completion=True,
-        post_execute=remove_temp_files,
     ).expand(conf=parse_paths_task.output)
 
     trigger_mailbox = TriggerDagRunOperator(
