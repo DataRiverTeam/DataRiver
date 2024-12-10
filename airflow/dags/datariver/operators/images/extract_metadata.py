@@ -34,7 +34,7 @@ class JsonExtractMetadata(BaseOperator):
 
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            image = json_args.get_image(self.input_key)
+            image = json_args.get_PIL_image(self.input_key)
             if image == None:
                 continue
             exif_info = image._getexif()

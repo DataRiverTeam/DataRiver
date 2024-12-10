@@ -153,7 +153,7 @@ class JsonArgs(LoggingMixin):
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
 
-    def get_image(self, key):
+    def get_PIL_image(self, key):
         image_path = self.get_value(key)
         if validators.url(image_path):
             result = requests.get(image_path)
