@@ -221,7 +221,7 @@ app.get("/api/ner/docs", async (req, res) => {
 
     // query params
     const start = req.query["start"] || 0;
-    const textFragment = req.query["text"] || null;
+    const contentFragment = req.query["content"] || null;
     const mapFileRunId = req.query["map-file-run-id"] || null;
     const nerSingleFileRunId = req.query["ner-single-file-run-id"] || null;
     const lang = req.query["lang"] || null;
@@ -230,8 +230,8 @@ app.get("/api/ner/docs", async (req, res) => {
         : [];
 
     const mustClauses = [];
-    if (textFragment) {
-        mustClauses.push({ match: { content: textFragment } });
+    if (contentFragment) {
+        mustClauses.push({ match: { content: contentFragment } });
     }
 
     // NOTE:
@@ -241,11 +241,19 @@ app.get("/api/ner/docs", async (req, res) => {
     //
     // Looking for exact match might be enough
     if (mapFileRunId) {
-        mustClauses.push({ match: { "dags_info.map_file.run_id.keyword": mapFileRunId } });
+        mustClauses.push({
+            match: {
+                "dags_info.ner_transform_dataset.run_id.keyword": mapFileRunId,
+            },
+        });
     }
 
     if (nerSingleFileRunId) {
-        mustClauses.push({ match: { "dags_info.ner_single_file.run_id.keyword": nerSingleFileRunId } });
+        mustClauses.push({
+            match: {
+                "dags_info.ner_process.run_id.keyword": nerSingleFileRunId,
+            },
+        });
     }
 
     if (lang) {
@@ -273,15 +281,15 @@ app.get("/api/ner/docs", async (req, res) => {
         const result = await elasticClient.search({
             index: "ner",
             size: SIZE,
-            from: start,
+            from: Math.max(start, 0),
             query: query,
             sort: {
-                    _script: {
-                        script : "doc['dags_info.ner_transform_dataset.start_date'].value.format(DateTimeFormatter.ofPattern(\"MM/dd/yyyy - HH:mm:ss Z\"));",
-                        type: "string",
-                        order: "desc",
-                    },
+                _script: {
+                    script: "doc['dags_info.ner_transform_dataset.start_date'].value.format(DateTimeFormatter.ofPattern(\"MM/dd/yyyy - HH:mm:ss Z\"));",
+                    type: "string",
+                    order: "desc",
                 },
+            },
         });
 
         res.json({ status: 200, ...result });
@@ -308,7 +316,9 @@ app.get("/api/images/thumbnails", async (req, res) => {
     }
 
     if (mapFileImagesRunId) {
-        mustClauses.push({ match: {"dags_info.map_file_images.keyword": mapFileImagesRunId } });
+        mustClauses.push({
+            match: { "dags_info.map_file_images.keyword": mapFileImagesRunId },
+        });
     }
 
     if (dateRangeFrom || dateRangeTo) {
