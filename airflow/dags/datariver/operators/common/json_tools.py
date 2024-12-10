@@ -187,7 +187,8 @@ class JsonArgs(LoggingMixin):
                 self.get_full_path(), image_path
             )
             image = cv2.imread(image_content)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        if len(image.shape) == 3:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         return image
 
     @staticmethod
