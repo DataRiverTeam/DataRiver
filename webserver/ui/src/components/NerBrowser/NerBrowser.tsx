@@ -195,11 +195,11 @@ function NerBrowser() {
                         <input type="text" {...register("lang")} />
                     </div>
                     <div className={s.filtersItem}>
-                        <label>Map file dag run id</label>
+                        <label>Split dataset DAG run id</label>
                         <input type="text" {...register("mapFileRunId")} />
                     </div>
                     <div className={s.filtersItem}>
-                        <label>Ner run id</label>
+                        <label>Text processing DAG run id</label>
                         <input
                             type="text"
                             {...register("nerSingleFileRunId")}

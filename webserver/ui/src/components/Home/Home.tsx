@@ -7,12 +7,12 @@ function Home() {
             <h2> Named Entity Recognition</h2>
             <CardContainer>
                 <CardLink
-                    title="File import"
+                    title="Import dataset"
                     linkTo="/ner/dashboard/mailbox"
                     description="Manage file sensors and upload files"
                 />
                 <CardLink
-                    title="Split files"
+                    title="Split dataset"
                     linkTo="/ner/dashboard/ner_transform_dataset"
                     description="Monitor splitting uploaded documents into batches"
                 />
