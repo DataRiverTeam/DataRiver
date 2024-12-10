@@ -164,7 +164,7 @@ class JsonArgs(LoggingMixin):
                 return None
             image_content = BytesIO(result.content)
         else:
-            image_content = generate_absolute_path(
+            image_content = self.generate_absolute_path(
                 self.get_full_path(), image_path
             )
         print(image_path)
@@ -183,10 +183,10 @@ class JsonArgs(LoggingMixin):
             arr = np.asarray(bytearray(result.read()), dtype=np.uint8)
             image = cv2.imdecode(arr, -1)
         else:
-            image_content = generate_absolute_path(
+            image_content = self.generate_absolute_path(
                 self.get_full_path(), image_path
             )
-            image = cv2.imread(image_path)
+            image = cv2.imread(image_content)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         return image
 
