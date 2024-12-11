@@ -79,7 +79,7 @@ function ImageDetails() {
                             </li>
                         ) : null}
                     </ul>
-                    <p>Dags info</p>
+                    <h3>Dags info</h3>
                     {imageDetails.dags_info &&
                     Object.keys(imageDetails.dags_info).length > 0 ? (
                         <table
@@ -146,9 +146,9 @@ function ImageDetails() {
                                 <thead>
                                     <tr>
                                         <td className={s.hashTypesLabel}>
-                                            Type
+                                        <strong> Type </strong>
                                         </td>
-                                        <td>Value</td>
+                                        <td><strong>Value</strong></td>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -170,6 +170,30 @@ function ImageDetails() {
                             </table>
                         </>
                     ) : null}
+
+
+                {imageDetails.hash && Object.keys(imageDetails.error).length > 0 && (
+                <>
+                    <h3>Errors</h3>
+                    <table className={s.metaDataTable}>
+                    <thead>
+                        <tr>
+                        <td className={s.hashTypesLabel}>Task ID</td>
+                        <td>Message</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {imageDetails.error.map((error) => (
+                        <tr key={error.task_id}>
+                            <td>{error.task_id}</td>
+                            <td>{error.message}</td>
+                        </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                </>
+                )}
+
                 </Card>
             ) : (
                 <p> {errorMessage}</p>

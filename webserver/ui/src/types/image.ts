@@ -12,4 +12,5 @@ export type TImageDetails = {
     processed_date: string;
     // Hardcoding is bag. I know
     dags_info: {ner_transform_dataset: TDagsInfo, ner_process: TDagsInfo};
+    error: {task_id: string, message: string}[];
 };
