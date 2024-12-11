@@ -41,7 +41,7 @@ class JsonPerceptualHash(BaseOperator):
         self.input_key = input_key
         self.output_key = output_key
         self.encoding = encoding
-        self.error_key=error_key
+        self.error_key = error_key
         if hash_type not in HashType:
             # todo add error handling here someheow
             raise AttributeError(f"unsupported HashType {hash_type}")

@@ -30,7 +30,7 @@ class JsonThumbnailImage(BaseOperator):
         self.input_key = input_key
         self.output_key = output_key
         self.encoding = encoding
-        self.error_key=error_key
+        self.error_key = error_key
         self.size = size
 
     def execute(self, context):

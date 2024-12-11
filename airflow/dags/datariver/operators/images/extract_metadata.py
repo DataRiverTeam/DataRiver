@@ -30,7 +30,7 @@ class JsonExtractMetadata(BaseOperator):
         self.input_key = input_key
         self.output_key = output_key
         self.encoding = encoding
-        self.error_key=error_key
+        self.error_key = error_key
 
     def execute(self, context):
         from PIL import ExifTags

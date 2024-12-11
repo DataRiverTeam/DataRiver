@@ -32,7 +32,7 @@ class JsonDescribeImage(BaseOperator):
         self.output_key = output_key
         self.encoding = encoding
         self.local_model_path = local_model_path
-        self.error_key=error_key
+        self.error_key = error_key
 
     def execute(self, context):
         from transformers import BlipProcessor, BlipForConditionalGeneration
