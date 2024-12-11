@@ -14,7 +14,6 @@ def parse_paths(paths, **context):
         return {
             "path": path,
             "batch_size": context["params"]["batch_size"],
-            "encoding": context["params"]["encoding"],
         }
 
     paths_list = paths.split(",")
@@ -23,15 +22,14 @@ def parse_paths(paths, **context):
 
 
 with DAG(
-    "ner_mailbox",
+    "image_mailbox",
     default_args=common.default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
     params={
         "fs_conn_id": Param(type="string", default="fs_data"),
-        "filepath": Param(type="string", default="map/*.json"),
+        "filepath": Param(type="string", default="image_mailbox/*.json"),
         "batch_size": Param(type="integer", default=10),
-        "encoding": Param(type="string", default="utf-8"),
     },
 ) as dag:
     detect_files_task = MultipleFilesSensor(
@@ -79,12 +77,13 @@ with DAG(
     )
 
     trigger_map_file_task = TriggerDagRunOperator.partial(
-        task_id="trigger_map_file", trigger_dag_id="ner_transform_dataset"
+        task_id="trigger_map_file",
+        trigger_dag_id="image_transform_dataset",
     ).expand(conf=parse_paths_task.output)
 
     trigger_mailbox = TriggerDagRunOperator(
         task_id="trigger_mailbox",
-        trigger_dag_id="ner_mailbox",
+        trigger_dag_id="image_mailbox",
         conf="{{ params }}",  # noqa
     )
 
@@ -93,6 +92,6 @@ with DAG(
     detect_files_task
     >> move_files_task
     >> parse_paths_task
-    >> trigger_map_file_task
     >> trigger_mailbox
+    >> trigger_map_file_task
 )

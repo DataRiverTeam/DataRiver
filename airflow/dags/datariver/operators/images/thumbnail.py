@@ -31,17 +31,15 @@ class JsonThumbnailImage(BaseOperator):
         self.size = size
 
     def execute(self, context):
-        from PIL import Image
         import base64
         import io
 
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            image_path = json_args.get_value(self.input_key)
-            image_full_path = JsonArgs.generate_absolute_path(
-                json_args.get_full_path(), image_path
-            )
-            image = Image.open(image_full_path)
+            image = json_args.get_PIL_image(self.input_key)
+            if image is None:
+                # todo write error
+                continue
             image.thumbnail(self.size)
             byte_img_io = io.BytesIO()
             image.save(byte_img_io, image.format)

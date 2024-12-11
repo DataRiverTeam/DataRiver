@@ -1,6 +1,7 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
 from datariver.operators.common.exception_managing import ErrorHandler
+from airflow.exceptions import AirflowFailException
 
 
 class ElasticPushOperator(BaseOperator):
@@ -186,6 +187,9 @@ class ElasticJsonUpdateOperator(BaseOperator):
                     self.encoding,
                 )
                 error_handler.save_error_to_file(
+                    "Document which does not have _id can not be updated"
+                )
+                raise AirflowFailException(
                     "Document which does not have _id can not be updated"
                 )
 

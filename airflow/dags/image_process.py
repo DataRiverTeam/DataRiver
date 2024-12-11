@@ -15,17 +15,10 @@ from datariver.operators.common.elasticsearch import (
     ElasticJsonUpdateOperator,
 )
 import os
-import shutil
+import common
 
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "trigger_rule": TriggerRule.NONE_FAILED,
-}
-
+default_args = common.default_args.copy()
+default_args.update({"trigger_rule": TriggerRule.NONE_FAILED})
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
     "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",
@@ -36,9 +29,11 @@ ES_CONN_ARGS = {
 
 def remove_temp_files(context, result):
     json_files_paths = context["params"]["json_files_paths"]
-    if (len(json_files_paths)) != 0:
-        dirname = os.path.dirname(json_files_paths[0])
-        shutil.rmtree(dirname)
+    for file_path in json_files_paths:
+        os.remove(file_path)
+    dirname = os.path.dirname(json_files_paths[0])
+    if not os.listdir(dirname):
+        os.rmdir(dirname)
 
 
 with DAG(

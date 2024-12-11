@@ -1,18 +1,13 @@
 import os
+import validators
+import base64
 from airflow import DAG
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
 from datariver.operators.common.elasticsearch import ElasticJsonPushOperator
 from datariver.operators.common.json_tools import MapJsonFile
-
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-}
+import common
 
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
@@ -51,13 +46,18 @@ def copy_item_to_file(item, context):
         context["ti"].run_id,
     )
     os.makedirs(dir_path, exist_ok=True)
-    full_path = os.path.join(dir_path, f'{os.path.basename(item).split(".")[0]}.json')
+    if validators.url(item):
+        filename = f"{base64.b64encode(item.encode("utf-8")).decode("utf-8")}.json"
+    else:
+        item = f"../{item}"
+        filename = f'{os.path.basename(item).split(".")[0]}.json'
+    full_path = os.path.join(dir_path, filename)
 
     with open(full_path, "w") as file:
         file.write(
             json.dumps(
                 {
-                    "image_path": f"../{item}",
+                    "image_path": item,
                     "dags_info": {dag_id: {"start_date": date, "run_id": run_id}},
                 },
                 indent=2,
@@ -68,7 +68,7 @@ def copy_item_to_file(item, context):
 
 with DAG(
     "image_transform_dataset",
-    default_args=default_args,
+    default_args=common.default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
     params={

@@ -48,33 +48,29 @@ class JsonPerceptualHash(BaseOperator):
 
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            image_path = json_args.get_value(self.input_key)
-            image_full_path = JsonArgs.generate_absolute_path(
-                json_args.get_full_path(), image_path
-            )
+            cv2_image = json_args.get_cv2_image(self.input_key)
+            if cv2_image is None:
+                continue
             match self.hash_type:
                 case HashType.p_hash:
-                    hash_value = self.p_hash(image_full_path)
+                    hash_value = self.p_hash(cv2_image)
                 case HashType.block_mean_hash:
-                    hash_value = self.block_mean_hash(image_full_path)
+                    hash_value = self.block_mean_hash(cv2_image)
                 case _:
                     raise AttributeError()
             json_args.add_value(self.output_key, {self.hash_type: str(hash_value)})
 
-    def p_hash(self, image_path: str):
+    def p_hash(self, cv2_image):
         import cv2
 
-        img = cv2.imread(image_path)
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        hash_value = cv2.img_hash.pHash(img)
+        hash_value = cv2.img_hash.pHash(cv2_image)
         hash_int = int.from_bytes(hash_value.tobytes(), byteorder="big", signed=False)
         return hash_int
 
-    def block_mean_hash(self, image_path: str):
+    def block_mean_hash(self, cv2_image):
         import cv2
 
-        img = cv2.imread(image_path)
         block_mean_hash = cv2.img_hash.BlockMeanHash_create()
-        hash_value = block_mean_hash.compute(img)
+        hash_value = block_mean_hash.compute(cv2_image)
         hash_int = int.from_bytes(hash_value.tobytes(), byteorder="big", signed=False)
         return hash_int

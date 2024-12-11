@@ -16,16 +16,11 @@ from datariver.operators.texts.translate import JsonTranslateOperator
 from datariver.operators.texts.ner import NerJsonOperator
 from datariver.operators.texts.stats import NerJsonStatisticsOperator
 from datariver.operators.texts.collectstats import JsonSummaryMarkdownOperator
+import common
 import os
 
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "trigger_rule": TriggerRule.NONE_FAILED,
-}
+default_args = common.default_args.copy()
+default_args.update({"trigger_rule": TriggerRule.NONE_FAILED})
 
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
