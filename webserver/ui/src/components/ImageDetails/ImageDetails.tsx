@@ -172,7 +172,7 @@ function ImageDetails() {
                     ) : null}
 
 
-                {imageDetails.hash && Object.keys(imageDetails.error).length > 0 && (
+                {imageDetails.error && Object.keys(imageDetails.error).length > 0 && (
                 <>
                     <h3>Errors</h3>
                     <table className={s.metaDataTable}>
