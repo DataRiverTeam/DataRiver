@@ -8,6 +8,7 @@ from airflow.models.param import Param
 from datariver.sensors.filesystem import MultipleFilesSensor
 import common
 
+
 def parse_paths(paths, **context):
     def create_conf(path):
         return {
