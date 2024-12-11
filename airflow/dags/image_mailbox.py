@@ -6,15 +6,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
 from datariver.sensors.filesystem import MultipleFilesSensor
-
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 0,
-}
-
+import common
 
 def parse_paths(paths, **context):
     def create_conf(path):
@@ -30,7 +22,7 @@ def parse_paths(paths, **context):
 
 with DAG(
     "image_mailbox",
-    default_args=default_args,
+    default_args=common.default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
     params={

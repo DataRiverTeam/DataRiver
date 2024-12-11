@@ -15,16 +15,10 @@ from datariver.operators.common.elasticsearch import (
     ElasticJsonUpdateOperator,
 )
 import os
+import common
 
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "trigger_rule": TriggerRule.NONE_FAILED,
-}
-
+default_args = common.default_args.copy()
+default_args.update({"trigger_rule": TriggerRule.NONE_FAILED})
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
     "ca_certs": "/usr/share/elasticsearch/config/certs/ca/ca.crt",

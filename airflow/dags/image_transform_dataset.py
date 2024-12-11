@@ -7,14 +7,7 @@ from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
 from datariver.operators.common.elasticsearch import ElasticJsonPushOperator
 from datariver.operators.common.json_tools import MapJsonFile
-
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 0,
-}
+import common
 
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
@@ -75,7 +68,7 @@ def copy_item_to_file(item, context):
 
 with DAG(
     "image_transform_dataset",
-    default_args=default_args,
+    default_args=common.default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
     params={
