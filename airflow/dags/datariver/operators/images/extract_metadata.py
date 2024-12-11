@@ -1,6 +1,7 @@
 import json
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.exception_managing import ErrorHandler
 
 
 class JsonExtractMetadata(BaseOperator):
@@ -20,6 +21,7 @@ class JsonExtractMetadata(BaseOperator):
         input_key,
         output_key,
         encoding="utf-8",
+        error_key="error",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -28,6 +30,7 @@ class JsonExtractMetadata(BaseOperator):
         self.input_key = input_key
         self.output_key = output_key
         self.encoding = encoding
+        self.error_key=error_key
 
     def execute(self, context):
         from PIL import ExifTags
@@ -36,6 +39,14 @@ class JsonExtractMetadata(BaseOperator):
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image = json_args.get_PIL_image(self.input_key)
             if image is None:
+                error_handler = ErrorHandler(
+                    file_path,
+                    self.fs_conn_id,
+                    self.error_key,
+                    self.task_id,
+                    self.encoding,
+                )
+                error_handler.save_error_list_to_file("Cannot download file")
                 continue
             exif_info = image._getexif()
             metadata = []
@@ -45,7 +56,16 @@ class JsonExtractMetadata(BaseOperator):
                         try:
                             value = value.decode(encoding=json.detect_encoding(value))
                         except UnicodeDecodeError:
-                            # todo write error
+                            error_handler = ErrorHandler(
+                                file_path,
+                                self.fs_conn_id,
+                                self.error_key,
+                                self.task_id,
+                                self.encoding,
+                            )
+                            error_handler.save_error_list_to_file(
+                                f"Wrong {tag} encoding"
+                            )
                             continue
                     else:
                         value = str(value)

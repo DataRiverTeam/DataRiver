@@ -1,5 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.exception_managing import ErrorHandler
 
 
 class JsonDescribeImage(BaseOperator):
@@ -20,6 +21,7 @@ class JsonDescribeImage(BaseOperator):
         input_key,
         output_key,
         encoding="utf-8",
+        error_key="error",
         local_model_path=None,
         **kwargs
     ):
@@ -30,6 +32,7 @@ class JsonDescribeImage(BaseOperator):
         self.output_key = output_key
         self.encoding = encoding
         self.local_model_path = local_model_path
+        self.error_key=error_key
 
     def execute(self, context):
         from transformers import BlipProcessor, BlipForConditionalGeneration
@@ -45,7 +48,14 @@ class JsonDescribeImage(BaseOperator):
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             image = json_args.get_PIL_image(self.input_key)
             if image is None:
-                # todo write error
+                error_handler = ErrorHandler(
+                    file_path,
+                    self.fs_conn_id,
+                    self.error_key,
+                    self.task_id,
+                    self.encoding,
+                )
+                error_handler.save_error_list_to_file("Cannot download file")
                 continue
 
             # Preprocess the image and prepare inputs for the model
