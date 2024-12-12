@@ -29,7 +29,7 @@ const ITEMS_PER_PAGE = 20;
 
 function formToQueryString(data: TImageFormFields | null, pageNumber: number) {
     let queryObject = {
-        start: ((pageNumber - 1) * ITEMS_PER_PAGE).toString(),
+        page: pageNumber.toString(),
     };
 
     if (data) {
