@@ -15,6 +15,7 @@ import NerTransformDashboard from "./components/dashboards/NerTransform/NerTrans
 import NerProcessDashboard from "./components/dashboards/NerProcess/NerProcessDashboard";
 import MapImageFilesDashboard from "./components/dashboards/MapImageFiles/MapImageFilesDashboard";
 import ImageProcessingDashboard from "./components/dashboards/ImageProcessing/ImageProcessingDashboard";
+import ImageMailboxDashboard from "./components/dashboards/ImageMailbox/ImageMailboxDashboard";
 
 const dashboards: RouteObject[] = [
     /* DASHBOARDS */
@@ -29,6 +30,10 @@ const dashboards: RouteObject[] = [
     {
         path: "ner/dashboard/ner_process",
         element: <NerProcessDashboard />,
+    },
+    {
+        path: "images/dashboard/mailbox",
+        element: <ImageMailboxDashboard />,
     },
     {
         path: "images/dashboard/image_transform_dataset",

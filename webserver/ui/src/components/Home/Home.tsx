@@ -26,6 +26,11 @@ function Home() {
             <h2> Image processing</h2>
             <CardContainer>
                 <CardLink
+                    title="Import dataset"
+                    linkTo="/images/dashboard/mailbox"
+                    description="Manage file sensors and upload files"
+                />
+                <CardLink
                     title="Create batches"
                     linkTo="/images/dashboard/image_transform_dataset"
                     description="Monitor splitting images from dataset into batches"

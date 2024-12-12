@@ -22,6 +22,12 @@ export const exampleNerJson = [
     },
 ];
 
+export const exampleImagesJson = [
+    "https://placehold.co/600x400/jpg",
+    "https://placehold.co/600x400/000000/FFFFFF.png",
+    "https://placehold.co/800x600?text=Hello+World",
+];
+
 export const triggerMailboxConf = {
     batch_size: 10,
     encoding: "utf-8",
