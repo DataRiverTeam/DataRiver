@@ -15,8 +15,8 @@ import Button from "../../Button/Button";
 
 const client = new ApiClient();
 
-const dagId = "ner_mailbox";
-const mailboxUploadPath = "/map/";
+const dagId = "image_mailbox";
+const mailboxUploadPath = "/image_mailbox/";
 
 async function triggerMailbox(onSuccess: () => any | null) {
     try {
