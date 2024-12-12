@@ -13,8 +13,8 @@ import Home from "./components/Home/Home";
 import NerMailboxDashboard from "./components/dashboards/NerMailbox/NerMailboxDashboard";
 import NerTransformDashboard from "./components/dashboards/NerTransform/NerTransformDashboard";
 import NerProcessDashboard from "./components/dashboards/NerProcess/NerProcessDashboard";
-import MapImageFilesDashboard from "./components/dashboards/MapImageFiles/MapImageFilesDashboard";
-import ImageProcessingDashboard from "./components/dashboards/ImageProcessing/ImageProcessingDashboard";
+import ImageTransformDatasetDashboard from "./components/dashboards/ImageTransformDataset/ImageTransformDatasetDashboard";
+import ImageProcessingDashboard from "./components/dashboards/ImageProcess/ImageProcessDashboard";
 import ImageMailboxDashboard from "./components/dashboards/ImageMailbox/ImageMailboxDashboard";
 
 const dashboards: RouteObject[] = [
@@ -37,7 +37,7 @@ const dashboards: RouteObject[] = [
     },
     {
         path: "images/dashboard/image_transform_dataset",
-        element: <MapImageFilesDashboard />,
+        element: <ImageTransformDatasetDashboard />,
     },
     {
         path: "images/dashboard/image_process",
