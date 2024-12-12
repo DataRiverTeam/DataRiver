@@ -81,7 +81,7 @@ function NerCard({ item }: TNerCardProps) {
                         <li>Processed date: {item.processed_date}</li>
                     ) : null}
                 </ul>
-                <p>Dags info</p>
+                <h3>Dags info</h3>
                 {item.dags_info && Object.keys(item.dags_info).length > 0 ? (
                     <table
                         border={1}

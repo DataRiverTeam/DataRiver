@@ -1,5 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.exception_managing import ErrorHandler
 from enum import StrEnum
 
 
@@ -31,6 +32,7 @@ class JsonPerceptualHash(BaseOperator):
         output_key,
         hash_type: str = "block_mean_hash",
         encoding="utf-8",
+        error_key="error",
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -39,6 +41,7 @@ class JsonPerceptualHash(BaseOperator):
         self.input_key = input_key
         self.output_key = output_key
         self.encoding = encoding
+        self.error_key = error_key
         if hash_type not in HashType:
             # todo add error handling here someheow
             raise AttributeError(f"unsupported HashType {hash_type}")
@@ -50,6 +53,14 @@ class JsonPerceptualHash(BaseOperator):
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
             cv2_image = json_args.get_cv2_image(self.input_key)
             if cv2_image is None:
+                error_handler = ErrorHandler(
+                    file_path,
+                    self.fs_conn_id,
+                    self.error_key,
+                    self.task_id,
+                    self.encoding,
+                )
+                error_handler.save_error_list_to_file("Cannot download file")
                 continue
             match self.hash_type:
                 case HashType.p_hash:
