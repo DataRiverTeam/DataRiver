@@ -18,7 +18,7 @@ function Home() {
                 />
                 <CardLink
                     title="Process files"
-                    linkTo="/ner/dashboard/ner_files"
+                    linkTo="/ner/dashboard/ner_process"
                     description="Monitor file processing"
                 />
             </CardContainer>

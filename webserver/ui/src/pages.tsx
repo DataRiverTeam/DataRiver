@@ -27,7 +27,7 @@ const dashboards: RouteObject[] = [
         element: <NerTransformDashboard />,
     },
     {
-        path: "ner/dashboard/ner_files",
+        path: "ner/dashboard/ner_process",
         element: <NerProcessDashboard />,
     },
     {
