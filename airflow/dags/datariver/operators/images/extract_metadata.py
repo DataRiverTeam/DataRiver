@@ -64,7 +64,7 @@ class JsonExtractMetadata(BaseOperator):
                                 self.encoding,
                             )
                             error_handler.save_error_list_to_file(
-                                f"Wrong {tag} encoding"
+                                f"Wrong {ExifTags.TAGS.get(tag)} encoding"
                             )
                             continue
                     else:

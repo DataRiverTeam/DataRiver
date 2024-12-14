@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import BackButton from "../../BackButton/BackButton";
-
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -14,25 +13,24 @@ import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
-import clsx from "clsx";
+import s from "./ImageTransformDataset.module.css";
 
-import s from "./NerProcessDashboard.module.css";
+import clsx from "clsx";
 
 const client = new ApiClient();
 
-const dagId = "ner_process";
+const dagId = "image_transform_dataset";
 
-function NerProcessDashboard() {
+function ImageTransformDatasetDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
+    //TODO: move fetchDagRuns to utils, since it's repeated in literally every dashboard
     let fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
                 dagId
             );
-
-            console.log(json);
 
             setDagRuns(json.dag_runs);
         } catch (error) {
@@ -49,13 +47,19 @@ function NerProcessDashboard() {
     return (
         <>
             <BackButton to="/" />
-            <h1>NER - processing files</h1>
-            <p>Monitor processing of the articles.</p>
+            <h1>Images - batching files</h1>
+            <p>
+                Monitor the process of splitting uploaded images dataset into
+                smaller batches.
+            </p>
 
-            <h2> Recent DAG runs</h2>
+            <h2>TODO: MAKE LINKS TO THE BROWSER WITH QUERY WITH DAG RUN ID</h2>
+
+            <h2> Active DAGs</h2>
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
+                // <DagRunsList dagId={dagId} dagRuns={dagRuns} />
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
@@ -111,7 +115,7 @@ function NerProcessDashboard() {
                                     </TableCell>
                                     <TableCell scope="row" align="center">
                                         <Link
-                                            to={`/ner/search?ner-single-file-run-id=${encodeURIComponent(
+                                            to={`/images/search?image-transform-dataset-run-id=${encodeURIComponent(
                                                 dagRun.dag_run_id
                                             )}`}
                                         >
@@ -132,4 +136,4 @@ function NerProcessDashboard() {
     );
 }
 
-export default NerProcessDashboard;
+export default ImageTransformDatasetDashboard;

@@ -144,7 +144,6 @@ function NerBrowser() {
     }
 
     useEffect(() => {
-        console.log(searchParams.get("page"));
         if (searchParams.has("content")) {
             setValue("content", searchParams.get("content")!);
         }

@@ -217,10 +217,10 @@ app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
 // NER endpoints
 
 app.get("/api/ner/docs", async (req, res) => {
-    const SIZE = 10;
+    const PAGE_SIZE = 10;
 
     // query params
-    const start = req.query["start"] || 0;
+    const page = req.query["page"] || 1;
     const contentFragment = req.query["content"] || null;
     const mapFileRunId = req.query["map-file-run-id"] || null;
     const nerSingleFileRunId = req.query["ner-single-file-run-id"] || null;
@@ -280,8 +280,8 @@ app.get("/api/ner/docs", async (req, res) => {
     try {
         const result = await elasticClient.search({
             index: "ner",
-            size: SIZE,
-            from: Math.max(start, 0),
+            size: PAGE_SIZE,
+            from: Math.max((page - 1) * PAGE_SIZE, 0),
             query: query,
             sort: {
                 _script: {
@@ -302,9 +302,11 @@ app.get("/api/ner/docs", async (req, res) => {
 // Image endpoints
 
 app.get("/api/images/thumbnails", async (req, res) => {
-    const SIZE = 20;
-    const start = req.query["start"] || 0;
-    const mapFileImagesRunId = req.query["map-file-images-run-id"] || null;
+    const PAGE_SIZE = 20;
+    const page = req.query["page"] || 1;
+    const mapFileImagesRunId =
+        req.query["image-transform-dataset-run-id"] || null;
+    const processFilesRunId = req.query["image-process-run-id"] || null;
     const description = req.query["description"] || null;
     const dateRangeFrom = req.query["date-range-from"] || null;
     const dateRangeTo = req.query["date-range-to"] || null;
@@ -317,14 +319,25 @@ app.get("/api/images/thumbnails", async (req, res) => {
 
     if (mapFileImagesRunId) {
         mustClauses.push({
-            match: { "dags_info.map_file_images.keyword": mapFileImagesRunId },
+            match: {
+                "dags_info.image_transform_dataset.run_id.keyword":
+                    mapFileImagesRunId,
+            },
+        });
+    }
+
+    if (processFilesRunId) {
+        mustClauses.push({
+            match: {
+                "dags_info.image_process.run_id.keyword": processFilesRunId,
+            },
         });
     }
 
     if (dateRangeFrom || dateRangeTo) {
         const dateClause = {
             range: {
-                "dags_info.map_file_images.start_date": {
+                "dags_info.image_transform_dataset.start_date": {
                     ...(dateRangeFrom ? { gte: dateRangeFrom } : null),
                     ...(dateRangeTo ? { lte: dateRangeTo } : null),
                 },
@@ -340,11 +353,13 @@ app.get("/api/images/thumbnails", async (req, res) => {
         },
     };
 
+    console.log("/api/images");
+    console.log("Sending query:", JSON.stringify(query, null, 2));
     try {
         const result = await elasticClient.search({
             index: "image_processing",
-            size: SIZE,
-            from: start,
+            size: PAGE_SIZE,
+            from: Math.max((page - 1) * PAGE_SIZE, 0),
             _source: {
                 includes: "thumbnail",
             },

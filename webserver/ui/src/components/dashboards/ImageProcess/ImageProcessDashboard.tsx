@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import BackButton from "../../BackButton/BackButton";
-
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -15,14 +14,12 @@ import IconButton from "@mui/material/IconButton";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 import clsx from "clsx";
-
-import s from "./NerProcessDashboard.module.css";
+import s from "./ImageProcess.module.css";
 
 const client = new ApiClient();
 
-const dagId = "ner_process";
-
-function NerProcessDashboard() {
+const dagId = "image_process";
+function ImageProcessingDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
@@ -31,8 +28,6 @@ function NerProcessDashboard() {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
                 dagId
             );
-
-            console.log(json);
 
             setDagRuns(json.dag_runs);
         } catch (error) {
@@ -49,13 +44,17 @@ function NerProcessDashboard() {
     return (
         <>
             <BackButton to="/" />
-            <h1>NER - processing files</h1>
+            <h1>Processing images</h1>
             <p>Monitor processing of the articles.</p>
 
+            <h2>TODO: MAKE LINKS TO THE IMAGE BROWSER</h2>
+
+            <h2> Active DAGs</h2>
             <h2> Recent DAG runs</h2>
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
+                // <DagRunsList dagId={dagId} dagRuns={dagRuns} />
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }} aria-label="simple table">
                         <TableHead>
@@ -111,7 +110,7 @@ function NerProcessDashboard() {
                                     </TableCell>
                                     <TableCell scope="row" align="center">
                                         <Link
-                                            to={`/ner/search?ner-single-file-run-id=${encodeURIComponent(
+                                            to={`/images/search?&image-process-run-id=${encodeURIComponent(
                                                 dagRun.dag_run_id
                                             )}`}
                                         >
@@ -132,4 +131,4 @@ function NerProcessDashboard() {
     );
 }
 
-export default NerProcessDashboard;
+export default ImageProcessingDashboard;

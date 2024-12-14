@@ -18,13 +18,18 @@ function Home() {
                 />
                 <CardLink
                     title="Process files"
-                    linkTo="/ner/dashboard/ner_files"
+                    linkTo="/ner/dashboard/ner_process"
                     description="Monitor file processing"
                 />
             </CardContainer>
 
             <h2> Image processing</h2>
             <CardContainer>
+                <CardLink
+                    title="Import dataset"
+                    linkTo="/images/dashboard/mailbox"
+                    description="Manage file sensors and upload files"
+                />
                 <CardLink
                     title="Create batches"
                     linkTo="/images/dashboard/image_transform_dataset"
