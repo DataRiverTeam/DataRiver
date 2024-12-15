@@ -49,7 +49,7 @@ function ImageProcessingDashboard() {
             <h1>Processing images</h1>
             <p>Monitor processing of the articles.</p>
 
-            <h2>TODO: MAKE LINKS TO THE IMAGE BROWSER</h2>
+            
 
             <h2> Active DAGs</h2>
             <div style={{ 
