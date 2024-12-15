@@ -9,6 +9,7 @@ type TButtonProps = {
     startIcon?: ReactNode;
     endIcon?: ReactNode;
     onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined;
+    disabled?: boolean | undefined;
 };
 
 function Button({
@@ -17,6 +18,7 @@ function Button({
     startIcon = null,
     endIcon = null,
     onClick = undefined,
+    disabled = false,
 }: TButtonProps) {
     return (
         <MuiButton
@@ -26,6 +28,7 @@ function Button({
             startIcon={startIcon}
             endIcon={endIcon}
             onClick={onClick}
+            disabled={disabled}
         >
             {children}
         </MuiButton>

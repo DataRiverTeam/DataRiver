@@ -68,7 +68,7 @@ function NerTransformDashboard() {
                     <span>
                         <Button 
                             onClick={fetchDagRuns} 
-                            // disabled={isLoading}
+                            disabled={areDagRunsLoading}
                         >
                             <RefreshIcon />
                         </Button>
