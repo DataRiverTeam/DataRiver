@@ -12,7 +12,9 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-
+import { Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import Button from "../../Button/Button";
 import s from "./ImageTransformDataset.module.css";
 
 import clsx from "clsx";
@@ -55,7 +57,23 @@ function ImageTransformDatasetDashboard() {
 
             <h2>TODO: MAKE LINKS TO THE BROWSER WITH QUERY WITH DAG RUN ID</h2>
 
-            <h2> Active DAGs</h2>
+            <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px'
+            }}>
+                <h2>Active DAGs</h2>
+                <Tooltip title="Refresh DAG runs">
+                    <span>
+                        <Button 
+                            onClick={fetchDagRuns} 
+                            // disabled={isLoading}
+                        >
+                            <RefreshIcon />
+                        </Button>
+                    </span>
+                </Tooltip>
+            </div>
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
