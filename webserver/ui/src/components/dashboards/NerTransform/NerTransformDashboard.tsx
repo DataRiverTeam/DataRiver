@@ -9,9 +9,10 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-
+import { Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import Button from "../../Button/Button";
 import clsx from "clsx";
-
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import BackButton from "../../BackButton/BackButton";
@@ -57,7 +58,23 @@ function NerTransformDashboard() {
                 smaller batches.
             </p>
 
-            <h2> Recent DAG runs</h2>
+            <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px'
+            }}>
+                <h2>Recent DAG runs</h2>
+                <Tooltip title="Refresh DAG runs">
+                    <span>
+                        <Button 
+                            onClick={fetchDagRuns} 
+                            disabled={areDagRunsLoading}
+                        >
+                            <RefreshIcon />
+                        </Button>
+                    </span>
+                </Tooltip>
+            </div>
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (

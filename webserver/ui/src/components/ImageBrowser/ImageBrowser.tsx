@@ -186,16 +186,29 @@ function ImageBrowser() {
                                 type="datetime-local"
                                 {...register("dateRangeTo")}
                             />
-                        </div>
+                        </div> 
                     </fieldset>
-
-                    <Button
-                        variant="outlined"
-                        className={s.filterSubmit}
-                        type="submit"
-                    >
-                        Filter
-                    </Button>
+                    <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px'
+                    }}>
+                        <Button
+                            variant="outlined"
+                            className={s.filterSubmit}
+                            type="submit"
+                        >
+                            Filter
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            className={s.filterSubmit}
+                            type="reset"
+                            onClick={() => setSearchParams({})}
+                        >
+                            Clear
+                        </Button>
+                    </div>
                 </form>
             </div>
 

@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import BackButton from "../../BackButton/BackButton";
-
+import Tooltip from "@mui/material/Tooltip";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import Button from "../../Button/Button";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -51,8 +53,23 @@ function NerProcessDashboard() {
             <BackButton to="/" />
             <h1>NER - processing files</h1>
             <p>Monitor processing of the articles.</p>
-
-            <h2> Recent DAG runs</h2>
+            <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px'
+            }}>
+                <h2> Recent DAG runs</h2>
+                <Tooltip title="Refresh DAG runs">
+                    <span>
+                        <Button 
+                            onClick={fetchDagRuns} 
+                            disabled={areDagRunsLoading}
+                        >
+                            <RefreshIcon />
+                        </Button>
+                    </span>
+                </Tooltip>
+            </div>  
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
