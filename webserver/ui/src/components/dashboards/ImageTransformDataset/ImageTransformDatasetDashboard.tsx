@@ -55,7 +55,6 @@ function ImageTransformDatasetDashboard() {
                 smaller batches.
             </p>
 
-            <h2>TODO: MAKE LINKS TO THE BROWSER WITH QUERY WITH DAG RUN ID</h2>
 
             <div style={{ 
             display: 'flex', 
