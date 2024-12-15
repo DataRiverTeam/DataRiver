@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import BackButton from "../../BackButton/BackButton";
-import { Tooltip } from "@mui/material";
+import Tooltip from "@mui/material/Tooltip";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Button from "../../Button/Button";
 import Table from "@mui/material/Table";
