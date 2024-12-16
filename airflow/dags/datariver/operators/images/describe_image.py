@@ -23,6 +23,7 @@ class JsonDescribeImage(BaseOperator):
         encoding="utf-8",
         error_key="error",
         local_model_path=None,
+        min_length=30,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -33,6 +34,7 @@ class JsonDescribeImage(BaseOperator):
         self.encoding = encoding
         self.local_model_path = local_model_path
         self.error_key = error_key
+        self.min_length = min_length
 
     def execute(self, context):
         from transformers import BlipProcessor, BlipForConditionalGeneration
@@ -61,7 +63,13 @@ class JsonDescribeImage(BaseOperator):
             # Preprocess the image and prepare inputs for the model
             inputs = processor(images=image, return_tensors="pt")
             # Generate caption
-            caption = model.generate(**inputs, max_new_tokens=100)
+            caption = model.generate(
+                **inputs,
+                min_length=self.min_length,
+                max_new_tokens=100,
+                num_beams=5,
+                repetition_penalty=2.0
+            )
             # Decode the generated caption
             caption_text = processor.decode(caption[0], skip_special_tokens=True)
 
