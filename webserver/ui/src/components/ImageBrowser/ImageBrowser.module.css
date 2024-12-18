@@ -33,6 +33,7 @@
     justify-content: space-between;
     width: 300px;
     align-items: center;
+    gap: 0.8rem;
 }
 
 .filterSubmit:global(.MuiButton-outlined) {

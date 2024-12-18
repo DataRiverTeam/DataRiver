@@ -186,13 +186,15 @@ function ImageBrowser() {
                                 type="datetime-local"
                                 {...register("dateRangeTo")}
                             />
-                        </div> 
+                        </div>
                     </fieldset>
-                    <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '10px'
-                    }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                        }}
+                    >
                         <Button
                             variant="outlined"
                             className={s.filterSubmit}
