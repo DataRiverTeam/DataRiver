@@ -46,9 +46,7 @@ with DAG(
         "json_files_paths": Param(
             type="array",
         ),
-        "initial_dag_id": Param(
-            type="string",
-        ),
+        "initial_dag_id": Param(type=["null", "string"], default=""),
         "fs_conn_id": Param(type="string", default="fs_data"),
     },
 ) as dag:
