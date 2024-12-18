@@ -15,7 +15,7 @@ def parse_paths(paths, **context):
             "path": path,
             "batch_size": context["params"]["batch_size"],
             "encoding": context["params"]["encoding"],
-            "initial_dag_id": context["dag_run"].run_id,
+            "initial_dag_run_id": context["dag_run"].run_id,
         }
 
     paths_list = paths.split(",")
