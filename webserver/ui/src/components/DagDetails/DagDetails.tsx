@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { TDagRun } from "../../types/airflow";
 
-import DagRunsList from "../DagRunsList/DagRunsList";
+import DagRunsList from "../DagRunsListOld/DagRunsList";
 
 import Tooltip from "@mui/material/Tooltip";
 import Button from "@mui/material/Button";

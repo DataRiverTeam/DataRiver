@@ -5,7 +5,7 @@ import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { triggerMailboxConf } from "../../../utils/consts";
 
-// import DagRunsList from "../../DagRunsList/DagRunsList";
+// import DagRunsList from "../../DagRunsListOld/DagRunsList";
 import MessageBox from "../../MessageBox/MessageBox";
 import FileUploadForm from "../../FileUploadForm/FileUploadForm";
 import CodeBlock from "../../CodeBlock/CodeBlock";

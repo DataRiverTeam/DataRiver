@@ -1,66 +1,97 @@
-import { TDagRun, TDagState } from "../../types/airflow";
+import { Link } from "react-router-dom";
 
-import { ReactNode, useState } from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import IconButton from "@mui/material/IconButton";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import { TDagRun } from "../../types/airflow";
 
 import s from "./DagRunsList.module.css";
-import Row from "./components/Row";
+
+import clsx from "clsx";
 
 type TDagRunsListProps = {
-    dagId: string;
     dagRuns: TDagRun[];
-    heading?: ReactNode;
 };
 
-const NO_ITEMS_MSG = "No DAG runs to display.";
-
-const states: TDagState[] = ["queued", "running", "success", "failed"];
-
-function DagRunsList({ dagRuns, dagId, heading = null }: TDagRunsListProps) {
-    let [selectedState, setSelectedState] = useState<"" | TDagState>("");
-
+function DagRunsList({ dagRuns }: TDagRunsListProps) {
     return (
-        <>
-            {heading || null}
-            <fieldset>
-                <legend>Filters</legend>
-                <select
-                    onChange={(e) => {
-                        setSelectedState(e.target.value as "" | TDagState);
-                    }}
-                >
-                    <option value={""}> - </option>
-                    {states.map((state) => (
-                        <option key={`option-${state}`} value={state}>
-                            {state}
-                        </option>
+        <TableContainer component={Paper}>
+            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                    <TableRow>
+                        <TableCell>DAG run ID</TableCell>
+                        <TableCell>Start date</TableCell>
+                        <TableCell>State</TableCell>
+                        <TableCell align="center">Tasks</TableCell>
+                        <TableCell align="center">Results</TableCell>
+                    </TableRow>
+                </TableHead>
+                <TableBody>
+                    {dagRuns.map((dagRun) => (
+                        <TableRow
+                            key={dagRun.dag_run_id}
+                            sx={{
+                                "&:last-child td, &:last-child th": {
+                                    border: 0,
+                                },
+                            }}
+                        >
+                            <TableCell scope="row">
+                                {dagRun.dag_run_id}
+                            </TableCell>
+                            <TableCell scope="row">
+                                {dagRun.start_date}
+                            </TableCell>
+                            <TableCell
+                                scope="row"
+                                className={clsx(s.cellStatus, {
+                                    [s.cellStatusSuccess]:
+                                        dagRun.state === "success",
+                                    [s.cellStatusFailed]:
+                                        dagRun.state === "failed",
+                                    [s.cellStatusRunning]:
+                                        dagRun.state === "running",
+                                })}
+                            >
+                                {dagRun.state}
+                            </TableCell>
+                            <TableCell scope="row" align="center">
+                                <Link
+                                    to={`/dags/${
+                                        dagRun.dag_id
+                                    }/${encodeURIComponent(dagRun.dag_run_id)}`}
+                                >
+                                    <IconButton aria-label="DAG run details">
+                                        <ArrowForwardIosIcon
+                                            sx={{ fontSize: 12 }}
+                                        />
+                                    </IconButton>
+                                </Link>
+                            </TableCell>
+                            <TableCell scope="row" align="center">
+                                <Link
+                                    to={`/ner/search?&map-file-run-id=${encodeURIComponent(
+                                        dagRun.dag_run_id
+                                    )}`}
+                                >
+                                    <IconButton aria-label="DAG run ">
+                                        <ArrowForwardIosIcon
+                                            sx={{ fontSize: 12 }}
+                                        />
+                                    </IconButton>
+                                </Link>
+                            </TableCell>
+                        </TableRow>
                     ))}
-                </select>
-            </fieldset>
-            {dagRuns?.length ? (
-                <div className={s.dagruns}>
-                    <div className={s.dagrunsCell}>DAG run ID</div>
-                    <div className={s.dagrunsCell}>Start date</div>
-                    <div className={s.dagrunsCell}>State</div>
-                    {dagRuns
-                        .filter(
-                            (dagRun) =>
-                                selectedState === "" ||
-                                dagRun.state === selectedState
-                        )
-                        .map((dagRun) => {
-                            return (
-                                <Row
-                                    key={dagRun.dag_run_id}
-                                    dagRun={dagRun}
-                                    dagId={dagId}
-                                />
-                            );
-                        })}
-                </div>
-            ) : (
-                <p>{NO_ITEMS_MSG}</p>
-            )}
-        </>
+                </TableBody>
+            </Table>
+        </TableContainer>
     );
 }
 
