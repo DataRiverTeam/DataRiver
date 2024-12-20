@@ -120,7 +120,7 @@ function DagRunsList({ dagRuns }: TDagRunsListProps) {
                 </TableBody>
             </Table>
             <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
+                rowsPerPageOptions={[5, 10, 50]}
                 component="div"
                 count={dagRuns.length}
                 rowsPerPage={rowsPerPage}
