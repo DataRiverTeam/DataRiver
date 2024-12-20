@@ -102,6 +102,13 @@ export type TDagRunsCollection = {
 
 export type TDagState = "queued" | "running" | "success" | "failed";
 
+export const TDagStateValues: TDagState[] = [
+    "queued",
+    "running",
+    "success",
+    "failed",
+] as const;
+
 export type TDagRun = {
     conf: {
         [key: string]: boolean | number | string | [] | object;
