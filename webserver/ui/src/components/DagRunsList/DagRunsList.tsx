@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-
+import { useState } from "react";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -9,6 +9,7 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import IconButton from "@mui/material/IconButton";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import TablePagination from "@mui/material/TablePagination";
 import { TDagRun } from "../../types/airflow";
 
 import s from "./DagRunsList.module.css";
@@ -20,8 +21,35 @@ type TDagRunsListProps = {
 };
 
 function DagRunsList({ dagRuns }: TDagRunsListProps) {
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+
+    const handleChangePage = (_: unknown, newPage: number) => {
+        setPage(newPage);
+    };
+
+    const handleChangeRowsPerPage = (
+        event: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    const paginatedDagRuns = dagRuns.slice(
+        page * rowsPerPage,
+        page * rowsPerPage + rowsPerPage
+    );
     return (
         <TableContainer component={Paper}>
+            <TablePagination
+                rowsPerPageOptions={[5, 10, 50]}
+                component="div"
+                count={dagRuns.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                     <TableRow>
@@ -33,7 +61,7 @@ function DagRunsList({ dagRuns }: TDagRunsListProps) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {dagRuns.map((dagRun) => (
+                    {paginatedDagRuns.map((dagRun) => (
                         <TableRow
                             key={dagRun.dag_run_id}
                             sx={{
@@ -91,6 +119,15 @@ function DagRunsList({ dagRuns }: TDagRunsListProps) {
                     ))}
                 </TableBody>
             </Table>
+            <TablePagination
+                rowsPerPageOptions={[5, 10, 50]}
+                component="div"
+                count={dagRuns.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
         </TableContainer>
     );
 }
