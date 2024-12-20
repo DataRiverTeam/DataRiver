@@ -1,59 +1,22 @@
-.list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.dagruns {
-    min-width: 100%;
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-}
-
-.dagrunsRow {
-    display: grid;
-    columns: auto auto auto auto;
-}
-
-.dagrunsCell {
-    padding: 5px;
-    border: 1px solid rgba(120, 120, 120, 0.5);
-}
-
-.status {
+.cellStatus:global(.MuiTableCell-body) {
     font-weight: bold;
-    text-align: center;
+    /* text-align: center; */
 }
 
-.statusSuccess {
-    background-color: #008000;
-    color: white;
+.cellStatusSuccess:global(.MuiTableCell-body) {
+    color: #008000;
+    /* background-color: #008000;
+    color: white; */
 }
 
-.statusFailed {
-    background-color: #ff0000;
-    color: white;
+.cellStatusFailed:global(.MuiTableCell-body) {
+    color: #ff0000;
+    /* background-color: #ff0000;
+    color: white; */
 }
 
-.statusRunning {
-    background-color: #00ff00;
-    color: white;
-}
-
-.statusUpstreamFailed {
-    background-color: #ffa500;
-    color: white;
-}
-.statusUpstreamFailed {
-    background-color: turquoise;
-    color: white;
-}
-
-.dagrunConfCell {
-    grid-column: 1 / 5;
-    transition: 1s height;
-}
-
-.dagrunConfCellActive {
-    height: auto;
+.cellStatusRunning:global(.MuiTableCell-body) {
+    color: #00ff00;
+    /* background-color: #00ff00;
+    color: white; */
 }
