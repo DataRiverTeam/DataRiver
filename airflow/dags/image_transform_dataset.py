@@ -24,6 +24,7 @@ def map_paths(paths, **context):
         return {
             "fs_conn_id": context["params"]["fs_conn_id"],
             "json_files_paths": json_paths[start_index : start_index + batch_size],
+            "parent_dag_run_id": context["dag_run"].run_id,
         }
 
     clear_paths = [path for path in paths if path is not None]
@@ -76,6 +77,7 @@ with DAG(
         "path": Param(
             type="string",
         ),
+        "parent_dag_run_id": Param(type=["null", "string"], default=""),
         "batch_size": Param(type="integer", default="10"),
     },
 ) as dag:

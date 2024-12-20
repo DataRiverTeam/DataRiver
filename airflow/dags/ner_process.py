@@ -69,6 +69,7 @@ with DAG(
         "json_files_paths": Param(
             type="array",
         ),
+        "parent_dag_run_id": Param(type=["null", "string"], default=""),
         "fs_conn_id": Param(type="string", default="fs_data"),
         "encoding": Param(type="string", default="utf-8"),
     },
