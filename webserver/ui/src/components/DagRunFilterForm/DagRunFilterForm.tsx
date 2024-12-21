@@ -3,16 +3,19 @@ import { UseFormReturn } from "react-hook-form";
 
 import s from "./DagRunFilterForm.module.css";
 import { TDagRunFilterFields } from "../../utils/dags";
+import Button from "../Button/Button";
+import { FormEventHandler } from "react";
 
 type TDagRunFilterFormProps = {
     form: UseFormReturn<TDagRunFilterFields>;
+    onSubmit: FormEventHandler<HTMLFormElement>;
 };
 
-function DagRunFilterForm({ form }: TDagRunFilterFormProps) {
+function DagRunFilterForm({ form, onSubmit }: TDagRunFilterFormProps) {
     const { register } = form;
 
     return (
-        <form className={s.formWrapper}>
+        <form className={s.formWrapper} onSubmit={onSubmit}>
             <div className={s.formFieldWrapper}>
                 <label>State</label>
                 <select className={s.formField} {...register("state")}>
@@ -40,6 +43,7 @@ function DagRunFilterForm({ form }: TDagRunFilterFormProps) {
                     {...register("parentDagRunId")}
                 />
             </div>
+            <Button type="submit"> Filter </Button>
         </form>
     );
 }

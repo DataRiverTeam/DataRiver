@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import IconButton from "@mui/material/IconButton";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
+import { TDagRunFilterFields } from "../../../utils/dags";
 import s from "../dashboards.module.css";
 import { TDagRunWithParent } from "../../../utils/dags";
 import clsx from "clsx";
@@ -53,4 +54,34 @@ export function getDashboardListCells(
             </Link>
         </div>,
     ];
+}
+
+export function computeFilters(values: TDagRunFilterFields) {
+    const computedFilters = [];
+    const filterState = values.state;
+    const filterDagRunId = values.dagRunId;
+    const filterParentDagRunId = values.parentDagRunId;
+
+    if (filterState && filterState?.length > 0) {
+        computedFilters.push(
+            (item: TDagRunWithParent) => item.state === filterState
+        );
+    }
+    if (typeof filterDagRunId === "string" && filterDagRunId?.length > 0) {
+        computedFilters.push((item: TDagRunWithParent) =>
+            item.dag_run_id.includes(filterDagRunId)
+        );
+    }
+    if (
+        typeof filterParentDagRunId === "string" &&
+        filterParentDagRunId?.length > 0
+    ) {
+        computedFilters.push(
+            (item: TDagRunWithParent) =>
+                !!item.conf?.parent_dag_run_id &&
+                item.conf?.parent_dag_run_id.includes(filterParentDagRunId)
+        );
+    }
+
+    return computedFilters;
 }
