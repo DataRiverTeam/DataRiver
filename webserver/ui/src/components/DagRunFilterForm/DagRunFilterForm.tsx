@@ -6,10 +6,9 @@ import { TDagRunFilterFields } from "../../utils/dags";
 
 type TDagRunFilterFormProps = {
     form: UseFormReturn<TDagRunFilterFields>;
-    onChange?: (() => any) | null | undefined;
 };
 
-function DagRunFilterForm({ onChange = null, form }: TDagRunFilterFormProps) {
+function DagRunFilterForm({ form }: TDagRunFilterFormProps) {
     const { register } = form;
 
     return (

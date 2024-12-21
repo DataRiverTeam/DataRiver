@@ -109,6 +109,10 @@ export const TDagStateValues: TDagState[] = [
     "failed",
 ] as const;
 
+export function isValidDagRunState(value: string): value is TDagState {
+    return TDagStateValues.includes(value as TDagState);
+}
+
 export type TDagRun = {
     conf: {
         [key: string]: boolean | number | string | [] | object;

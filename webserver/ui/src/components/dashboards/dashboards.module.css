@@ -27,3 +27,9 @@
     /* background-color: #00ff00;
     color: white; */
 }
+
+.cellAlignCenter {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+}

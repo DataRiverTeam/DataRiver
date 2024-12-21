@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 import Tooltip from "@mui/material/Tooltip";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 
 import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
@@ -18,58 +16,24 @@ import { TDagRunFilterFields } from "../../../utils/dags";
 import DagRunFilterForm from "../../DagRunFilterForm/DagRunFilterForm";
 
 import s from "../dashboards.module.css";
-import clsx from "clsx";
+
+import { getDashboardListCells } from "./helpers";
+import { isValidDagRunState } from "../../../types/airflow";
 
 const client = new ApiClient();
 
 const dagId = "image_process";
 
-export function getDashboardListCells(
-    dagRun: TDagRunWithParent
-): React.ReactElement[] {
-    let statusClass = null;
-
-    switch (dagRun.state) {
-        case "success":
-            statusClass = s.cellStatusSuccess;
-            break;
-        case "running":
-            statusClass = s.cellStatusRunning;
-            break;
-        case "failed":
-            statusClass = s.cellStatusFailed;
-            break;
-        case "queued":
-            statusClass = s.cellStatusQueued;
-            break;
-    }
-
-    return [
-        <>{dagRun.dag_run_id}</>,
-        <>{dagRun.start_date}</>,
-        <span className={clsx(s.cellStatus, statusClass)}>{dagRun.state}</span>,
-        <Link
-            to={`/dags/${dagRun.dag_id}/${encodeURIComponent(
-                dagRun.dag_run_id
-            )}`}
-        >
-            <IconButton aria-label="DAG run details">
-                <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
-            </IconButton>
-        </Link>,
-        <Link
-            to={`/images/search?&image-process-run-id=${encodeURIComponent(
-                dagRun.dag_run_id
-            )}`}
-        >
-            <IconButton aria-label="DAG run ">
-                <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
-            </IconButton>
-        </Link>,
-    ];
-}
+const headerCells = [
+    "DAG run ID",
+    "Start date",
+    "State",
+    "DAG run Details",
+    "Results",
+];
 
 function ImageProcessingDashboard() {
+    let [searchParams, _setSearchParams] = useSearchParams();
     let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
@@ -94,30 +58,53 @@ function ImageProcessingDashboard() {
 
     useEffect(() => {
         fetchDagRuns();
-        const { watch } = form;
+    }, []);
+
+    useEffect(() => {
+        const { setValue, watch } = form;
+
+        const searchParamState = searchParams.get("state");
+        if (searchParamState && isValidDagRunState(searchParamState)) {
+            setValue("state", searchParamState);
+        }
+        const searchDagRunId = searchParams.get("dagRunId");
+        if (searchDagRunId) {
+            setValue("dagRunId", searchDagRunId);
+        }
+        const searchParentDagRunId = searchParams.get("parentDagRunId");
+        if (searchParentDagRunId) {
+            setValue("parentDagRunId", searchParentDagRunId);
+        }
 
         let subscription = watch((values) => {
             const computedFilters = [];
-            const state = values.state;
-            const dagRunId = values.dagRunId;
-            const parentDagRunId = values.parentDagRunId;
+            const filterState = values.state;
+            const filterDagRunId = values.dagRunId;
+            const filterParentDagRunId = values.parentDagRunId;
 
-            if (state && state?.length > 0) {
+            if (filterState && filterState?.length > 0) {
                 computedFilters.push(
-                    (item: TDagRunWithParent) => item.state === state
-                );
-            }
-            if (typeof dagRunId === "string" && dagRunId?.length > 0) {
-                computedFilters.push((item: TDagRunWithParent) =>
-                    item.dag_run_id.includes(dagRunId)
+                    (item: TDagRunWithParent) => item.state === filterState
                 );
             }
             if (
-                typeof parentDagRunId === "string" &&
-                parentDagRunId?.length > 0
+                typeof filterDagRunId === "string" &&
+                filterDagRunId?.length > 0
             ) {
                 computedFilters.push((item: TDagRunWithParent) =>
-                    item.conf?.parent_dag_run_id.includes(parentDagRunId)
+                    item.dag_run_id.includes(filterDagRunId)
+                );
+            }
+            if (
+                typeof filterParentDagRunId === "string" &&
+                filterParentDagRunId?.length > 0
+            ) {
+                computedFilters.push(
+                    (item: TDagRunWithParent) =>
+                        !!item.conf?.parent_dag_run_id &&
+                        item.conf?.parent_dag_run_id.includes(
+                            filterParentDagRunId
+                        )
                 );
             }
 
@@ -127,7 +114,7 @@ function ImageProcessingDashboard() {
         return () => {
             subscription.unsubscribe();
         };
-    }, []);
+    }, [form]);
 
     return (
         <>
@@ -161,6 +148,7 @@ function ImageProcessingDashboard() {
                 <Paper className={s.listContainer}>
                     <DagRunFilterForm form={form} />
                     <Table
+                        header={headerCells}
                         rows={dagRuns
                             .filter((item) => {
                                 return filters.reduce(

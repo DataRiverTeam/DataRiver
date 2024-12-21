@@ -21,5 +21,5 @@ export type TDagRunFilterFields = {
 };
 
 export type TDagRunWithParent = TDagRun & {
-    conf: TDagRun["conf"] & { parent_dag_run_id: string };
+    conf: TDagRun["conf"] & { parent_dag_run_id?: string };
 };

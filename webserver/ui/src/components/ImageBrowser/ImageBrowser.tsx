@@ -110,7 +110,6 @@ function ImageBrowser() {
     };
 
     useEffect(() => {
-        console.log("effect!");
         if (searchParams.has("description")) {
             setValue("description", searchParams.get("description")!);
         }

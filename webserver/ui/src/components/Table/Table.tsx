@@ -12,10 +12,11 @@ import Paper from "@mui/material/Paper";
 // import clsx from "clsx";
 
 type TTableProps = {
-    rows: React.ReactElement[][];
+    header: React.ReactNode[];
+    rows: React.ReactNode[][];
 };
 
-function Table({ rows }: TTableProps) {
+function Table({ header, rows }: TTableProps) {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -48,11 +49,13 @@ function Table({ rows }: TTableProps) {
             <MuiTable sx={{ minWidth: 650 }} aria-label="DAG runs list">
                 <MuiTableHead>
                     <MuiTableRow>
-                        <MuiTableCell>DAG run ID</MuiTableCell>
-                        <MuiTableCell>Start date</MuiTableCell>
-                        <MuiTableCell>State</MuiTableCell>
-                        <MuiTableCell align="center">Tasks</MuiTableCell>
-                        <MuiTableCell align="center">Results</MuiTableCell>
+                        {header.map((cell, index) => {
+                            return (
+                                <MuiTableCell key={`header-${index}`}>
+                                    {cell}
+                                </MuiTableCell>
+                            );
+                        })}
                     </MuiTableRow>
                 </MuiTableHead>
                 <MuiTableBody>
