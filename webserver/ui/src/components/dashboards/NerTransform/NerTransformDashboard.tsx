@@ -6,7 +6,7 @@ import Button from "../../Button/Button";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import BackButton from "../../BackButton/BackButton";
-import DagRunsList from "../../DagRunsList/DagRunsList";
+import Table from "../../Table/Table";
 
 const client = new ApiClient();
 
@@ -69,7 +69,7 @@ function NerTransformDashboard() {
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
-                <DagRunsList dagRuns={dagRuns} />
+                <Table rows={dagRuns} />
             )}
         </>
     );

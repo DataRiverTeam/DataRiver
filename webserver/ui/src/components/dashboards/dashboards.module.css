@@ -1,21 +1,28 @@
-.cellStatus:global(.MuiTableCell-body) {
-    font-weight: bold;
-    /* text-align: center; */
+.listContainer {
+    margin: 0 auto;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
 }
 
-.cellStatusSuccess:global(.MuiTableCell-body) {
+.cellStatus {
+    font-weight: bold;
+}
+
+.cellStatusSuccess {
     color: #008000;
     /* background-color: #008000;
     color: white; */
 }
 
-.cellStatusFailed:global(.MuiTableCell-body) {
+.cellStatusFailed {
     color: #ff0000;
     /* background-color: #ff0000;
     color: white; */
 }
 
-.cellStatusRunning:global(.MuiTableCell-body) {
+.cellStatusRunning {
     color: #00ff00;
     /* background-color: #00ff00;
     color: white; */

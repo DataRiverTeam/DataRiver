@@ -6,7 +6,7 @@ import Tooltip from "@mui/material/Tooltip";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import Button from "../../Button/Button";
 
-import DagRunsList from "../../DagRunsList/DagRunsList";
+import Table from "../../Table/Table";
 
 const client = new ApiClient();
 
@@ -66,7 +66,7 @@ function ImageTransformDatasetDashboard() {
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
-                <DagRunsList dagRuns={dagRuns} />
+                <Table rows={dagRuns} />
             )}
         </>
     );
