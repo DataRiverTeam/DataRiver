@@ -60,11 +60,11 @@ function NerProcessDashboard() {
                     </span>
                 </Tooltip>
             </div>
-            {areDagRunsLoading ? (
-                "Loading DAG runs..."
-            ) : (
-                <Table rows={dagRuns} />
-            )}
+            {areDagRunsLoading
+                ? "Loading DAG runs..."
+                : null
+                  // <Table rows={dagRuns} />
+            }
         </>
     );
 }
