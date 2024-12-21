@@ -42,9 +42,15 @@ class MapJsonFile(BaseOperator):
 
         mapped = []
         with open(full_path, "rb") as f:
+            size = 0
             for record in ijson.items(f, "item"):
-
                 mapped.append(self.python_callable(record, context))
+                size += 1
+        date = context["dag_run"].start_date.replace(microsecond=0).isoformat()
+        run_id = context["dag_run"].run_id
+        batch_size = context["params"]["batch_size"]
+        json_args = JsonArgs(self.fs_conn_id, "time.json")
+        json_args.add_or_update(run_id, {"dag_id": self.dag_id, "start": date, "batch_size": batch_size, "size": size})
 
         return mapped
 

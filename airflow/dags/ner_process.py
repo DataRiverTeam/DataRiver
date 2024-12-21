@@ -54,9 +54,18 @@ def decide_about_translation(ti, **context):
 
 
 def remove_temp_files(context, result):
+    import datetime
     json_files_paths = context["params"]["json_files_paths"]
     for file_path in json_files_paths:
         os.remove(file_path)
+    dirname = os.path.dirname(json_files_paths[0])
+    if not any(file.endswith(".json") for file in os.listdir(dirname)):
+        import datetime
+        fs_conn_id = context["params"]["fs_conn_id"]
+        end = datetime.datetime.now().replace(microsecond=0).isoformat()
+        run_id = context["params"]["parent_dag_run_id"]
+        json_args = JsonArgs(fs_conn_id, "time.json")
+        json_args.add_or_update(run_id, {"end": end})
 
 
 with DAG(
