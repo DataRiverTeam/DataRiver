@@ -163,19 +163,9 @@ with DAG(
         index="ner",
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
-    )
-
-    es_search_task = ElasticSearchOperator(
-        task_id="elastic_get",
-        index="ner",
-        query={
-            "terms": {
-                "_id": "{{ task_instance.xcom_pull('elastic_push') | selectattr('_id') | list }}"
-            }
-        },
-        es_conn_args=ES_CONN_ARGS,
         post_execute=remove_temp_files,
     )
+
 
 (
     add_pre_run_information_task
