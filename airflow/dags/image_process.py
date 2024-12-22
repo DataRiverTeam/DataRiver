@@ -109,5 +109,4 @@ with DAG(
     ]
     >> add_post_run_information_task
     >> es_update_task
-    >> es_search_task
 )
