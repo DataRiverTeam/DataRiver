@@ -15,7 +15,8 @@ import { TDagRunWithParent } from "../../../utils/dags";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { TDagRunFilterFields } from "../../../utils/dags";
 
-import { getDashboardListCells, computeFilters } from "./helpers";
+import { getDashboardListCells } from "./helpers";
+import { compareStartDateDesc, computeFilters } from "../../../utils/dashboard";
 import { isValidDagRunState } from "../../../types/airflow";
 
 import s from "../dashboards.module.css";
@@ -37,20 +38,20 @@ function ImageProcessingDashboard() {
     let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
-    let form = useForm<TDagRunFilterFields>();
+    const form = useForm<TDagRunFilterFields>();
     const { setValue, getValues } = form;
 
     let [filters, setFilters] = useState<
         ((dagRun: TDagRunWithParent) => boolean)[]
     >([]);
 
-    let fetchDagRuns = async () => {
+    const fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
                 dagId
             );
 
-            setDagRuns(json.dag_runs as TDagRunWithParent[]);
+            setDagRuns(json.dag_runs.sort(compareStartDateDesc));
         } catch (error) {
             console.error(error);
         } finally {
@@ -58,9 +59,11 @@ function ImageProcessingDashboard() {
         }
     };
 
-    useEffect(() => {
-        fetchDagRuns();
-    }, []);
+    const onSubmitFn: FormEventHandler = (e) => {
+        e.preventDefault();
+        setSearchParams(new URLSearchParams(getValues()).toString());
+        setFilters(computeFilters(getValues()));
+    };
 
     useEffect(() => {
         const searchParamState = searchParams.get("state");
@@ -79,11 +82,9 @@ function ImageProcessingDashboard() {
         setFilters(computeFilters(getValues()));
     }, []);
 
-    const onSubmitFn: FormEventHandler = (e) => {
-        e.preventDefault();
-        setSearchParams(new URLSearchParams(getValues()).toString());
-        setFilters(computeFilters(getValues()));
-    };
+    useEffect(() => {
+        fetchDagRuns();
+    }, []);
 
     return (
         <>

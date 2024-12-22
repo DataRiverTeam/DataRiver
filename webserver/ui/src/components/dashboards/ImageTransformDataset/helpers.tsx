@@ -29,7 +29,7 @@ export function getDashboardListCells(
         </div>,
         <div className={s.cellAlignCenter}>
             <Link
-                to={`/images/search?&image-process-run-id=${encodeURIComponent(
+                to={`/images/search?&image-transform-dataset-run-id=${encodeURIComponent(
                     dagRun.dag_run_id
                 )}`}
             >

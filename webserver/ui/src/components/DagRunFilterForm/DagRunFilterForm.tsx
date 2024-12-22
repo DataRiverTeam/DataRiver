@@ -12,7 +12,7 @@ type TDagRunFilterFormProps = {
 };
 
 function DagRunFilterForm({ form, onSubmit }: TDagRunFilterFormProps) {
-    const { register } = form;
+    const { register, reset } = form;
 
     return (
         <form className={s.formWrapper} onSubmit={onSubmit}>
@@ -43,7 +43,16 @@ function DagRunFilterForm({ form, onSubmit }: TDagRunFilterFormProps) {
                     {...register("parentDagRunId")}
                 />
             </div>
-            <Button type="submit"> Filter </Button>
+            <div className={s.buttonContainer}>
+                <Button type="submit"> Filter </Button>
+                <Button
+                    onClick={() => {
+                        reset();
+                    }}
+                >
+                    Clear
+                </Button>
+            </div>
         </form>
     );
 }
