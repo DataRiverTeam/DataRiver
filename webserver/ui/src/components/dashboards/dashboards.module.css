@@ -1,0 +1,35 @@
+.listContainer {
+    margin: 0 auto;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.cellStatus {
+    font-weight: bold;
+}
+
+.cellStatusSuccess {
+    color: #008000;
+    /* background-color: #008000;
+    color: white; */
+}
+
+.cellStatusFailed {
+    color: #ff0000;
+    /* background-color: #ff0000;
+    color: white; */
+}
+
+.cellStatusRunning {
+    color: #00ff00;
+    /* background-color: #00ff00;
+    color: white; */
+}
+
+.cellAlignCenter {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+}

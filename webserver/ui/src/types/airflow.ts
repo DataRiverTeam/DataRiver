@@ -102,6 +102,17 @@ export type TDagRunsCollection = {
 
 export type TDagState = "queued" | "running" | "success" | "failed";
 
+export const TDagStateValues: TDagState[] = [
+    "queued",
+    "running",
+    "success",
+    "failed",
+] as const;
+
+export function isValidDagRunState(value: string): value is TDagState {
+    return TDagStateValues.includes(value as TDagState);
+}
+
 export type TDagRun = {
     conf: {
         [key: string]: boolean | number | string | [] | object;

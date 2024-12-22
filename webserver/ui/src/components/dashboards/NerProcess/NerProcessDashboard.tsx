@@ -1,36 +1,85 @@
-import { useState, useEffect } from "react";
-import { TDagRun } from "../../../types/airflow";
-import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
-import BackButton from "../../BackButton/BackButton";
+import { useState, useEffect, FormEventHandler } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
 import Tooltip from "@mui/material/Tooltip";
 import RefreshIcon from "@mui/icons-material/Refresh";
-import Button from "../../Button/Button";
+import Paper from "@mui/material/Paper";
 
-import DagRunsList from "../../DagRunsList/DagRunsList";
+import BackButton from "../../BackButton/BackButton";
+import Button from "../../Button/Button";
+import Table from "../../Table/Table";
+import DagRunFilterForm from "../../DagRunFilterForm/DagRunFilterForm";
+
+import { TDagRunWithParent } from "../../../utils/dags";
+import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
+import { TDagRunFilterFields } from "../../../utils/dags";
+
+import { getDashboardListCells } from "./helpers";
+import { computeFilters, compareStartDateDesc } from "../../../utils/dashboard";
+import { isValidDagRunState } from "../../../types/airflow";
+
+import s from "../dashboards.module.css";
 
 const client = new ApiClient();
 
 const dagId = "ner_process";
 
-function NerProcessDashboard() {
-    let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
-    let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
+const headerCells = [
+    "DAG run ID",
+    "Start date",
+    "State",
+    "DAG run Details",
+    "Results",
+];
 
-    let fetchDagRuns = async () => {
+function NerProcessDashboard() {
+    let [searchParams, setSearchParams] = useSearchParams();
+    let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
+    let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
+    const form = useForm<TDagRunFilterFields>();
+    const { setValue, getValues } = form;
+
+    let [filters, setFilters] = useState<
+        ((dagRun: TDagRunWithParent) => boolean)[]
+    >([]);
+
+    const fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
                 dagId
             );
 
-            console.log(json);
-
-            setDagRuns(json.dag_runs);
+            setDagRuns(json.dag_runs.sort(compareStartDateDesc));
         } catch (error) {
             console.error(error);
         } finally {
             setAreDagRunsLoading(false);
         }
     };
+
+    const onSubmitFn: FormEventHandler = (e) => {
+        e.preventDefault();
+        setSearchParams(new URLSearchParams(getValues()).toString());
+        setFilters(computeFilters(getValues()));
+    };
+
+    useEffect(() => {
+        const searchParamState = searchParams.get("state");
+        if (searchParamState && isValidDagRunState(searchParamState)) {
+            setValue("state", searchParamState);
+        }
+        const searchDagRunId = searchParams.get("dagRunId");
+        if (searchDagRunId) {
+            setValue("dagRunId", searchDagRunId);
+        }
+        const searchParentDagRunId = searchParams.get("parentDagRunId");
+        if (searchParentDagRunId) {
+            setValue("parentDagRunId", searchParentDagRunId);
+        }
+
+        setFilters(computeFilters(getValues()));
+    }, []);
 
     useEffect(() => {
         fetchDagRuns();
@@ -63,7 +112,20 @@ function NerProcessDashboard() {
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
-                <DagRunsList dagRuns={dagRuns} />
+                <Paper className={s.listContainer}>
+                    <DagRunFilterForm form={form} onSubmit={onSubmitFn} />
+                    <Table
+                        header={headerCells}
+                        rows={dagRuns
+                            .filter((item) => {
+                                return filters.reduce(
+                                    (acc, filter) => acc && filter(item),
+                                    true
+                                );
+                            })
+                            .map(getDashboardListCells)}
+                    />
+                </Paper>
             )}
         </>
     );

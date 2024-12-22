@@ -1,32 +1,86 @@
-import { useState, useEffect } from "react";
-import { TDagRun } from "../../../types/airflow";
-import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
-import BackButton from "../../BackButton/BackButton";
+import { useState, useEffect, FormEventHandler } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+
 import Tooltip from "@mui/material/Tooltip";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import Paper from "@mui/material/Paper";
+
+import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
-import DagRunsList from "../../DagRunsList/DagRunsList";
+import Table from "../../Table/Table";
+import DagRunFilterForm from "../../DagRunFilterForm/DagRunFilterForm";
+
+import { TDagRunWithParent } from "../../../utils/dags";
+import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
+import { TDagRunFilterFields } from "../../../utils/dags";
+
+import { getDashboardListCells } from "./helpers";
+import { compareStartDateDesc, computeFilters } from "../../../utils/dashboard";
+import { isValidDagRunState } from "../../../types/airflow";
+
+import s from "../dashboards.module.css";
 
 const client = new ApiClient();
 
 const dagId = "image_process";
+
+const headerCells = [
+    "DAG run ID",
+    "Start date",
+    "State",
+    "DAG run Details",
+    "Results",
+];
+
 function ImageProcessingDashboard() {
-    let [dagRuns, setDagRuns] = useState<TDagRun[]>([]);
+    let [searchParams, setSearchParams] = useSearchParams();
+    let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
 
-    let fetchDagRuns = async () => {
+    const form = useForm<TDagRunFilterFields>();
+    const { setValue, getValues } = form;
+
+    let [filters, setFilters] = useState<
+        ((dagRun: TDagRunWithParent) => boolean)[]
+    >([]);
+
+    const fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
                 dagId
             );
 
-            setDagRuns(json.dag_runs);
+            setDagRuns(json.dag_runs.sort(compareStartDateDesc));
         } catch (error) {
             console.error(error);
         } finally {
             setAreDagRunsLoading(false);
         }
     };
+
+    const onSubmitFn: FormEventHandler = (e) => {
+        e.preventDefault();
+        setSearchParams(new URLSearchParams(getValues()).toString());
+        setFilters(computeFilters(getValues()));
+    };
+
+    useEffect(() => {
+        const searchParamState = searchParams.get("state");
+        if (searchParamState && isValidDagRunState(searchParamState)) {
+            setValue("state", searchParamState);
+        }
+        const searchDagRunId = searchParams.get("dagRunId");
+        if (searchDagRunId) {
+            setValue("dagRunId", searchDagRunId);
+        }
+        const searchParentDagRunId = searchParams.get("parentDagRunId");
+        if (searchParentDagRunId) {
+            setValue("parentDagRunId", searchParentDagRunId);
+        }
+
+        setFilters(computeFilters(getValues()));
+    }, []);
 
     useEffect(() => {
         fetchDagRuns();
@@ -38,7 +92,6 @@ function ImageProcessingDashboard() {
             <h1>Processing images</h1>
             <p>Monitor processing of the articles.</p>
 
-            <h2> Active DAGs</h2>
             <div
                 style={{
                     display: "flex",
@@ -61,7 +114,20 @@ function ImageProcessingDashboard() {
             {areDagRunsLoading ? (
                 "Loading DAG runs..."
             ) : (
-                <DagRunsList dagRuns={dagRuns} />
+                <Paper className={s.listContainer}>
+                    <DagRunFilterForm form={form} onSubmit={onSubmitFn} />
+                    <Table
+                        header={headerCells}
+                        rows={dagRuns
+                            .filter((item) => {
+                                return filters.reduce(
+                                    (acc, filter) => acc && filter(item),
+                                    true
+                                );
+                            })
+                            .map(getDashboardListCells)}
+                    />
+                </Paper>
             )}
         </>
     );
