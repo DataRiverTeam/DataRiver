@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import LinkButton from "../../LinkButton/LinkButton";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { exampleImagesJson, triggerMailboxConf } from "../../../utils/consts";
@@ -138,6 +138,14 @@ function ImageMailboxDashboard() {
                     navigate(0);
                 }}
             />
+            {recentActiveDag ? (
+            <LinkButton
+                to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}`}
+                relative="path"
+            >
+                Next
+            </LinkButton>
+            ) : (<div>button</div>)}
         </>
     );
 }
