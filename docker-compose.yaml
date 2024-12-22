@@ -213,7 +213,7 @@ services:
         fi
 
         mkdir -p /opt/airflow/{logs,dags,data}
-        mkdir -p /opt/airflow/data/{ner,map}
+        mkdir -p /opt/airflow/data/{ner,map,image_mailbox}
 
         chown -R "${AIRFLOW_UID}:0" /opt/airflow/{logs,dags,data}
         exec /entrypoint airflow version && airflow config get-value database sql_alchemy_conn
@@ -264,6 +264,15 @@ services:
       - ./airflow/dags:/opt/airflow/dags
     profiles:
       - format
+
+  lint:
+    image: alpine/flake8
+    entrypoint: /bin/sh
+    command: ["-c","flake8 /opt/airflow/dags/datariver /opt/airflow/dags/*.py --ignore=E501,W503,E203"]
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+    profiles:
+      - lint
 
   # -------------- elastic -------------------
 

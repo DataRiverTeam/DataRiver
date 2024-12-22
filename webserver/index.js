@@ -217,20 +217,21 @@ app.get("/api/dags/:dagid/dagRuns/:runid/taskInstances", async (req, res) => {
 // NER endpoints
 
 app.get("/api/ner/docs", async (req, res) => {
-    const SIZE = 10;
+    const PAGE_SIZE = 10;
 
     // query params
-    const start = req.query["start"] || 0;
-    const textFragment = req.query["text"] || null;
-    const dagRunId = req.query["dag-run-id"] || null;
+    const page = req.query["page"] || 1;
+    const contentFragment = req.query["content"] || null;
+    const mapFileRunId = req.query["map-file-run-id"] || null;
+    const nerSingleFileRunId = req.query["ner-single-file-run-id"] || null;
     const lang = req.query["lang"] || null;
     const ners = req.query["ners"]
         ? req.query["ners"].split(",").map((item) => item.trim())
         : [];
 
     const mustClauses = [];
-    if (textFragment) {
-        mustClauses.push({ match: { content: textFragment } });
+    if (contentFragment) {
+        mustClauses.push({ match: { content: contentFragment } });
     }
 
     // NOTE:
@@ -239,8 +240,20 @@ app.get("/api/ner/docs", async (req, res) => {
     // but it can result in performance issues
     //
     // Looking for exact match might be enough
-    if (dagRunId) {
-        mustClauses.push({ match: { "dag_run_id.keyword": dagRunId } });
+    if (mapFileRunId) {
+        mustClauses.push({
+            match: {
+                "dags_info.ner_transform_dataset.run_id.keyword": mapFileRunId,
+            },
+        });
+    }
+
+    if (nerSingleFileRunId) {
+        mustClauses.push({
+            match: {
+                "dags_info.ner_process.run_id.keyword": nerSingleFileRunId,
+            },
+        });
     }
 
     if (lang) {
@@ -267,16 +280,16 @@ app.get("/api/ner/docs", async (req, res) => {
     try {
         const result = await elasticClient.search({
             index: "ner",
-            size: SIZE,
-            from: start,
+            size: PAGE_SIZE,
+            from: Math.max((page - 1) * PAGE_SIZE, 0),
             query: query,
-            sort: [
-                {
-                    dag_start_date: {
-                        order: "desc",
-                    },
+            sort: {
+                _script: {
+                    script: "doc['dags_info.ner_transform_dataset.start_date'].value.format(DateTimeFormatter.ofPattern(\"MM/dd/yyyy - HH:mm:ss Z\"));",
+                    type: "string",
+                    order: "desc",
                 },
-            ],
+            },
         });
 
         res.json({ status: 200, ...result });
@@ -289,19 +302,69 @@ app.get("/api/ner/docs", async (req, res) => {
 // Image endpoints
 
 app.get("/api/images/thumbnails", async (req, res) => {
-    const SIZE = 20;
-    const start = req.query["start"] || 0;
+    const PAGE_SIZE = 20;
+    const page = req.query["page"] || 1;
+    const mapFileImagesRunId =
+        req.query["image-transform-dataset-run-id"] || null;
+    const processFilesRunId = req.query["image-process-run-id"] || null;
+    const description = req.query["description"] || null;
+    const dateRangeFrom = req.query["date-range-from"] || null;
+    const dateRangeTo = req.query["date-range-to"] || null;
 
+    const mustClauses = [];
+
+    if (description) {
+        mustClauses.push({ match: { description: description } });
+    }
+
+    if (mapFileImagesRunId) {
+        mustClauses.push({
+            match: {
+                "dags_info.image_transform_dataset.run_id.keyword":
+                    mapFileImagesRunId,
+            },
+        });
+    }
+
+    if (processFilesRunId) {
+        mustClauses.push({
+            match: {
+                "dags_info.image_process.run_id.keyword": processFilesRunId,
+            },
+        });
+    }
+
+    if (dateRangeFrom || dateRangeTo) {
+        const dateClause = {
+            range: {
+                "dags_info.image_transform_dataset.start_date": {
+                    ...(dateRangeFrom ? { gte: dateRangeFrom } : null),
+                    ...(dateRangeTo ? { lte: dateRangeTo } : null),
+                },
+            },
+        };
+
+        mustClauses.push(dateClause);
+    }
+
+    const query = {
+        bool: {
+            must: mustClauses,
+        },
+    };
+
+    console.log("/api/images");
+    console.log("Sending query:", JSON.stringify(query, null, 2));
     try {
         const result = await elasticClient.search({
             index: "image_processing",
-            size: SIZE,
-            from: start,
+            size: PAGE_SIZE,
+            from: Math.max((page - 1) * PAGE_SIZE, 0),
             _source: {
                 includes: "thumbnail",
             },
+            query: query,
         });
-
         res.json({ status: 200, ...result });
     } catch (error) {
         console.log(error);

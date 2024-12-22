@@ -1,0 +1,24 @@
+.msgBoxContainer {
+    padding: 1.2rem;
+    border-width: 1px;
+    border-style: solid;
+    color: white;
+    border-radius: 0.8rem;
+    margin: 0.8rem auto;
+}
+
+.msgBoxText {
+    padding: 0;
+    margin: 0;
+}
+
+.msgBoxInfo {
+    background-color: #a1e3ff;
+    border-color: #1d7bff;
+}
+
+.msgBoxWarning {
+    background-color: #ffc107;
+    color: black;
+    border-color: #5f5c2d;
+}

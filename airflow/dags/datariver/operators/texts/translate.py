@@ -6,7 +6,7 @@ from datariver.operators.common.exception_managing import ErrorHandler
 
 # TODO:
 # Perhaps we should make the operator more universal?
-MAX_FRAGMENT_LENGTH = 4000
+MAX_LENGTH = 4000
 language_names = {
     "cs": "czech",
     "da": "danish",
@@ -100,21 +100,22 @@ class JsonTranslateOperator(BaseOperator, LoggingMixin):
                             text, language=language_names[lang]
                         )
 
-                        l = 0
-                        r = 0
+                        left = 0
+                        right = 0
                         total_length = 0
-                        while r < len(sentences):
-                            if total_length + len(sentences[r]) < MAX_FRAGMENT_LENGTH:
-                                total_length += len(sentences[r])
+                        while right < len(sentences):
+                            if total_length + len(sentences[right]) < MAX_LENGTH:
+                                total_length += len(sentences[right])
                             else:
-                                to_translate = " ".join(sentences[l : r + 1])
+                                to_translate = " ".join(sentences[left : right + 1])
                                 translation = translator.translate(to_translate)
-                                translated_text += translation  # perhaps we should make sure that we use proper char encoding when writing to file?
-                                l = r + 1
+                                # perhaps we should make sure that we use proper char encoding when writing to file?
+                                translated_text += translation
+                                left = right + 1
                                 total_length = 0
-                            r += 1
+                            right += 1
                         else:
-                            to_translate = " ".join(sentences[l : r + 1])
+                            to_translate = " ".join(sentences[left : right + 1])
                             translation = translator.translate(to_translate)
                             translated_text += translation
 

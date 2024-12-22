@@ -7,25 +7,17 @@ from datariver.operators.common.json_tools import (
     add_post_run_information,
     add_pre_run_information,
 )
-from datariver.operators.common.elasticsearch import (
-    ElasticJsonPushOperator,
-    ElasticSearchOperator,
-)
+from datariver.operators.common.elasticsearch import ElasticJsonUpdateOperator
 from datariver.operators.texts.langdetect import JsonLangdetectOperator
 from datariver.operators.texts.translate import JsonTranslateOperator
 from datariver.operators.texts.ner import NerJsonOperator
 from datariver.operators.texts.stats import NerJsonStatisticsOperator
 from datariver.operators.texts.collectstats import JsonSummaryMarkdownOperator
+import common
 import os
 
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-    "trigger_rule": TriggerRule.NONE_FAILED,
-}
+default_args = common.default_args.copy()
+default_args.update({"trigger_rule": TriggerRule.NONE_FAILED})
 
 ES_CONN_ARGS = {
     "hosts": os.environ["ELASTIC_HOST"],
@@ -65,7 +57,7 @@ def remove_temp_files(context, result):
 
 
 with DAG(
-    "ner_single_file",
+    "ner_process",
     default_args=default_args,
     schedule_interval=None,
     # REQUIRED TO RENDER TEMPLATE TO NATIVE LIST INSTEAD OF STRING!!!
@@ -74,6 +66,7 @@ with DAG(
         "json_files_paths": Param(
             type="array",
         ),
+        "parent_dag_run_id": Param(type=["null", "string"], default=""),
         "fs_conn_id": Param(type="string", default="fs_data"),
         "encoding": Param(type="string", default="utf-8"),
     },
@@ -160,26 +153,16 @@ with DAG(
         provide_context=True,
     )
 
-    es_push_task = ElasticJsonPushOperator(
-        task_id="elastic_push",
+    es_update_task = ElasticJsonUpdateOperator(
+        task_id="elastic_update",
         fs_conn_id="{{ params.fs_conn_id }}",
         json_files_paths="{{ params.json_files_paths }}",
         index="ner",
         es_conn_args=ES_CONN_ARGS,
         encoding="{{ params.encoding }}",
-    )
-
-    es_search_task = ElasticSearchOperator(
-        task_id="elastic_get",
-        index="ner",
-        query={
-            "terms": {
-                "_id": "{{ task_instance.xcom_pull('elastic_push') | selectattr('_id') | list }}"
-            }
-        },
-        es_conn_args=ES_CONN_ARGS,
         post_execute=remove_temp_files,
     )
+
 
 (
     add_pre_run_information_task
@@ -193,6 +176,5 @@ translate_task >> ner_task
     >> stats_task
     >> summary_task
     >> add_post_run_information_task
-    >> es_push_task
-    >> es_search_task
+    >> es_update_task
 )

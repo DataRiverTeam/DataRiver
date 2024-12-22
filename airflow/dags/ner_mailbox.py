@@ -6,16 +6,7 @@ from airflow.operators.bash import BashOperator
 from airflow.operators.python import PythonOperator
 from airflow.models.param import Param
 from datariver.sensors.filesystem import MultipleFilesSensor
-
-default_args = {
-    "owner": "airflow",
-    "depends_on_past": False,
-    "email_on_failure": False,
-    "email_on_retry": False,
-    "retries": 1,
-}
-
-FS_CONN_ID = "fs_data"  # id of connection defined in Airflow UI
+import common
 
 
 def parse_paths(paths, **context):
@@ -24,6 +15,7 @@ def parse_paths(paths, **context):
             "path": path,
             "batch_size": context["params"]["batch_size"],
             "encoding": context["params"]["encoding"],
+            "parent_dag_run_id": context["dag_run"].run_id,
         }
 
     paths_list = paths.split(",")
@@ -32,8 +24,8 @@ def parse_paths(paths, **context):
 
 
 with DAG(
-    "mailbox",
-    default_args=default_args,
+    "ner_mailbox",
+    default_args=common.default_args,
     schedule_interval=None,
     render_template_as_native_obj=True,
     params={
@@ -47,7 +39,7 @@ with DAG(
         task_id="wait_for_files",
         fs_conn_id="{{params.fs_conn_id}}",
         filepath="{{params.filepath}}",
-        poke_interval=60,
+        poke_interval=5,
         mode="reschedule",
         timeout=timedelta(minutes=60),
     )
@@ -62,12 +54,12 @@ with DAG(
             # - remove [' from the begginig
             # - replace ', ' with , everywhere
             # - remove '] from the end
-            for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed "s/^\['//;s/', '/,/g;s/'\]$//")
+            for file in $(echo "{{ ti.xcom_pull(task_ids="wait_for_files") }}" | sed "s/^\['//;s/', '/,/g;s/'\]$//") # noqa W605
             do
                 # move detected files from mailbox to folder where processing will happen
                 base_dir="$(dirname "$file")"
                 filename="$(basename "$file")"
-                # build folder name basaed on unique run_id
+                # build folder name based on unique run_id
                 dest="$base_dir/{{run_id}}"
                 mkdir -p "$dest" && mv "$file" "$dest"
                 if [[ "$first" == "true" ]]; then
@@ -88,11 +80,13 @@ with DAG(
     )
 
     trigger_map_file_task = TriggerDagRunOperator.partial(
-        task_id="trigger_map_file", trigger_dag_id="map_file"
+        task_id="trigger_map_file", trigger_dag_id="ner_transform_dataset"
     ).expand(conf=parse_paths_task.output)
 
     trigger_mailbox = TriggerDagRunOperator(
-        task_id="trigger_mailbox", trigger_dag_id="mailbox", conf="{{ params }}"  # noqa
+        task_id="trigger_mailbox",
+        trigger_dag_id="ner_mailbox",
+        conf="{{ params }}",  # noqa
     )
 
 

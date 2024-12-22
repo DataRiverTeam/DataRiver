@@ -1,6 +1,16 @@
 import json
 import ijson
-import os, fcntl, datetime
+import os
+import builtins
+import fcntl
+import datetime
+import requests
+from urllib.request import urlopen
+import validators
+import cv2
+import numpy as np
+from PIL import Image
+from io import BytesIO
 from airflow.models.baseoperator import BaseOperator
 from airflow.hooks.filesystem import FSHook
 from airflow.utils.log.logging_mixin import LoggingMixin
@@ -63,11 +73,9 @@ class JsonArgs(LoggingMixin):
                 fcntl.flock(file.fileno(), fcntl.LOCK_SH)
                 data = json.load(file)
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
-                value = data.get(key)
+                value = data.get(key, None)
                 if value is None:
-                    self.log.error(
-                        f"{self.get_full_path()} does not contain key {key}!"
-                    )
+                    self.log.info(f"{self.get_full_path()} does not contain key {key}!")
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return value
@@ -94,7 +102,7 @@ class JsonArgs(LoggingMixin):
                 data = json.load(file)
                 fcntl.flock(file.fileno(), fcntl.LOCK_UN)
                 for key in keys:
-                    value = data.get(key)
+                    value = data.get(key, None)
                     if value is None:
                         self.log.error(
                             f"{self.get_full_path()} does not contain key {key}!"
@@ -117,6 +125,24 @@ class JsonArgs(LoggingMixin):
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
         return keys
 
+    def add_or_update(self, key, value):
+        old_value = self.get_value(key)
+        if old_value is None:
+            self.add_value(key, value)
+            return
+        elif type(old_value) is not type(value):
+            self.add_value(key, value)
+            self.log.info(
+                f"updating {key} with new value type, new value: {value}, old value: {old_value}"
+            )
+            return
+        match type(old_value):
+            case builtins.list:
+                value.extend(old_value)
+            case builtins.dict:
+                value.update(old_value)
+        self.add_value(key, value)
+
     def remove_value(self, key):
         try:
             with open(self.get_full_path(), "r+", encoding=self.encoding) as file:
@@ -130,6 +156,41 @@ class JsonArgs(LoggingMixin):
         except IOError as e:
             self.log.error(f"Couldn't open {self.get_full_path()} ({str(e)})!")
 
+    def get_PIL_image(self, key):
+        image_path = self.get_value(key)
+        if validators.url(image_path):
+            result = requests.get(image_path)
+            if result.status_code != 200:
+                return None
+            image_content = BytesIO(result.content)
+        else:
+            image_content = self.generate_absolute_path(
+                self.get_full_path(), image_path
+            )
+        print(image_path)
+        image = Image.open(image_content)
+        return image
+
+    def get_cv2_image(self, key):
+        image_path = self.get_value(key)
+        if validators.url(image_path):
+            try:
+                result = urlopen(image_path)
+            except Exception:
+                return None
+            if result.code != 200:
+                return None
+            arr = np.asarray(bytearray(result.read()), dtype=np.uint8)
+            image = cv2.imdecode(arr, -1)
+        else:
+            image_content = self.generate_absolute_path(
+                self.get_full_path(), image_path
+            )
+            image = cv2.imread(image_content)
+        if len(image.shape) == 3:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return image
+
     @staticmethod
     def generate_absolute_path(base_path: str, path: str) -> str:
         return os.path.normpath(os.path.join(os.path.dirname(base_path), path))
@@ -138,12 +199,14 @@ class JsonArgs(LoggingMixin):
 def add_pre_run_information(**context):
     fs_conn_id = context["params"]["fs_conn_id"]
     json_files_paths = context["params"]["json_files_paths"]
-    date = datetime.datetime.now().replace(microsecond=0).isoformat()
+    date = context["dag_run"].start_date.replace(microsecond=0).isoformat()
     run_id = context["dag_run"].run_id
+    dag_id = context["dag_run"].dag_id
     for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
-        json_args.add_value("dag_start_date", date)
-        json_args.add_value("dag_run_id", run_id)
+        json_args.add_or_update(
+            "dags_info", {dag_id: {"start_date": date, "run_id": run_id}}
+        )
 
 
 def add_post_run_information(**context):
@@ -152,10 +215,10 @@ def add_post_run_information(**context):
     date = datetime.datetime.now().replace(microsecond=0).isoformat()
     for file_path in json_files_paths:
         json_args = JsonArgs(fs_conn_id, file_path)
-        json_args.add_value("dag_processed_date", date)
+        json_args.add_value("processed_date", date)
 
 
-## helper functions to use in preexecute
+# helper functions to use in preexecute
 def _filter_errors(context, exclude):
     task = context["task"]
     result = [

@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { TDagRun, TTaskInstance } from "../../types/airflow";
 import CodeBlock from "../CodeBlock/CodeBlock";
 
 import s from "./DagRunDetails.module.css";
+import BackButton from "../BackButton/BackButton";
+import { ApiClient } from "../../utils/api";
 
-type TDagRunResponse = TDagRun & { status: number };
-
-type TTaskInstancesResponse = {
-    task_instances: TTaskInstance[];
-    status: number;
-    total_entries: number;
-};
+const client = new ApiClient();
 
 function DagRunDetails() {
     let { dagId, runId } = useParams();
@@ -25,15 +21,8 @@ function DagRunDetails() {
 
     async function getDagRun() {
         try {
-            const response = await fetch(`/api/dags/${dagId}/dagruns/${runId}`);
-            const json: TDagRunResponse = await response.json();
+            const json = await client.getDagRunDetails(dagId!, runId!);
             const { status, ...dagRunData } = json;
-
-            if (!status.toString().startsWith("2")) {
-                throw new Error(
-                    `There was an error when handling request. Status code: ${status}`
-                );
-            }
 
             setDagRun(dagRunData);
         } catch (error) {
@@ -45,16 +34,8 @@ function DagRunDetails() {
 
     async function getTasks() {
         try {
-            const response = await fetch(
-                `/api/dags/${dagId}/dagruns/${runId}/taskInstances`
-            );
-            const json: TTaskInstancesResponse = await response.json();
+            const json = await client.getDagRunTasks(dagId!, runId!);
 
-            if (!json.status.toString().startsWith("2")) {
-                throw new Error(
-                    `There was an error when handling request. Status code: ${json.status}`
-                );
-            }
             setTasks(json.task_instances);
         } catch (error) {
             if (error instanceof Error) {
@@ -70,14 +51,13 @@ function DagRunDetails() {
 
     return (
         <>
-            <Link to={".."} relative="path">
-                Back
-            </Link>
+            <BackButton to={".."} relative="path" />
             <h1> {runId} </h1>
             {errorMessage ? (
                 errorMessage
             ) : dagRun ? (
                 <>
+                    <h2> Details </h2>
                     <p>start date - {dagRun.start_date}</p>
                     {dagRun?.end_date ? (
                         <p>end date - {dagRun.end_date}</p>

@@ -9,6 +9,11 @@ function NavBar() {
         <AppBar className="navbar">
             <Toolbar disableGutters>
                 <Button variant="text">
+                    <Link to={"/"} className={s.link}>
+                        Home
+                    </Link>
+                </Button>
+                <Button variant="text">
                     <Link to={"/dags"} className={s.link}>
                         DAGs
                     </Link>
@@ -19,12 +24,12 @@ function NavBar() {
                     </Link>
                 </Button>
                 <Button variant="text">
-                    <Link to={"/ner"} className={s.link}>
+                    <Link to={"/ner/search"} className={s.link}>
                         NER
                     </Link>
                 </Button>
                 <Button variant="text">
-                    <Link to={"/images"} className={s.link}>
+                    <Link to={"/images/search"} className={s.link}>
                         Images
                     </Link>
                 </Button>

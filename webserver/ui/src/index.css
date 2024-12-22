@@ -13,6 +13,7 @@
 
     --border-table: 1px solid rgba(127, 127, 127, 0.3);
     --border-button: 1px solid rgba(127, 127, 127, 0.3);
+    --border-field: 1px solid rgba(127, 127, 127, 0.3);
     --color-primary: rgba(255, 255, 255, 0.87);
 
     color: var(--color-primary);
@@ -27,8 +28,13 @@ body {
 }
 
 input[type="text"],
-input[type="number"] {
+input[type="number"],
+input[type="datetime-local"] {
     padding: 10px;
+}
+
+select {
+    padding: 4px 10px;
 }
 
 #root {

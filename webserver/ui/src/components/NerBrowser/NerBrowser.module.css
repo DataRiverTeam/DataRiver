@@ -11,14 +11,14 @@
     align-items: center;
     padding: 12px;
     gap: 0.8rem;
-    width: 300px;
+    width: 420px;
 }
 
 .filtersItem {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    width: 300px;
+    width: 100%;
     align-items: center;
 }
 

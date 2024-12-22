@@ -23,7 +23,7 @@ export type TDag = {
     timetable_description: string;
 };
 
-export type TDagDetail = {
+export type TDagDetails = {
     dag_display_name: string;
     dag_id: string;
     default_view: string;
@@ -95,12 +95,23 @@ export type TDagParamsMap = {
     [key: string]: TDagParam;
 };
 
-export type TDagRunCollection = {
+export type TDagRunsCollection = {
     dag_runs: TDagRun[];
     total_entries: number;
 };
 
 export type TDagState = "queued" | "running" | "success" | "failed";
+
+export const TDagStateValues: TDagState[] = [
+    "queued",
+    "running",
+    "success",
+    "failed",
+] as const;
+
+export function isValidDagRunState(value: string): value is TDagState {
+    return TDagStateValues.includes(value as TDagState);
+}
 
 export type TDagRun = {
     conf: {
@@ -189,4 +200,9 @@ export type TTaskInstance = {
     };
     try_number: number;
     unixname: string;
+};
+
+export type TDagsInfo = {
+    run_id: string;
+    start_date: string;
 };

@@ -8,6 +8,42 @@ import DagTrigger from "./components/DagTrigger/DagTrigger";
 import FileExplorer from "./components/FileExplorer/FileExplorer";
 import ImageBrowser from "./components/ImageBrowser/ImageBrowser";
 import ImageDetails from "./components/ImageDetails/ImageDetails";
+import Home from "./components/Home/Home";
+
+import NerMailboxDashboard from "./components/dashboards/NerMailbox/NerMailboxDashboard";
+import NerTransformDashboard from "./components/dashboards/NerTransform/NerTransformDashboard";
+import NerProcessDashboard from "./components/dashboards/NerProcess/NerProcessDashboard";
+import ImageTransformDatasetDashboard from "./components/dashboards/ImageTransformDataset/ImageTransformDatasetDashboard";
+import ImageProcessingDashboard from "./components/dashboards/ImageProcess/ImageProcessDashboard";
+import ImageMailboxDashboard from "./components/dashboards/ImageMailbox/ImageMailboxDashboard";
+
+const dashboards: RouteObject[] = [
+    /* DASHBOARDS */
+    {
+        path: "ner/dashboard/mailbox",
+        element: <NerMailboxDashboard />,
+    },
+    {
+        path: "ner/dashboard/ner_transform_dataset",
+        element: <NerTransformDashboard />,
+    },
+    {
+        path: "ner/dashboard/ner_process",
+        element: <NerProcessDashboard />,
+    },
+    {
+        path: "images/dashboard/mailbox",
+        element: <ImageMailboxDashboard />,
+    },
+    {
+        path: "images/dashboard/image_transform_dataset",
+        element: <ImageTransformDatasetDashboard />,
+    },
+    {
+        path: "images/dashboard/image_process",
+        element: <ImageProcessingDashboard />,
+    },
+];
 
 const pages: RouteObject[] = [
     {
@@ -15,9 +51,14 @@ const pages: RouteObject[] = [
         element: <App />,
         children: [
             {
-                path: "ner",
+                index: true,
+                element: <Home />,
+            },
+            {
+                path: "ner/search",
                 element: <NerBrowser />,
             },
+            ...dashboards,
             {
                 path: "dags",
                 element: <DagsList />,
@@ -36,7 +77,7 @@ const pages: RouteObject[] = [
                 element: <FileExplorer />,
             },
             {
-                path: "images",
+                path: "images/search",
                 element: <ImageBrowser />,
             },
             {

@@ -1,5 +1,6 @@
 from airflow.models.baseoperator import BaseOperator
 from datariver.operators.common.json_tools import JsonArgs
+from datariver.operators.common.exception_managing import ErrorHandler
 
 
 class JsonDescribeImage(BaseOperator):
@@ -20,7 +21,10 @@ class JsonDescribeImage(BaseOperator):
         input_key,
         output_key,
         encoding="utf-8",
+        error_key="error",
         local_model_path=None,
+        min_length=20,
+        max_length=30,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -30,10 +34,12 @@ class JsonDescribeImage(BaseOperator):
         self.output_key = output_key
         self.encoding = encoding
         self.local_model_path = local_model_path
+        self.error_key = error_key
+        self.min_length = min_length
+        self.max_length = max_length
 
     def execute(self, context):
         from transformers import BlipProcessor, BlipForConditionalGeneration
-        from PIL import Image
 
         # Load the pre-trained BLIP model and processor
         if self.local_model_path is None:
@@ -44,16 +50,29 @@ class JsonDescribeImage(BaseOperator):
         processor = BlipProcessor.from_pretrained(model_source)
         for file_path in self.json_files_paths:
             json_args = JsonArgs(self.fs_conn_id, file_path, self.encoding)
-            image_path = json_args.get_value(self.input_key)
-            image_full_path = JsonArgs.generate_absolute_path(
-                json_args.get_full_path(), image_path
-            )
-            image = Image.open(image_full_path)
+            image = json_args.get_PIL_image(self.input_key)
+            if image is None:
+                error_handler = ErrorHandler(
+                    file_path,
+                    self.fs_conn_id,
+                    self.error_key,
+                    self.task_id,
+                    self.encoding,
+                )
+                error_handler.save_error_list_to_file("Cannot download file")
+                continue
 
             # Preprocess the image and prepare inputs for the model
             inputs = processor(images=image, return_tensors="pt")
             # Generate caption
-            caption = model.generate(**inputs, max_new_tokens=100)
+            caption = model.generate(
+                **inputs,
+                min_length=self.min_length,
+                max_length=self.max_length,
+                max_new_tokens=100,
+                num_beams=5,
+                repetition_penalty=2.0
+            )
             # Decode the generated caption
             caption_text = processor.decode(caption[0], skip_special_tokens=True)
 
