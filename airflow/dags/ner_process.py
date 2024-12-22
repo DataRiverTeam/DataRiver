@@ -7,10 +7,7 @@ from datariver.operators.common.json_tools import (
     add_post_run_information,
     add_pre_run_information,
 )
-from datariver.operators.common.elasticsearch import (
-    ElasticSearchOperator,
-    ElasticJsonUpdateOperator,
-)
+from datariver.operators.common.elasticsearch import ElasticJsonUpdateOperator
 from datariver.operators.texts.langdetect import JsonLangdetectOperator
 from datariver.operators.texts.translate import JsonTranslateOperator
 from datariver.operators.texts.ner import NerJsonOperator

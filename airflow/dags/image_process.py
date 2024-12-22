@@ -10,10 +10,7 @@ from datariver.operators.common.json_tools import (
     add_pre_run_information,
     add_post_run_information,
 )
-from datariver.operators.common.elasticsearch import (
-    ElasticSearchOperator,
-    ElasticJsonUpdateOperator,
-)
+from datariver.operators.common.elasticsearch import ElasticJsonUpdateOperator
 import os
 import common
 
