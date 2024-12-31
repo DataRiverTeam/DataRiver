@@ -39,6 +39,8 @@ function ImageMailboxDashboard() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
     let [isExampleVisible, setIsExampleVisible] = useState(false);
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
+    let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
+
 
     const navigate = useNavigate();
 
@@ -135,10 +137,11 @@ function ImageMailboxDashboard() {
                 directory={mailboxUploadPath}
                 onSuccess={() => {
                     alert("Files uploaded sucessfully!");
-                    navigate(0);
+                    setIsFileUploaded(true)
+                    fetchDagRuns();
                 }}
             />
-            {recentActiveDag ? (
+            {isFileUploaded ? (
             <LinkButton
                 to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}`}
                 relative="path"
