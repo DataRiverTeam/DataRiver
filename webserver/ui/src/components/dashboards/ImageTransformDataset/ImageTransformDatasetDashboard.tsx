@@ -29,6 +29,7 @@ const headerCells = [
     "State",
     "DAG run Details",
     "Results",
+    "Process DAG's"
 ];
 
 function ImageTransformDatasetDashboard() {

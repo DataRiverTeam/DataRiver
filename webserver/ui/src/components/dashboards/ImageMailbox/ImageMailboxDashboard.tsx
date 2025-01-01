@@ -148,7 +148,7 @@ function ImageMailboxDashboard() {
             >
                 Next
             </LinkButton>
-            ) : (<div>button</div>)}
+            ) : <> </>}
         </>
     );
 }
