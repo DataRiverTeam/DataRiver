@@ -147,7 +147,7 @@ function ImageMailboxDashboard() {
             <div className={s.cellAlignCenter}>
                 <LinkButton
                     className={s.nextButton}
-                    to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}`}
+                    to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
                     relative="path"
                 >
                     &nbsp;Next&nbsp;

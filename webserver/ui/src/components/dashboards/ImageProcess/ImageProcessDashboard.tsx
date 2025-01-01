@@ -37,14 +37,20 @@ function ImageProcessingDashboard() {
     let [searchParams, setSearchParams] = useSearchParams();
     let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
+    let [isRedirect, setIsRedirect] = useState(false);
+    let [initParentDag, setInitParentDag] = useState<string|null>("");
 
     const form = useForm<TDagRunFilterFields>();
     const { setValue, getValues } = form;
-
     let [filters, setFilters] = useState<
         ((dagRun: TDagRunWithParent) => boolean)[]
     >([]);
-
+    let filteredDagRuns = dagRuns.filter((item) => {
+        return filters.reduce(
+            (acc, filter) => acc && filter(item),
+            true
+        );
+    })
     const fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
@@ -63,6 +69,7 @@ function ImageProcessingDashboard() {
         e.preventDefault();
         setSearchParams(new URLSearchParams(getValues()).toString());
         setFilters(computeFilters(getValues()));
+        setIsRedirect(initParentDag == searchParams.get("parentDagRunId"));
     };
 
     useEffect(() => {
@@ -77,6 +84,11 @@ function ImageProcessingDashboard() {
         const searchParentDagRunId = searchParams.get("parentDagRunId");
         if (searchParentDagRunId) {
             setValue("parentDagRunId", searchParentDagRunId);
+        }
+        const isRedirect = searchParams.get("isRedirect");
+        if (isRedirect == "true") {
+            setIsRedirect(true);
+            setInitParentDag(searchParentDagRunId)
         }
 
         setFilters(computeFilters(getValues()));
@@ -116,17 +128,15 @@ function ImageProcessingDashboard() {
             ) : (
                 <Paper className={s.listContainer}>
                     <DagRunFilterForm form={form} onSubmit={onSubmitFn} />
-                    <Table
-                        header={headerCells}
-                        rows={dagRuns
-                            .filter((item) => {
-                                return filters.reduce(
-                                    (acc, filter) => acc && filter(item),
-                                    true
-                                );
-                            })
-                            .map(getDashboardListCells)}
-                    />
+                    { filteredDagRuns.length > 0 || !isRedirect || initParentDag != searchParams.get("parentDagRunId") ? (
+                        <Table
+                            header={headerCells}
+                            rows={filteredDagRuns.map(getDashboardListCells)}
+                        /> 
+                    ) : (
+                        <p className={s.message}> There is no your DAG yet refresh in 5 seconds  </p>  
+                     )
+                 }
                 </Paper>
             )}
         </>

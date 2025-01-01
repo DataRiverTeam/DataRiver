@@ -40,3 +40,8 @@
     background-color: green;
     font-weight: bold;
 }
+
+.message {
+    font-weight: bold;
+    color: green;
+}

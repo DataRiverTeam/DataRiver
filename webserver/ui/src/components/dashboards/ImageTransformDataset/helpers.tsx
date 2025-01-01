@@ -42,7 +42,7 @@ export function getDashboardListCells(
             <Link
                 to={`/images/dashboard/image_process?parentDagRunId=${encodeURIComponent(
                     dagRun.dag_run_id
-                )}`}
+                )}&isRedirect=true`}
             >
                 <IconButton aria-label="DAG run results">
                     <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
