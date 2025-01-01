@@ -13,6 +13,8 @@ import DialogWindow from "../../DialogWindow/DialogWindow";
 import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
 
+import s from "../dashboards.module.css";
+
 const client = new ApiClient();
 
 const dagId = "image_mailbox";
@@ -142,13 +144,16 @@ function ImageMailboxDashboard() {
                 }}
             />
             {isFileUploaded ? (
-            <LinkButton
-                to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}`}
-                relative="path"
-            >
-                Next
-            </LinkButton>
-            ) : <> </>}
+            <div className={s.cellAlignCenter}>
+                <LinkButton
+                    className={s.nextButton}
+                    to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}`}
+                    relative="path"
+                >
+                    &nbsp;Next&nbsp;
+                </LinkButton>
+            </div>
+            ) : <></>}
         </>
     );
 }
