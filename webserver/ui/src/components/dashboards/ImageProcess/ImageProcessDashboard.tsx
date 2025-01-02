@@ -134,7 +134,7 @@ function ImageProcessingDashboard() {
                             rows={filteredDagRuns.map(getDashboardListCells)}
                         /> 
                     ) : (
-                        <p className={s.message}> There is no your DAG yet refresh in 5 seconds  </p>  
+                        <p className={s.message}> Selected DAG run is not ready yet, wait few seconds </p>  
                      )
                  }
                 </Paper>
