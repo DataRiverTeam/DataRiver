@@ -96,7 +96,21 @@ function ImageProcessingDashboard() {
 
     useEffect(() => {
         fetchDagRuns();
-    }, []);
+    }, [])
+
+    useEffect(() => {
+        let interval: number;
+        if (filteredDagRuns.length == 0 && isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
+            interval = setInterval(() => {
+                fetchDagRuns();
+            }, 1000)
+        }
+        return () => {
+            if (interval) {
+              clearInterval(interval);
+            }
+          };
+    }, [dagRuns]);
 
     return (
         <>
