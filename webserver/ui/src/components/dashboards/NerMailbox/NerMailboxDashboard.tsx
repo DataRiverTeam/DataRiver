@@ -87,7 +87,7 @@ function NerMailboxDashboard() {
             </DialogWindow>
             <h1>NER - file upload</h1>
             <p>
-                Upload the files in order to perform Named-entity recognition.
+                Upload the files to perform Named-Entity Recognition.
             </p>
             <h2> Sensor status </h2>
             {!isLoading ? (

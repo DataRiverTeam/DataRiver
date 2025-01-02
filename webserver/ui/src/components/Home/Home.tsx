@@ -38,7 +38,7 @@ function Home() {
                 <CardLink
                     title="Process images"
                     linkTo="/images/dashboard/image_process"
-                    description="Process files"
+                    description="Monitor images processing"
                 />
             </CardContainer>
         </>
