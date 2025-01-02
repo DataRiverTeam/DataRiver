@@ -38,5 +38,16 @@ export function getDashboardListCells(
                 </IconButton>
             </Link>
         </div>,
+        <div className={s.cellAlignCenter}>
+            <Link
+                to={`/images/dashboard/image_process?parentDagRunId=${encodeURIComponent(
+                    dagRun.dag_run_id
+                )}&isRedirect=true`}
+            >
+                <IconButton aria-label="Worker processes">
+                    <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
+                </IconButton>
+            </Link>
+        </div>
     ];
 }

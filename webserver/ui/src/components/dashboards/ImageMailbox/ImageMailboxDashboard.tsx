@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
+import LinkButton from "../../LinkButton/LinkButton";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { exampleImagesJson, triggerMailboxConf } from "../../../utils/consts";
@@ -12,6 +11,8 @@ import CodeBlock from "../../CodeBlock/CodeBlock";
 import DialogWindow from "../../DialogWindow/DialogWindow";
 import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import s from "../dashboards.module.css";
 
 const client = new ApiClient();
 
@@ -39,8 +40,8 @@ function ImageMailboxDashboard() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
     let [isExampleVisible, setIsExampleVisible] = useState(false);
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
+    let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
 
-    const navigate = useNavigate();
 
     let fetchDagRuns = async () => {
         try {
@@ -105,7 +106,7 @@ function ImageMailboxDashboard() {
                         <Button
                             onClick={() => {
                                 triggerMailbox(() => {
-                                    navigate(0);
+                                    fetchDagRuns();
                                 });
                             }}
                         >
@@ -135,9 +136,21 @@ function ImageMailboxDashboard() {
                 directory={mailboxUploadPath}
                 onSuccess={() => {
                     alert("Files uploaded sucessfully!");
-                    navigate(0);
+                    setIsFileUploaded(true)
+                    fetchDagRuns();
                 }}
             />
+            {isFileUploaded && recentActiveDag? (
+            <div className={s.cellAlignCenter}>
+                <LinkButton
+                    className={s.nextButton}
+                    to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
+                    relative="path"
+                >
+                    Track processing &nbsp;<ArrowForwardIosIcon sx={{ fontSize: 14 }} />
+                </LinkButton>
+            </div>
+            ) : <></>}
         </>
     );
 }

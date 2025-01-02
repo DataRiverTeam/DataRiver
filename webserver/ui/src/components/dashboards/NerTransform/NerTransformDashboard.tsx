@@ -30,11 +30,15 @@ const headerCells = [
     "State",
     "DAG run Details",
     "Results",
+    "Worker processes"
 ];
 function NerTransformDashboard() {
     let [searchParams, setSearchParams] = useSearchParams();
     let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
+    let [isRedirect, setIsRedirect] = useState(false);
+    let [initParentDag, setInitParentDag] = useState<string|null>("");
+
     const form = useForm<TDagRunFilterFields>();
     const { setValue, getValues } = form;
 
@@ -60,6 +64,7 @@ function NerTransformDashboard() {
         e.preventDefault();
         setSearchParams(new URLSearchParams(getValues()).toString());
         setFilters(computeFilters(getValues()));
+        setIsRedirect(initParentDag == searchParams.get("parentDagRunId"));
     };
 
     useEffect(() => {
@@ -75,13 +80,38 @@ function NerTransformDashboard() {
         if (searchParentDagRunId) {
             setValue("parentDagRunId", searchParentDagRunId);
         }
-
+        const isRedirect = searchParams.get("isRedirect");
+        if (isRedirect == "true") {
+            setIsRedirect(true);
+            setInitParentDag(searchParentDagRunId)
+        }
         setFilters(computeFilters(getValues()));
     }, []);
 
     useEffect(() => {
         fetchDagRuns();
     }, []);
+
+    useEffect(() => {
+        let interval: number;
+        if (filteredDagRuns.length == 0 && isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
+            interval = setInterval(() => {
+                fetchDagRuns();
+            }, 1000)
+        }
+        return () => {
+            if (interval) {
+              clearInterval(interval);
+            }
+          };
+    }, [dagRuns]);
+
+    let filteredDagRuns = dagRuns.filter((item) => {
+        return filters.reduce(
+            (acc, filter) => acc && filter(item),
+            true
+        );
+    })
 
     return (
         <>
@@ -116,17 +146,14 @@ function NerTransformDashboard() {
             ) : (
                 <Paper className={s.listContainer}>
                     <DagRunFilterForm form={form} onSubmit={onSubmitFn} />
-                    <Table
-                        header={headerCells}
-                        rows={dagRuns
-                            .filter((item) => {
-                                return filters.reduce(
-                                    (acc, filter) => acc && filter(item),
-                                    true
-                                );
-                            })
-                            .map(getDashboardListCells)}
-                    />
+                    { filteredDagRuns.length > 0 || !isRedirect || initParentDag != searchParams.get("parentDagRunId") ? (                   
+                        <Table
+                            header={headerCells}
+                            rows={filteredDagRuns.map(getDashboardListCells)}
+                        />) : (
+                           <p className={s.message}> Selected DAG run is not ready yet, wait few seconds </p>  
+                        )
+                    }
                 </Paper>
             )}
         </>
