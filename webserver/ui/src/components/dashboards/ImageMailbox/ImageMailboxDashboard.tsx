@@ -12,7 +12,7 @@ import CodeBlock from "../../CodeBlock/CodeBlock";
 import DialogWindow from "../../DialogWindow/DialogWindow";
 import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
-
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import s from "../dashboards.module.css";
 
 const client = new ApiClient();
@@ -150,7 +150,7 @@ function ImageMailboxDashboard() {
                     to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
                     relative="path"
                 >
-                    &nbsp;Next&nbsp;
+                    Track processing <ArrowForwardIosIcon sx={{ fontSize: 14 }} />
                 </LinkButton>
             </div>
             ) : <></>}
