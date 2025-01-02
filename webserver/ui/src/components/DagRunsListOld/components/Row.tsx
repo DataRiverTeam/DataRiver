@@ -9,7 +9,7 @@ type TRowProps = {
     dagId: string;
 };
 
-function Row({ dagRun, dagId }: TRowProps) {
+function Row({ dagRun }: TRowProps) {
     return (
         <>
             <div className={s.dagrunsCell}>
