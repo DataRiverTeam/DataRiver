@@ -8,6 +8,7 @@ import MuiTableRow from "@mui/material/TableRow";
 import MuiTablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
 import { Tooltip } from "@mui/material";
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 
 // import s from "./Table.module.css";
 // import clsx from "clsx";
@@ -56,7 +57,10 @@ function Table({ header, rows, tooltips }: TTableProps) {
                                 <MuiTableCell key={`header-${index}`}>
                                     {tooltips ? (
                                         <Tooltip title={tooltips[index]} arrow>
-                                        <u>{cell}</u>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+                                            <span style={{ marginRight: '3px' }}>{cell}</span>
+                                            <HelpOutlineIcon fontSize="inherit"></HelpOutlineIcon>
+                                        </span>
                                         </Tooltip>
                                     ) : (<span>{cell}</span>)}
     

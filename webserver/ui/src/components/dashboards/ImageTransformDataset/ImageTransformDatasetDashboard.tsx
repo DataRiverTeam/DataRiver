@@ -123,7 +123,9 @@ function ImageTransformDatasetDashboard() {
         <>
             <BackButton to="/" />
             <h1>Images - splitting files</h1>
-            <p>This dashboard allows you to monitor the file splitting process. It provides detailed insights into each DAG run, its status, and the processing results. Multiple worker processes are triggered, each handling a specific segment of the split files. You can effortlessly view both the results and the details of each worker process directly from the table.</p>
+            <p>This dashboard allows you to monitor the file splitting process. </p> 
+            <p>It provides detailed insights into each DAG run, its status, and the processing results.</p> 
+            <p>Multiple worker processes are triggered, each handling a specific segment of the split files. You can effortlessly view both the results and the details of each worker process directly from the table.</p>
             <div
                 style={{
                     display: "flex",
