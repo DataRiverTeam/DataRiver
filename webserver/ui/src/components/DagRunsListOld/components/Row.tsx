@@ -13,7 +13,7 @@ function Row({ dagRun, dagId }: TRowProps) {
     return (
         <>
             <div className={s.dagrunsCell}>
-                <Link to={`/dags/${dagId}/${dagRun.dag_run_id}`}>
+                <Link to={`./${dagRun.dag_run_id}`}>
                     {dagRun.dag_run_id}
                 </Link>
             </div>

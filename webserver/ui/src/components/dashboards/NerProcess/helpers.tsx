@@ -18,7 +18,7 @@ export function getDashboardListCells(
         </span>,
         <div className={s.cellAlignCenter}>
             <Link
-                to={`/dags/${dagRun.dag_id}/${encodeURIComponent(
+                to={`./${encodeURIComponent(
                     dagRun.dag_run_id
                 )}`}
             >
