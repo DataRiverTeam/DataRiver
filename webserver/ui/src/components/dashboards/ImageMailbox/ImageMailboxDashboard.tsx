@@ -123,11 +123,12 @@ function ImageMailboxDashboard() {
                 Import JSON files containing image URLs to process them. <br />(
                 <a
                     href="#"
+                    className={s.example}
                     onClick={() => {
                         setIsExampleVisible(true);
                     }}
                 >
-                    see example file
+                    click to see example file
                 </a>
                 )
             </p>

@@ -125,11 +125,12 @@ function NerMailboxDashboard() {
                 Import JSON files containing articles to process them. <br />(
                 <a
                     href="#"
+                    className={s.example}
                     onClick={() => {
                         setIsExampleVisible(true);
                     }}
                 >
-                    see example file
+                    click to see example file
                 </a>
                 )
             </p>
