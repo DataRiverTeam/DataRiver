@@ -28,10 +28,18 @@ const headerCells = [
     "DAG run ID",
     "Start date",
     "State",
-    "DAG run Details",
+    "Details",
     "Results",
     "Worker processes"
 ];
+const tooltips = [
+    "Displays the unique identifier for each DAG run associated with the file splitting process. This helps track individual processing instances.",
+    "Shows the timestamp when the file splitting process for a specific DAG run began.",
+    "Indicates the current status of the DAG run (\"queued\", \"running\", \"success\", \"failed\").",
+    "Click to see additional information about the specific DAG run",
+    "Click the arrow to view the NER processing outcomes.",
+    "Click the button to navigate to the worker process DAG runs, which are invoked multiple times during file splitting to handle each segment. This provides a detailed view of each worker process run."
+ ]
 function NerTransformDashboard() {
     let [searchParams, setSearchParams] = useSearchParams();
     let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
@@ -149,6 +157,7 @@ function NerTransformDashboard() {
                     { filteredDagRuns.length > 0 || !isRedirect || initParentDag != searchParams.get("parentDagRunId") ? (                   
                         <Table
                             header={headerCells}
+                            tooltips={tooltips}
                             rows={filteredDagRuns.map(getDashboardListCells)}
                         />) : (
                            <p className={s.message}> Selected DAG run is not ready yet, wait few seconds </p>  

@@ -85,7 +85,7 @@ function NerMailboxDashboard() {
             >
                 <CodeBlock code={JSON.stringify(exampleNerJson, null, 2)} />
             </DialogWindow>
-            <h1>NER - file upload</h1>
+            <h1>Named Entity Recognition - mailbox</h1>
             <p>
                 Upload the files to perform Named-Entity Recognition.
             </p>

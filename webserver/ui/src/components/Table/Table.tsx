@@ -7,16 +7,18 @@ import MuiTableHead from "@mui/material/TableHead";
 import MuiTableRow from "@mui/material/TableRow";
 import MuiTablePagination from "@mui/material/TablePagination";
 import Paper from "@mui/material/Paper";
+import { Tooltip } from "@mui/material";
 
 // import s from "./Table.module.css";
 // import clsx from "clsx";
 
 type TTableProps = {
     header: React.ReactNode[];
+    tooltips?: React.ReactNode[];
     rows: React.ReactNode[][];
 };
 
-function Table({ header, rows }: TTableProps) {
+function Table({ header, rows, tooltips }: TTableProps) {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -52,7 +54,12 @@ function Table({ header, rows }: TTableProps) {
                         {header.map((cell, index) => {
                             return (
                                 <MuiTableCell key={`header-${index}`}>
-                                    {cell}
+                                    {tooltips ? (
+                                        <Tooltip title={tooltips[index]} arrow>
+                                        <u>{cell}</u>
+                                        </Tooltip>
+                                    ) : (<span>{cell}</span>)}
+    
                                 </MuiTableCell>
                             );
                         })}
