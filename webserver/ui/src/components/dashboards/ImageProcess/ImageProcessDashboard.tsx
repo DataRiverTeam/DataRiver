@@ -116,7 +116,7 @@ function ImageProcessingDashboard() {
         <>
             <BackButton to="/" />
             <h1>Processing images</h1>
-            <p>Monitor processing of the articles.</p>
+            <p>Monitor processing of the images.</p>
 
             <div
                 style={{

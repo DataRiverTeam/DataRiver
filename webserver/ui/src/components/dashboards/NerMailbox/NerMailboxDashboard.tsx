@@ -87,7 +87,7 @@ function NerMailboxDashboard() {
             </DialogWindow>
             <h1>NER - file upload</h1>
             <p>
-                Upload the files in order to perform Named-entity recognition.
+                Upload the files to perform Named-Entity Recognition.
             </p>
             <h2> Sensor status </h2>
             {!isLoading ? (
@@ -125,11 +125,12 @@ function NerMailboxDashboard() {
                 Import JSON files containing articles to process them. <br />(
                 <a
                     href="#"
+                    className={s.example}
                     onClick={() => {
                         setIsExampleVisible(true);
                     }}
                 >
-                    see example file
+                    click to see example file
                 </a>
                 )
             </p>

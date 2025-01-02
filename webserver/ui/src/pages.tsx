@@ -20,7 +20,7 @@ import ImageMailboxDashboard from "./components/dashboards/ImageMailbox/ImageMai
 const dashboards: RouteObject[] = [
     /* DASHBOARDS */
     {
-        path: "ner/dashboard/mailbox",
+        path: "ner/dashboard/ner_mailbox",
         element: <NerMailboxDashboard />,
     },
     {
@@ -32,7 +32,7 @@ const dashboards: RouteObject[] = [
         element: <NerProcessDashboard />,
     },
     {
-        path: "images/dashboard/mailbox",
+        path: "images/dashboard/image_mailbox",
         element: <ImageMailboxDashboard />,
     },
     {
@@ -59,14 +59,20 @@ const pages: RouteObject[] = [
                 element: <NerBrowser />,
             },
             ...dashboards,
+            ...dashboards.flatMap((routeObject) => {
+                let path: string = routeObject.path!.split("/").slice(0, -1).join("/")
+                return ({
+                    path: `${path}/:dagId/:runId`,
+                    element: <DagRunDetails/>,
+                })
+            }),
             {
                 path: "dags",
                 element: <DagsList />,
             },
-            { path: "dags/:dagId", element: <DagDetails /> },
-            {
-                path: "dags/:dagId/:runId",
-                element: <DagRunDetails />,
+            { 
+                path: "dags/:dagId", 
+                element: <DagDetails /> 
             },
             {
                 path: "dags/:dagId/trigger",

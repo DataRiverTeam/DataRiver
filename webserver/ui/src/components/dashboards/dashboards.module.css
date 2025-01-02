@@ -45,3 +45,16 @@
     font-weight: bold;
     color: green;
 }
+
+.example {
+    color: white; 
+}
+
+.example:focus {
+    text-decoration: none;  
+}
+
+.example:hover {
+    color: gray; 
+    text-decoration: none;  
+  }

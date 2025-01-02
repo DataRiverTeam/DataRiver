@@ -73,7 +73,6 @@ function DagRunDetails() {
                     <thead>
                         <tr>
                             <td>Task ID</td>
-                            <td>Map index</td>
                             <td>State</td>
                         </tr>
                     </thead>
@@ -82,7 +81,6 @@ function DagRunDetails() {
                             return (
                                 <tr key={task.task_id}>
                                     <td> {task.task_id}</td>
-                                    <td> {task.map_index}</td>
                                     <td> {task.state || "-"}</td>
                                 </tr>
                             );
