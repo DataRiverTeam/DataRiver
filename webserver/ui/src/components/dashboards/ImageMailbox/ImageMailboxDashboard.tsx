@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import LinkButton from "../../LinkButton/LinkButton";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
@@ -43,7 +42,6 @@ function ImageMailboxDashboard() {
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
     let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
 
-    const navigate = useNavigate();
 
     let fetchDagRuns = async () => {
         try {
@@ -108,7 +106,7 @@ function ImageMailboxDashboard() {
                         <Button
                             onClick={() => {
                                 triggerMailbox(() => {
-                                    navigate(0);
+                                    fetchDagRuns();
                                 });
                             }}
                         >
@@ -142,7 +140,7 @@ function ImageMailboxDashboard() {
                     fetchDagRuns();
                 }}
             />
-            {isFileUploaded ? (
+            {isFileUploaded && recentActiveDag? (
             <div className={s.cellAlignCenter}>
                 <LinkButton
                     className={s.nextButton}
