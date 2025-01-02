@@ -124,11 +124,11 @@ function NerTransformDashboard() {
     return (
         <>
             <BackButton to="/" />
-            <h1>NER - batching files</h1>
-            <p>
-                Monitor the process of splitting uploaded JSON files into
-                smaller batches.
-            </p>
+            <h1>NER - spliting files</h1>
+            <p>This dashboard allows you to monitor the file splitting process. </p> 
+            <p>It provides detailed insights into each DAG run, its status, and the processing results.</p> 
+            <p>Multiple worker processes are triggered, each handling a specific segment of the split files. You can effortlessly view both the results and the details of each worker process directly from the table.</p>
+
 
             <div
                 style={{

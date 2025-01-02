@@ -85,9 +85,15 @@ function NerMailboxDashboard() {
             >
                 <CodeBlock code={JSON.stringify(exampleNerJson, null, 2)} />
             </DialogWindow>
-            <h1>Named Entity Recognition - mailbox</h1>
+            <h1>NER - mailbox</h1>
             <p>
-                Upload the files to perform Named-Entity Recognition.
+            Welcome to the Named Entity Recognition (NER) mailbox dashboard. Here, you can activate the sensor to begin detecting uploaded files seamlessly.
+            </p>
+            <p>
+            Named Entity Recognition is applied to the articles extracted from the detected files, providing valuable insights into the entities present in the content.
+            </p>
+            <p>
+            After uploading file, a button will appear to guide you to the next dashboard for further processing details
             </p>
             <h2> Sensor status </h2>
             {!isLoading ? (
