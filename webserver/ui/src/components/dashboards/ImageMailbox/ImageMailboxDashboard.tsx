@@ -85,7 +85,7 @@ function ImageMailboxDashboard() {
             >
                 <CodeBlock code={JSON.stringify(exampleImagesJson, null, 2)} />
             </DialogWindow>
-            <h1>File upload</h1>
+            <h1>Image processing - file upload</h1>
             <p>Upload the files in order to perform image analysis.</p>
             <h2> Sensor status </h2>
             {!isLoading ? (
