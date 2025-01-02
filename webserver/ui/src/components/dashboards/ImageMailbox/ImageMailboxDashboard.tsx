@@ -43,7 +43,6 @@ function ImageMailboxDashboard() {
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
     let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
 
-
     const navigate = useNavigate();
 
     let fetchDagRuns = async () => {

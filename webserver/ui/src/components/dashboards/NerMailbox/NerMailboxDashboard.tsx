@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
+import LinkButton from "../../LinkButton/LinkButton";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { triggerMailboxConf } from "../../../utils/consts";
@@ -13,6 +13,8 @@ import { exampleNerJson } from "../../../utils/consts";
 import DialogWindow from "../../DialogWindow/DialogWindow";
 import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import s from "../dashboards.module.css";
 
 const client = new ApiClient();
 
@@ -40,6 +42,7 @@ function NerMailboxDashboard() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
     let [isExampleVisible, setIsExampleVisible] = useState(false);
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
+    let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
 
     const navigate = useNavigate();
 
@@ -138,16 +141,22 @@ function NerMailboxDashboard() {
                 directory={mailboxUploadPath}
                 onSuccess={() => {
                     alert("Files uploaded sucessfully!");
-                    navigate(0);
+                    setIsFileUploaded(true)
+                    fetchDagRuns();
                 }}
             />
 
-            {/* <h2> DAGs status </h2>
-            {areDagRunsLoading ? (
-                "Loading DAG runs..."
-            ) : (
-                <DagRunsList dagId={dagId} dagRuns={dagRuns} />
-            )} */}
+            {isFileUploaded ? (
+            <div className={s.cellAlignCenter}>
+                <LinkButton
+                    className={s.nextButton}
+                    to={`../ner_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
+                    relative="path"
+                >
+                    Track processing <ArrowForwardIosIcon sx={{ fontSize: 14 }} />
+                </LinkButton>
+            </div>
+            ) : <></>}
         </>
     );
 }

@@ -44,7 +44,7 @@ export function getDashboardListCells(
                     dagRun.dag_run_id
                 )}&isRedirect=true`}
             >
-                <IconButton aria-label="DAG run results">
+                <IconButton aria-label="Worker processes">
                     <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
                 </IconButton>
             </Link>
