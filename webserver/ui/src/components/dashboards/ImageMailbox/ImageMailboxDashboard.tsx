@@ -149,7 +149,7 @@ function ImageMailboxDashboard() {
                     to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
                     relative="path"
                 >
-                    Track processing <ArrowForwardIosIcon sx={{ fontSize: 14 }} />
+                    Track processing &nbsp;<ArrowForwardIosIcon sx={{ fontSize: 14 }} />
                 </LinkButton>
             </div>
             ) : <></>}
