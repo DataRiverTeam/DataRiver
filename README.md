@@ -27,40 +27,30 @@ docker compose --profile ui up -V --build
 ### Step 1
 Open http://localhost:3000/ in the browser.
 ### Step 2
-Navigate to `FILES` in navbar \
-![Navigate to files](resources/files.png)
+Click "Import dataset" tile in "Named Entity Recognition" section
 ### Step 3
-Select map folder \
-![Go to map folder](resources/map.png)
+If there is no active sensor click "Activate file sensor" button
 ### Step 4
-Browse and upload file ./test_data/texts/texts_small.json \
-![Search texts_small.json](resources/browse.png)
+Browse and upload example file ```./test_data/texts/texts_small.json```
 ### Step 5
-Navigate to `DAGS` in navbar \
-![Go to dags](resources/dags.png)
+After uploading file click "Track processing"
 ### Step 6
-Select mailbox dag \
-![Select mailbox dag](resources/mailbox.png)
-### Step 7
-Trigger dag \
-![Trigger dag](resources/trigger.png)
-### Step 8
-Insert config below and run dag. 
-```
-{
-  "batch_size": 10,
-  "encoding": "utf-8",
-  "filepath": "map/*.json",
-  "fs_conn_id": "fs_data"
-}
-```
-![Configure triggered DAG](resources/config.png)
-### Step 9
-After a minute you can see processed data in `BROWSE DOCUMENTS`.
+Wait few seconds and while dag run appear you can click button in "Results" column in order to navigate to processing results
 
 ## Running image workflow from UI
 
-### TO DO
+### Step 1
+Open http://localhost:3000/ in the browser.
+### Step 2
+Click "Import dataset" tile in "Image processing" section
+### Step 3
+If there is no active sensor click "Activate file sensor" button
+### Step 4
+Browse and upload example file ```./test_data/images/images_urls_small.json```
+### Step 5
+After uploading file click "Track processing"
+### Step 6
+Wait few seconds and while dag run appear you can click button in "Results" column in order to navigate to gallery with processing results
 
 ## Service access
 ### Web UI
