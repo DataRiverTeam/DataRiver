@@ -9,7 +9,7 @@ import CardContent from "@mui/material/CardContent";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-
+import { humanReadableDate } from "../../utils/helpers"
 import { TNerDoc } from "../../types/ner";
 import s from "./NerCard.module.css";
 import NerChart from "./components/NerChart/NerChart";
@@ -78,7 +78,7 @@ function NerCard({ item }: TNerCardProps) {
                     <li>Language: {item.language}</li>
                     <li>DAG run ID: {item.dag_run_id}</li>
                     {item.processed_date ? (
-                        <li>Processed date: {item.processed_date}</li>
+                        <li>Processed date: {humanReadableDate(item.processed_date)}</li>
                     ) : null}
                 </ul>
                 <h3>Dags info</h3>
@@ -99,7 +99,7 @@ function NerCard({ item }: TNerCardProps) {
                                 ([dag_id, value]) => (
                                     <tr key={dag_id}>
                                         <td>{dag_id}</td>
-                                        <td>{value.start_date}</td>
+                                        <td>{humanReadableDate(value.start_date)}</td>
                                         <td>{value.run_id}</td>
                                     </tr>
                                 )
