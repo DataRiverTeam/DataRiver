@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-
+import { humanReadableDate } from "../../utils/helpers"
 import { TDagRun, TTaskInstance } from "../../types/airflow";
 import CodeBlock from "../CodeBlock/CodeBlock";
 
@@ -58,9 +58,9 @@ function DagRunDetails() {
             ) : dagRun ? (
                 <>
                     <h2> Details </h2>
-                    <p>start date - {dagRun.start_date}</p>
+                    <p>start date - {humanReadableDate(dagRun.start_date)}</p>
                     {dagRun?.end_date ? (
-                        <p>end date - {dagRun.end_date}</p>
+                        <p>end date - {humanReadableDate(dagRun.end_date)}</p>
                     ) : null}
                     <p>state - {dagRun.state}</p>
                 </>
