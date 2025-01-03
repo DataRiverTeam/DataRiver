@@ -16,3 +16,19 @@ export function useDebounce<T>(value: T, delay: number = 500): T {
 
     return debouncedValue;
 }
+
+export function humanReadableDate (date: string): string {
+    if (!date) return "N/A"; 
+
+    const parsedDate = new Date(date);
+    return parsedDate.toLocaleString("en-GB", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+        timeZoneName: "short",
+    });
+};
