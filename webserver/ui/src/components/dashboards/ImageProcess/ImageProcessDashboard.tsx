@@ -126,7 +126,7 @@ function ImageProcessingDashboard() {
             <h1>Processing images</h1>
             <p>This dashboard allows you to monitor the images processing.</p> 
             <p>It provides info about DAG run, its status, and the processing results.</p> 
-            <p>You can view the results with the button in the "Results" column</p>
+            <p>You can view the results after clicking the button in the "Results" column</p>
           
             <div
                 style={{

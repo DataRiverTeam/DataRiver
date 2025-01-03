@@ -99,7 +99,7 @@ function ImageMailboxDashboard() {
             <li>Generate a perceptual hash for efficient identification</li>
             </ul>
             <p>
-            After uploading file,, a button will appear to guide you to the next dashboard for further processing details
+            After uploading a file,, a button will appear to guide you to the next dashboard for further processing details
             </p>
             <h2> Sensor status </h2>
             {!isLoading ? (

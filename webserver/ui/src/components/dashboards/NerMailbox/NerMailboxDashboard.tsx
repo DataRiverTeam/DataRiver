@@ -93,7 +93,7 @@ function NerMailboxDashboard() {
             Named Entity Recognition is applied to the articles extracted from the detected files, providing valuable insights into the entities present in the content.
             </p>
             <p>
-            After uploading file, a button will appear to guide you to the next dashboard for further processing details
+            After uploading a file, a button will appear to guide you to the next dashboard for further processing details
             </p>
             <h2> Sensor status </h2>
             {!isLoading ? (
