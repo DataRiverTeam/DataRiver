@@ -85,8 +85,22 @@ function ImageMailboxDashboard() {
             >
                 <CodeBlock code={JSON.stringify(exampleImagesJson, null, 2)} />
             </DialogWindow>
-            <h1>Image processing - file upload</h1>
-            <p>Upload the files in order to perform image analysis.</p>
+            <h1>Image processing - mailbox</h1>
+            <p>
+            Welcome to the image processing mailbox dashboard. Here, you can activate the sensor to initiate the detection of uploaded files.
+            </p>
+            <p>
+            Once a file is successfully detected, the system will perform several tasks on the detected images:
+            </p>
+            <ul>
+            <li>Extract metadata</li>
+            <li>Generate a descriptive summary</li>
+            <li>Create a thumbnail for quick preview</li>
+            <li>Generate a perceptual hash for efficient identification</li>
+            </ul>
+            <p>
+            After uploading a file,, a button will appear to guide you to the next dashboard for further processing details
+            </p>
             <h2> Sensor status </h2>
             {!isLoading ? (
                 recentActiveDag ? (

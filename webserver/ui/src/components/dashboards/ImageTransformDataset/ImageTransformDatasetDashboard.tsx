@@ -27,10 +27,19 @@ const headerCells = [
     "DAG run ID",
     "Start date",
     "State",
-    "DAG run Details",
+    "Details",
     "Results",
     "Worker processes"
 ];
+
+const tooltips = [
+   "Displays the unique identifier for each DAG run associated with the file splitting process. This helps track individual processing instances.",
+   "Shows the timestamp when the file splitting process for a specific DAG run began.",
+   "Indicates the current status of the DAG run (\"queued\", \"running\", \"success\", \"failed\").",
+   "Click to see additional information about the specific DAG run",
+   "Click the arrow to view the gallery with the file processing outcomes.",
+   "Click the button to navigate to the worker process DAG runs, which are invoked multiple times during file splitting to handle each segment. This provides a detailed view of each worker process run."
+]
 
 function ImageTransformDatasetDashboard() {
     let [searchParams, setSearchParams] = useSearchParams();
@@ -113,12 +122,10 @@ function ImageTransformDatasetDashboard() {
     return (
         <>
             <BackButton to="/" />
-            <h1>Images - batching files</h1>
-            <p>
-                Monitor the process of splitting uploaded images dataset into
-                smaller batches.
-            </p>
-
+            <h1>Images - splitting files</h1>
+            <p>This dashboard allows you to monitor the file splitting process. </p> 
+            <p>It provides detailed insights into each DAG run, its status, and the processing results.</p> 
+            <p>Multiple worker processes are triggered, each handling a specific segment of the split files. You can effortlessly view both the results and the details of each worker process directly from the table.</p>
             <div
                 style={{
                     display: "flex",
@@ -146,6 +153,7 @@ function ImageTransformDatasetDashboard() {
                     { filteredDagRuns.length > 0 || !isRedirect || initParentDag != searchParams.get("parentDagRunId") ? (                   
                         <Table
                             header={headerCells}
+                            tooltips={tooltips}
                             rows={filteredDagRuns.map(getDashboardListCells)}
                         />) : (
                            <p className={s.message}> Selected DAG run is not ready yet, wait few seconds </p>  

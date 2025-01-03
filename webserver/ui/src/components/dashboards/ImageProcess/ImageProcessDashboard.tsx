@@ -29,9 +29,17 @@ const headerCells = [
     "DAG run ID",
     "Start date",
     "State",
-    "DAG run Details",
+    "Details",
     "Results",
 ];
+
+const tooltips = [
+    "Displays the unique identifier for each DAG run associated with the worker process.",
+    "Shows the timestamp when the file splitting process for a specific DAG run began.",
+    "Indicates the current status of the DAG run (\"queued\", \"running\", \"success\", \"failed\").",
+    "Click to see additional information about the specific DAG run",
+    "Click the arrow to view the gallery with the processing outcomes."
+ ]
 
 function ImageProcessingDashboard() {
     let [searchParams, setSearchParams] = useSearchParams();
@@ -116,8 +124,10 @@ function ImageProcessingDashboard() {
         <>
             <BackButton to="/" />
             <h1>Processing images</h1>
-            <p>Monitor processing of the images.</p>
-
+            <p>This dashboard allows you to monitor the images processing.</p> 
+            <p>It provides info about DAG run, its status, and the processing results.</p> 
+            <p>You can view the results after clicking the button in the "Results" column</p>
+          
             <div
                 style={{
                     display: "flex",
@@ -145,6 +155,7 @@ function ImageProcessingDashboard() {
                     { filteredDagRuns.length > 0 || !isRedirect || initParentDag != searchParams.get("parentDagRunId") ? (
                         <Table
                             header={headerCells}
+                            tooltips={tooltips}
                             rows={filteredDagRuns.map(getDashboardListCells)}
                         /> 
                     ) : (
