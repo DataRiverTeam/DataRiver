@@ -361,7 +361,7 @@ app.get("/api/images/thumbnails", async (req, res) => {
             size: PAGE_SIZE,
             from: Math.max((page - 1) * PAGE_SIZE, 0),
             _source: {
-                includes: "thumbnail",
+                includes: ["thumbnail", "error"],
             },
             query: query,
         });
