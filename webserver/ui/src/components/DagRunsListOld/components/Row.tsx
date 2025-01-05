@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { TDagRun } from "../../../types/airflow";
 import clsx from "clsx";
-
+import { humanReadableDate } from "../../../utils/helpers"
 import s from "../DagRunsList.module.css";
 
 type TRowProps = {
@@ -17,7 +17,7 @@ function Row({ dagRun }: TRowProps) {
                     {dagRun.dag_run_id}
                 </Link>
             </div>
-            <div className={s.dagrunsCell}>{dagRun.start_date}</div>
+            <div className={s.dagrunsCell}>{humanReadableDate(dagRun.start_date)}</div>
             <div
                 className={clsx(s.dagrunsCell, s.status, {
                     [s.statusSuccess]: dagRun.state === "success",

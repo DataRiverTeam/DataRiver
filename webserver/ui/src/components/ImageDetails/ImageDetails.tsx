@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Card } from "@mui/material";
-
+import { humanReadableDate } from "../../utils/helpers"
 import { TImageDetails } from "../../types/image";
 import BackButton from "../BackButton/BackButton";
 
@@ -80,7 +80,7 @@ function ImageDetails() {
                         {imageDetails.processed_date ? (
                             <li>
                                 Processing end date:{" "}
-                                {imageDetails.processed_date}
+                                {humanReadableDate(imageDetails.processed_date)}
                             </li>
                         ) : null}
                     </ul>
@@ -106,7 +106,7 @@ function ImageDetails() {
                                     ([dag_id, value]) => (
                                         <tr key={dag_id}>
                                             <td>{dag_id}</td>
-                                            <td>{value.start_date}</td>
+                                            <td>{humanReadableDate(value.start_date)}</td>
                                             <td>{value.run_id}</td>
                                         </tr>
                                     )
