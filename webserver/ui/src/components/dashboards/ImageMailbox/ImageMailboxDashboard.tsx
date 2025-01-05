@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
+import LinkButton from "../../LinkButton/LinkButton";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { exampleImagesJson, triggerMailboxConf } from "../../../utils/consts";
@@ -12,6 +11,8 @@ import CodeBlock from "../../CodeBlock/CodeBlock";
 import DialogWindow from "../../DialogWindow/DialogWindow";
 import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import s from "../dashboards.module.css";
 
 const client = new ApiClient();
 
@@ -39,8 +40,8 @@ function ImageMailboxDashboard() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
     let [isExampleVisible, setIsExampleVisible] = useState(false);
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
+    let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
 
-    const navigate = useNavigate();
 
     let fetchDagRuns = async () => {
         try {
@@ -84,8 +85,22 @@ function ImageMailboxDashboard() {
             >
                 <CodeBlock code={JSON.stringify(exampleImagesJson, null, 2)} />
             </DialogWindow>
-            <h1>File upload</h1>
-            <p>Upload the files in order to perform image analysis.</p>
+            <h1>Image processing - mailbox</h1>
+            <p>
+            Welcome to the image processing mailbox dashboard. Here, you can activate the sensor to initiate the detection of uploaded files.
+            </p>
+            <p>
+            Once a file is successfully detected, the system will perform several tasks on the detected images:
+            </p>
+            <ul>
+            <li>Extract metadata</li>
+            <li>Generate a descriptive summary</li>
+            <li>Create a thumbnail for quick preview</li>
+            <li>Generate a perceptual hash for efficient identification</li>
+            </ul>
+            <p>
+            After uploading a file,, a button will appear to guide you to the next dashboard for further processing details
+            </p>
             <h2> Sensor status </h2>
             {!isLoading ? (
                 recentActiveDag ? (
@@ -105,7 +120,7 @@ function ImageMailboxDashboard() {
                         <Button
                             onClick={() => {
                                 triggerMailbox(() => {
-                                    navigate(0);
+                                    fetchDagRuns();
                                 });
                             }}
                         >
@@ -122,11 +137,12 @@ function ImageMailboxDashboard() {
                 Import JSON files containing image URLs to process them. <br />(
                 <a
                     href="#"
+                    className={s.example}
                     onClick={() => {
                         setIsExampleVisible(true);
                     }}
                 >
-                    see example file
+                    click to see example file
                 </a>
                 )
             </p>
@@ -135,9 +151,21 @@ function ImageMailboxDashboard() {
                 directory={mailboxUploadPath}
                 onSuccess={() => {
                     alert("Files uploaded sucessfully!");
-                    navigate(0);
+                    setIsFileUploaded(true)
+                    fetchDagRuns();
                 }}
             />
+            {isFileUploaded && recentActiveDag? (
+            <div className={s.cellAlignCenter}>
+                <LinkButton
+                    className={s.nextButton}
+                    to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
+                    relative="path"
+                >
+                    Track processing &nbsp;<ArrowForwardIosIcon sx={{ fontSize: 14 }} />
+                </LinkButton>
+            </div>
+            ) : <></>}
         </>
     );
 }

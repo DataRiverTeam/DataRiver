@@ -9,6 +9,7 @@ type TLinkButtonProps = {
     children?: string | ReactNode;
     type?: "button" | "submit";
     startIcon?: ReactNode;
+    className?: string | undefined;
 };
 
 function LinkButton({
@@ -17,10 +18,11 @@ function LinkButton({
     children,
     type = "button",
     startIcon = null,
+    className = undefined,
 }: TLinkButtonProps) {
     return (
         <Link to={to} relative={relative || undefined}>
-            <Button type={type} startIcon={startIcon}>
+            <Button type={type} startIcon={startIcon} className={className || undefined}>
                 {children}
             </Button>
         </Link>

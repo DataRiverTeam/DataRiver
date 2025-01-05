@@ -29,22 +29,36 @@ const headerCells = [
     "DAG run ID",
     "Start date",
     "State",
-    "DAG run Details",
+    "Details",
     "Results",
 ];
+
+const tooltips = [
+    "Displays the unique identifier for each DAG run associated with the worker process.",
+    "Shows the timestamp when the file splitting process for a specific DAG run began.",
+    "Indicates the current status of the DAG run (\"queued\", \"running\", \"success\", \"failed\").",
+    "Click to see additional information about the specific DAG run",
+    "Click the arrow to view the gallery with the processing outcomes."
+ ]
 
 function ImageProcessingDashboard() {
     let [searchParams, setSearchParams] = useSearchParams();
     let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
+    let [isRedirect, setIsRedirect] = useState(false);
+    let [initParentDag, setInitParentDag] = useState<string|null>("");
 
     const form = useForm<TDagRunFilterFields>();
     const { setValue, getValues } = form;
-
     let [filters, setFilters] = useState<
         ((dagRun: TDagRunWithParent) => boolean)[]
     >([]);
-
+    let filteredDagRuns = dagRuns.filter((item) => {
+        return filters.reduce(
+            (acc, filter) => acc && filter(item),
+            true
+        );
+    })
     const fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
@@ -63,6 +77,7 @@ function ImageProcessingDashboard() {
         e.preventDefault();
         setSearchParams(new URLSearchParams(getValues()).toString());
         setFilters(computeFilters(getValues()));
+        setIsRedirect(initParentDag == searchParams.get("parentDagRunId"));
     };
 
     useEffect(() => {
@@ -78,20 +93,41 @@ function ImageProcessingDashboard() {
         if (searchParentDagRunId) {
             setValue("parentDagRunId", searchParentDagRunId);
         }
+        const isRedirect = searchParams.get("isRedirect");
+        if (isRedirect == "true") {
+            setIsRedirect(true);
+            setInitParentDag(searchParentDagRunId)
+        }
 
         setFilters(computeFilters(getValues()));
     }, []);
 
     useEffect(() => {
         fetchDagRuns();
-    }, []);
+    }, [])
+
+    useEffect(() => {
+        let interval: number;
+        if (filteredDagRuns.length == 0 && isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
+            interval = setInterval(() => {
+                fetchDagRuns();
+            }, 1000)
+        }
+        return () => {
+            if (interval) {
+              clearInterval(interval);
+            }
+          };
+    }, [dagRuns]);
 
     return (
         <>
             <BackButton to="/" />
             <h1>Processing images</h1>
-            <p>Monitor processing of the articles.</p>
-
+            <p>This dashboard allows you to monitor the images processing.</p> 
+            <p>It provides info about DAG run, its status, and the processing results.</p> 
+            <p>You can view the results after clicking the button in the "Results" column</p>
+          
             <div
                 style={{
                     display: "flex",
@@ -116,17 +152,16 @@ function ImageProcessingDashboard() {
             ) : (
                 <Paper className={s.listContainer}>
                     <DagRunFilterForm form={form} onSubmit={onSubmitFn} />
-                    <Table
-                        header={headerCells}
-                        rows={dagRuns
-                            .filter((item) => {
-                                return filters.reduce(
-                                    (acc, filter) => acc && filter(item),
-                                    true
-                                );
-                            })
-                            .map(getDashboardListCells)}
-                    />
+                    { filteredDagRuns.length > 0 || !isRedirect || initParentDag != searchParams.get("parentDagRunId") ? (
+                        <Table
+                            header={headerCells}
+                            tooltips={tooltips}
+                            rows={filteredDagRuns.map(getDashboardListCells)}
+                        /> 
+                    ) : (
+                        <p className={s.message}> Selected DAG run is not ready yet, wait few seconds </p>  
+                     )
+                 }
                 </Paper>
             )}
         </>

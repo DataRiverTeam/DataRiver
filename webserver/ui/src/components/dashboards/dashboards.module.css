@@ -4,8 +4,9 @@
     display: flex;
     flex-direction: column;
     gap: 1.2rem;
+    width: 100%;
 }
-
+ 
 .cellStatus {
     font-weight: bold;
 }
@@ -33,3 +34,28 @@
     text-align: center;
     justify-content: center;
 }
+
+.nextButton:global(.MuiButton-root) {
+    color: white;
+    border: 1px solid rgba(127, 127, 127, 0.3);
+    background-color: green;
+    font-weight: bold;
+}
+
+.message {
+    font-weight: bold;
+    color: green;
+}
+
+.example {
+    color: white; 
+}
+
+.example:focus {
+    text-decoration: none;  
+}
+
+.example:hover {
+    color: gray; 
+    text-decoration: none;  
+  }

@@ -15,6 +15,7 @@ import s from "./ImageBrowser.module.css";
 type TImageThumbnailEntry = {
     id: string;
     thumbnail: string;
+    error: boolean;
 };
 
 type TImageFormFields = {
@@ -99,6 +100,7 @@ function ImageBrowser() {
                 json.hits.hits.map((item: any) => ({
                     id: item._id,
                     thumbnail: item._source.thumbnail,
+                    error: item._source.hasOwnProperty("error"),
                 }))
             );
         } catch (error) {
@@ -225,17 +227,22 @@ function ImageBrowser() {
                             return (
                                 <Fragment key={item.id}>
                                     <ImageListItem>
-                                        {item?.thumbnail ? (
-                                            <img
-                                                src={`data:image/png;base64, ${item.thumbnail}`}
-                                                loading="lazy"
-                                            />
-                                        ) : (
-                                            <img
-                                                src="/no_thumbnail.svg"
-                                                loading="lazy"
-                                            />
-                                        )}
+                                    {item?.thumbnail ? (
+                                        <img
+                                            src={`data:image/png;base64, ${item.thumbnail}`}
+                                            loading="lazy"
+                                        />
+                                    ) : item?.error ? (
+                                        <img
+                                            src="/no_thumbnail_error.svg"
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <img
+                                            src="/no_thumbnail.svg"
+                                            loading="lazy"
+                                        />
+                                    )}
                                         <ImageListItemBar
                                             title={item.id}
                                             actionIcon={

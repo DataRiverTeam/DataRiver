@@ -14,16 +14,6 @@ function NavBar() {
                     </Link>
                 </Button>
                 <Button variant="text">
-                    <Link to={"/dags"} className={s.link}>
-                        DAGs
-                    </Link>
-                </Button>
-                <Button variant="text">
-                    <Link to={"/fileexplorer"} className={s.link}>
-                        Files
-                    </Link>
-                </Button>
-                <Button variant="text">
                     <Link to={"/ner/search"} className={s.link}>
                         NER
                     </Link>

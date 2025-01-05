@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-
+import LinkButton from "../../LinkButton/LinkButton";
 import { TDagRun } from "../../../types/airflow";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { triggerMailboxConf } from "../../../utils/consts";
@@ -13,6 +12,8 @@ import { exampleNerJson } from "../../../utils/consts";
 import DialogWindow from "../../DialogWindow/DialogWindow";
 import BackButton from "../../BackButton/BackButton";
 import Button from "../../Button/Button";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import s from "../dashboards.module.css";
 
 const client = new ApiClient();
 
@@ -40,8 +41,7 @@ function NerMailboxDashboard() {
     let [isLoading, setIsLoading] = useState<boolean>(true);
     let [isExampleVisible, setIsExampleVisible] = useState(false);
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
-
-    const navigate = useNavigate();
+    let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
 
     let fetchDagRuns = async () => {
         try {
@@ -85,9 +85,15 @@ function NerMailboxDashboard() {
             >
                 <CodeBlock code={JSON.stringify(exampleNerJson, null, 2)} />
             </DialogWindow>
-            <h1>NER - file upload</h1>
+            <h1>NER - mailbox</h1>
             <p>
-                Upload the files in order to perform Named-entity recognition.
+            Welcome to the Named Entity Recognition (NER) mailbox dashboard. Here, you can activate the sensor to begin detecting uploaded files seamlessly.
+            </p>
+            <p>
+            Named Entity Recognition is applied to the articles extracted from the detected files, providing valuable insights into the entities present in the content.
+            </p>
+            <p>
+            After uploading a file, a button will appear to guide you to the next dashboard for further processing details
             </p>
             <h2> Sensor status </h2>
             {!isLoading ? (
@@ -108,7 +114,7 @@ function NerMailboxDashboard() {
                         <Button
                             onClick={() => {
                                 triggerMailbox(() => {
-                                    navigate(0);
+                                    fetchDagRuns();
                                 });
                             }}
                         >
@@ -125,11 +131,12 @@ function NerMailboxDashboard() {
                 Import JSON files containing articles to process them. <br />(
                 <a
                     href="#"
+                    className={s.example}
                     onClick={() => {
                         setIsExampleVisible(true);
                     }}
                 >
-                    see example file
+                    click to see example file
                 </a>
                 )
             </p>
@@ -138,16 +145,22 @@ function NerMailboxDashboard() {
                 directory={mailboxUploadPath}
                 onSuccess={() => {
                     alert("Files uploaded sucessfully!");
-                    navigate(0);
+                    setIsFileUploaded(true)
+                    fetchDagRuns();
                 }}
             />
 
-            {/* <h2> DAGs status </h2>
-            {areDagRunsLoading ? (
-                "Loading DAG runs..."
-            ) : (
-                <DagRunsList dagId={dagId} dagRuns={dagRuns} />
-            )} */}
+            {isFileUploaded && recentActiveDag ? (
+            <div className={s.cellAlignCenter}>
+                <LinkButton
+                    className={s.nextButton}
+                    to={`../ner_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
+                    relative="path"
+                >
+                    Track processing &nbsp;<ArrowForwardIosIcon sx={{ fontSize: 14 }} />
+                </LinkButton>
+            </div>
+            ) : <></>}
         </>
     );
 }

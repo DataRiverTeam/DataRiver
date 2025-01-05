@@ -8,7 +8,7 @@ function Home() {
             <CardContainer>
                 <CardLink
                     title="Import dataset"
-                    linkTo="/ner/dashboard/mailbox"
+                    linkTo="/ner/dashboard/ner_mailbox"
                     description="Manage file sensors and upload files"
                 />
                 <CardLink
@@ -27,7 +27,7 @@ function Home() {
             <CardContainer>
                 <CardLink
                     title="Import dataset"
-                    linkTo="/images/dashboard/mailbox"
+                    linkTo="/images/dashboard/image_mailbox"
                     description="Manage file sensors and upload files"
                 />
                 <CardLink
@@ -38,7 +38,7 @@ function Home() {
                 <CardLink
                     title="Process images"
                     linkTo="/images/dashboard/image_process"
-                    description="Process files"
+                    description="Monitor images processing"
                 />
             </CardContainer>
         </>

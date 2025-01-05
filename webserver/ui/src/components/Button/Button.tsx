@@ -10,6 +10,7 @@ type TButtonProps = {
     endIcon?: ReactNode;
     onClick?: React.MouseEventHandler<HTMLButtonElement> | undefined;
     disabled?: boolean | undefined;
+    className?: string | undefined;
 };
 
 function Button({
@@ -19,11 +20,12 @@ function Button({
     endIcon = null,
     onClick = undefined,
     disabled = false,
+    className = undefined,
 }: TButtonProps) {
     return (
         <MuiButton
             variant="outlined"
-            className={s.blockButton}
+            className={className || s.blockButton}
             type={type}
             startIcon={startIcon}
             endIcon={endIcon}

@@ -28,13 +28,25 @@ const headerCells = [
     "DAG run ID",
     "Start date",
     "State",
-    "DAG run Details",
+    "Details",
     "Results",
+    "Worker processes"
 ];
+const tooltips = [
+    "Displays the unique identifier for each DAG run associated with the file splitting process. This helps track individual processing instances.",
+    "Shows the timestamp when the file splitting process for a specific DAG run began.",
+    "Indicates the current status of the DAG run (\"queued\", \"running\", \"success\", \"failed\").",
+    "Click to see additional information about the specific DAG run",
+    "Click the arrow to view the NER processing outcomes.",
+    "Click the button to navigate to the worker process DAG runs, which are invoked multiple times during file splitting to handle each segment. This provides a detailed view of each worker process run."
+ ]
 function NerTransformDashboard() {
     let [searchParams, setSearchParams] = useSearchParams();
     let [dagRuns, setDagRuns] = useState<TDagRunWithParent[]>([]);
     let [areDagRunsLoading, setAreDagRunsLoading] = useState(true);
+    let [isRedirect, setIsRedirect] = useState(false);
+    let [initParentDag, setInitParentDag] = useState<string|null>("");
+
     const form = useForm<TDagRunFilterFields>();
     const { setValue, getValues } = form;
 
@@ -60,6 +72,7 @@ function NerTransformDashboard() {
         e.preventDefault();
         setSearchParams(new URLSearchParams(getValues()).toString());
         setFilters(computeFilters(getValues()));
+        setIsRedirect(initParentDag == searchParams.get("parentDagRunId"));
     };
 
     useEffect(() => {
@@ -75,7 +88,11 @@ function NerTransformDashboard() {
         if (searchParentDagRunId) {
             setValue("parentDagRunId", searchParentDagRunId);
         }
-
+        const isRedirect = searchParams.get("isRedirect");
+        if (isRedirect == "true") {
+            setIsRedirect(true);
+            setInitParentDag(searchParentDagRunId)
+        }
         setFilters(computeFilters(getValues()));
     }, []);
 
@@ -83,14 +100,35 @@ function NerTransformDashboard() {
         fetchDagRuns();
     }, []);
 
+    useEffect(() => {
+        let interval: number;
+        if (filteredDagRuns.length == 0 && isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
+            interval = setInterval(() => {
+                fetchDagRuns();
+            }, 1000)
+        }
+        return () => {
+            if (interval) {
+              clearInterval(interval);
+            }
+          };
+    }, [dagRuns]);
+
+    let filteredDagRuns = dagRuns.filter((item) => {
+        return filters.reduce(
+            (acc, filter) => acc && filter(item),
+            true
+        );
+    })
+
     return (
         <>
             <BackButton to="/" />
-            <h1>NER - batching files</h1>
-            <p>
-                Monitor the process of splitting uploaded JSON files into
-                smaller batches.
-            </p>
+            <h1>NER - spliting files</h1>
+            <p>This dashboard allows you to monitor the file splitting process. </p> 
+            <p>It provides detailed insights into each DAG run, its status, and the processing results.</p> 
+            <p>Multiple worker processes are triggered, each handling a specific segment of the split files. You can effortlessly view both the results and the details of each worker process directly from the table.</p>
+
 
             <div
                 style={{
@@ -116,17 +154,15 @@ function NerTransformDashboard() {
             ) : (
                 <Paper className={s.listContainer}>
                     <DagRunFilterForm form={form} onSubmit={onSubmitFn} />
-                    <Table
-                        header={headerCells}
-                        rows={dagRuns
-                            .filter((item) => {
-                                return filters.reduce(
-                                    (acc, filter) => acc && filter(item),
-                                    true
-                                );
-                            })
-                            .map(getDashboardListCells)}
-                    />
+                    { filteredDagRuns.length > 0 || !isRedirect || initParentDag != searchParams.get("parentDagRunId") ? (                   
+                        <Table
+                            header={headerCells}
+                            tooltips={tooltips}
+                            rows={filteredDagRuns.map(getDashboardListCells)}
+                        />) : (
+                           <p className={s.message}> Selected DAG run is not ready yet, wait few seconds </p>  
+                        )
+                    }
                 </Paper>
             )}
         </>

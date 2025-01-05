@@ -18,6 +18,7 @@ export type TDagRunFilterFields = {
     state: TDagState;
     parentDagRunId: string;
     dagRunId: string;
+    isRedirect: string;
 };
 
 export type TDagRunWithParent = TDagRun & {

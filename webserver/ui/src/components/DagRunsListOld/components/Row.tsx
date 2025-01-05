@@ -9,11 +9,11 @@ type TRowProps = {
     dagId: string;
 };
 
-function Row({ dagRun, dagId }: TRowProps) {
+function Row({ dagRun }: TRowProps) {
     return (
         <>
             <div className={s.dagrunsCell}>
-                <Link to={`/dags/${dagId}/${dagRun.dag_run_id}`}>
+                <Link to={`./${dagRun.dag_run_id}`}>
                     {dagRun.dag_run_id}
                 </Link>
             </div>

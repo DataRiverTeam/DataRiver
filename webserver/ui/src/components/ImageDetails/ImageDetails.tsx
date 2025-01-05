@@ -49,6 +49,11 @@ function ImageDetails() {
                             src={`data:image/png;base64, ${imageDetails.thumbnail}`}
                             loading="lazy"
                         />
+                    ) : imageDetails.error ? (
+                        <img
+                            src="/no_thumbnail_error.svg"
+                            loading="lazy"
+                        />
                     ) : (
                         <img
                             src="/no_thumbnail.svg"
