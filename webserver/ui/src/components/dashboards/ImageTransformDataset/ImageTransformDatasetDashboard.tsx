@@ -55,6 +55,11 @@ function ImageTransformDatasetDashboard() {
         ((dagRun: TDagRunWithParent) => boolean)[]
     >([]);
     //TODO: move fetchDagRuns to utils, since it's repeated in literally every dashboard
+    
+    const notAllSuccess = (dagRuns: TDagRunWithParent[]): boolean => {
+        return dagRuns.some(dagRun => dagRun.state != "success");
+    }
+
     const fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
@@ -100,10 +105,16 @@ function ImageTransformDatasetDashboard() {
 
     useEffect(() => {
         let interval: number;
-        if (filteredDagRuns.length == 0 && isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
-            interval = setInterval(() => {
-                fetchDagRuns();
-            }, 1000)
+        if (isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
+            if (filteredDagRuns.length == 0) {
+                interval = setInterval(() => {
+                    fetchDagRuns();
+                }, 1000)
+            } else if(notAllSuccess(filteredDagRuns)){
+                interval = setInterval(() => {
+                    fetchDagRuns();
+                }, 5000)     
+            }
         }
         return () => {
             if (interval) {
