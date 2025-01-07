@@ -16,7 +16,7 @@ import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { TDagRunFilterFields } from "../../../utils/dags";
 
 import { getDashboardListCells } from "./helpers";
-import { computeFilters, compareStartDateDesc } from "../../../utils/dashboard";
+import { computeFilters, compareStartDateDesc, notAllSuccess } from "../../../utils/dashboard";
 import { isValidDagRunState } from "../../../types/airflow";
 
 import s from "../dashboards.module.css";
@@ -53,10 +53,6 @@ function NerTransformDashboard() {
     let [filters, setFilters] = useState<
         ((dagRun: TDagRunWithParent) => boolean)[]
     >([]);
-
-    const notAllSuccess = (dagRuns: TDagRunWithParent[]): boolean => {
-        return dagRuns.some(dagRun => dagRun.state != "success");
-    }
 
     const fetchDagRuns = async () => {
         try {
