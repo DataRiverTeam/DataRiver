@@ -53,3 +53,7 @@ export function computeFilters(values: TDagRunFilterFields) {
 export function compareStartDateDesc(a: TDagRun, b: TDagRun) {
     return b.start_date.localeCompare(a.start_date);
 }
+
+export function notAllSuccess(dagRuns: TDagRunWithParent[]){
+    return dagRuns.some(dagRun => dagRun.state != "success");
+}

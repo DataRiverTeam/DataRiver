@@ -6,6 +6,7 @@ import s from "../dashboards.module.css";
 import { TDagRunWithParent } from "../../../utils/dags";
 import clsx from "clsx";
 import { getStatusStyleClass } from "../../../utils/dashboard";
+import { Tooltip } from "@mui/material";
 
 export function getDashboardListCells(
     dagRun: TDagRunWithParent
@@ -28,15 +29,25 @@ export function getDashboardListCells(
             </Link>
         </div>,
         <div className={s.cellAlignCenter}>
-            <Link
+            { dagRun.state == "success" ? (                
+                <Link
                 to={`/ner/search?&map-file-run-id=${encodeURIComponent(
                     dagRun.dag_run_id
                 )}`}
-            >
-                <IconButton aria-label="DAG run results">
-                    <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
-                </IconButton>
-            </Link>
+                >
+                    <IconButton aria-label="DAG run results">
+                        <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
+                    </IconButton>
+                </Link>
+            ) : (        
+                <Tooltip title="Only dags with state 'success' has results">
+                    <ArrowForwardIosIcon sx={{ 
+                            fontSize: 12, 
+                            color: 'gray',  
+                            opacity: 0.5    
+                    }} />
+                </Tooltip>          
+            )}   
         </div>,
             <div className={s.cellAlignCenter}>
             <Link
