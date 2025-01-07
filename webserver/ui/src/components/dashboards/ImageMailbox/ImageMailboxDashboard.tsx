@@ -153,6 +153,12 @@ function ImageMailboxDashboard() {
                     alert("Files uploaded sucessfully!");
                     setIsFileUploaded(true)
                     fetchDagRuns();
+                    setTimeout(() => {
+                        window.scrollTo({
+                          top: document.body.scrollHeight,
+                          behavior: 'smooth',
+                        });
+                      }, 0);
                 }}
             />
             {isFileUploaded && recentActiveDag? (
