@@ -41,7 +41,11 @@ export function getDashboardListCells(
                 </Link>
             ) : (        
                 <Tooltip title="Only dags with state 'success' has results">
-                    <ArrowForwardIosIcon sx={{ fontSize: 12 }} />
+                    <ArrowForwardIosIcon sx={{ 
+                        fontSize: 12, 
+                        color: 'gray',  
+                        opacity: 0.5    
+                    }} />
                 </Tooltip>          
             )}  
         </div>,
