@@ -25,6 +25,8 @@
     padding: 12px;
     gap: 0.8rem;
     width: 300px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.4px;
 }
 
 .filtersItem {

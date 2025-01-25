@@ -42,7 +42,6 @@ function ImageMailboxDashboard() {
     let [recentActiveDag, setRecentActiveDag] = useState<TDagRun | null>(null);
     let [isFileUploaded, setIsFileUploaded] = useState<boolean>(false);
 
-
     let fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
@@ -87,19 +86,22 @@ function ImageMailboxDashboard() {
             </DialogWindow>
             <h1>Image processing - mailbox</h1>
             <p>
-            Welcome to the image processing mailbox dashboard. Here, you can activate the sensor to initiate the detection of uploaded files.
+                Welcome to the image processing mailbox dashboard. Here, you can
+                activate the sensor to initiate the detection of uploaded files.
             </p>
             <p>
-            Once a file is successfully detected, the system will perform several tasks on the detected images:
+                Once a file is successfully detected, the system will perform
+                several tasks on the detected images:
             </p>
             <ul>
-            <li>Extract metadata</li>
-            <li>Generate a descriptive summary</li>
-            <li>Create a thumbnail for quick preview</li>
-            <li>Generate a perceptual hash for efficient identification</li>
+                <li>Extract metadata</li>
+                <li>Generate a descriptive summary</li>
+                <li>Create a thumbnail for quick preview</li>
+                <li>Generate a perceptual hash for efficient identification</li>
             </ul>
             <p>
-            After uploading a file,, a button will appear to guide you to the next dashboard for further processing details
+                After uploading a file, a button will appear to guide you to the
+                next dashboard for further processing details
             </p>
             <h2> Sensor status </h2>
             {!isLoading ? (
@@ -151,21 +153,26 @@ function ImageMailboxDashboard() {
                 directory={mailboxUploadPath}
                 onSuccess={() => {
                     alert("Files uploaded sucessfully!");
-                    setIsFileUploaded(true)
+                    setIsFileUploaded(true);
                     fetchDagRuns();
                 }}
             />
-            {isFileUploaded && recentActiveDag? (
-            <div className={s.cellAlignCenter}>
-                <LinkButton
-                    className={s.nextButton}
-                    to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(recentActiveDag!.dag_run_id)}&isRedirect=true`}
-                    relative="path"
-                >
-                    Track processing &nbsp;<ArrowForwardIosIcon sx={{ fontSize: 14 }} />
-                </LinkButton>
-            </div>
-            ) : <></>}
+            {isFileUploaded && recentActiveDag ? (
+                <div className={s.cellAlignCenter}>
+                    <LinkButton
+                        className={s.nextButton}
+                        to={`../image_transform_dataset?parentDagRunId=${encodeURIComponent(
+                            recentActiveDag!.dag_run_id
+                        )}&isRedirect=true`}
+                        relative="path"
+                    >
+                        Track processing &nbsp;
+                        <ArrowForwardIosIcon sx={{ fontSize: 14 }} />
+                    </LinkButton>
+                </div>
+            ) : (
+                <></>
+            )}
         </>
     );
 }
