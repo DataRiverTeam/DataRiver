@@ -15,7 +15,7 @@ import { TDagRunWithParent } from "../../../utils/dags";
 import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { TDagRunFilterFields } from "../../../utils/dags";
 import { getDashboardListCells } from "./helpers";
-import { compareStartDateDesc, computeFilters } from "../../../utils/dashboard";
+import { compareStartDateDesc, computeFilters, notAllSuccess } from "../../../utils/dashboard";
 import { isValidDagRunState } from "../../../types/airflow";
 import s from "../dashboards.module.css";
 
@@ -100,10 +100,16 @@ function ImageTransformDatasetDashboard() {
 
     useEffect(() => {
         let interval: number;
-        if (filteredDagRuns.length == 0 && isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
-            interval = setInterval(() => {
-                fetchDagRuns();
-            }, 1000)
+        if (isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
+            if (filteredDagRuns.length == 0) {
+                interval = setInterval(() => {
+                    fetchDagRuns();
+                }, 1000)
+            } else if(notAllSuccess(filteredDagRuns)){
+                interval = setInterval(() => {
+                    fetchDagRuns();
+                }, 5000)     
+            }
         }
         return () => {
             if (interval) {

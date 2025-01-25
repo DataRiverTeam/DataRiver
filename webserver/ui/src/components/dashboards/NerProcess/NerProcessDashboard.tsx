@@ -16,7 +16,7 @@ import { ApiClient, TDagRunsCollectionResponse } from "../../../utils/api";
 import { TDagRunFilterFields } from "../../../utils/dags";
 
 import { getDashboardListCells } from "./helpers";
-import { computeFilters, compareStartDateDesc } from "../../../utils/dashboard";
+import { computeFilters, compareStartDateDesc, notAllSuccess } from "../../../utils/dashboard";
 import { isValidDagRunState } from "../../../types/airflow";
 
 import s from "../dashboards.module.css";
@@ -60,6 +60,7 @@ function NerProcessDashboard() {
             true
         );
     })
+
     const fetchDagRuns = async () => {
         try {
             const json: TDagRunsCollectionResponse = await client.getDagRuns(
@@ -109,10 +110,16 @@ function NerProcessDashboard() {
 
     useEffect(() => {
         let interval: number;
-        if (filteredDagRuns.length == 0 && isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
-            interval = setInterval(() => {
-                fetchDagRuns();
-            }, 1000)
+        if (isRedirect && initParentDag == searchParams.get("parentDagRunId")) {
+            if (filteredDagRuns.length == 0) {
+                interval = setInterval(() => {
+                    fetchDagRuns();
+                }, 1000)
+            } else if(notAllSuccess(filteredDagRuns)){
+                interval = setInterval(() => {
+                    fetchDagRuns();
+                }, 5000)     
+            }
         }
         return () => {
             if (interval) {
